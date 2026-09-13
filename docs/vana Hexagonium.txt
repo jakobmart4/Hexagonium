@@ -1,0 +1,422 @@
+HEXAGONIUM — MVP SPEC (LÕPLIK, EHITUSE ALUSDOKUMENT)
+Versioon: 1.0 FINAL
+Staatus: Kinnitatud, kodeerimiseks valmis
+========================================================================
+
+MUUDATUSTE LOGI
+------------------------------------------------------------------------
+v1.0 FINAL:
+- Parandatud sisemine vastuolu Energy Leak peatumislävis.
+  Varasemas versioonis oli kaks erinevat väärtust (800/1000 vs "alla 20%").
+  LÕPLIK OTSUS: lävi on 80% (currentEnergy < 800), vastavalt Power Core
+  punktile ja juba kirjutatud Constants.lua failile. "Alla 20%" sõnastus
+  oli vana jääktekst ja on eemaldatud.
+
+
+========================================================================
+1. MÄNGU TUUMIDEE
+========================================================================
+
+Hexagonium on run-põhine tycoon-mäng, mis ühendab kolm põhikomponenti:
+
+  1. Tycoon-baasi ehitus kuusnurksel (hex) ruudustikul
+  2. Reality Cards — kaardid, mis muudavad jooksvalt mängureegleid,
+     biome-efekte ja hoonete käitumist
+  3. Run-süsteem — lühikesed, korduvad sessioonid koos püsiva
+     meta-progressiooniga
+
+Mängija ehitab, katsetab, kohandab ja kordab, otsides optimaalseid
+kombinatsioone hoonete, kaartide ja fraktsioonide vahel.
+
+
+========================================================================
+2. MVP SCOPE (KINNITATUD)
+========================================================================
+
+HOONED (5):
+  - Extractor
+  - Power Core
+  - Refinery
+  - Assembler
+  - Defender
+
+KAARDID (10):
+  - Overclock
+  - Flux Tide
+  - Blessed Hex
+  - Fracture Pact
+  - Mirror World
+  - Null Surge
+  - Resource Bloom
+  - Energy Leak
+  - Hex Mutation: Wild
+  - Hex Mutation: Stable
+
+FRAKTSIOONID (1):
+  - Fracture Syndicate
+
+RESSURSITÜÜBID (3):
+  - Ore
+  - Crystal
+  - Alloy
+  (Hilisematesse versioonidesse jäävad: biomass, bio-compound, flux,
+   essence, anomaly shards)
+
+UI:
+  - Ressursid
+  - Kaardid
+  - Hoonete menüü
+  - Minimap
+
+TUTORIAL (2-3 minutit):
+  Extractor -> Power Core -> kaardi aktiveerimine -> rünnaku kogemine
+  (vajadusel + 10-15 sek energiaahela selgitav samm, vt punkt 3.6)
+
+
+========================================================================
+3. HOONETE PROFIILID
+========================================================================
+
+3.1 EXTRACTOR
+------------------------------------------------------------------------
+Tootmine sõltub hex-tüübist, millel hoone asub:
+
+  Ore Hex     -> 5 ore / 5 sekundi kohta
+  Crystal Hex -> 3 crystal / 5 sekundi kohta
+
+Iga Extractor toodab AINULT ÜHTE ressurssi, vastavalt hexi tüübile.
+Extractor ei saa toota mõlemat korraga.
+
+
+3.2 POWER CORE
+------------------------------------------------------------------------
+  maxEnergyStorage        = 1000
+  currentEnergy           = 1000 (run'i alguses, täis)
+  Toodab energiat crystalist (sisend läbi node-süsteemi)
+
+  Energy Leak kaardi mõju (kui aktiivne):
+    currentEnergy = currentEnergy * 0.95   iga 30 sekundi järel
+    Ei stacki iseendaga.
+
+  Peatumistingimus:
+    KUI currentEnergy < 800 (80% maxEnergyStorage'ist):
+      -> Power Core peatub 10 sekundiks
+      -> peatuse ajal tootmine = 0
+    Taastudes täidab varu tagasi kuni maxEnergyStorage (1000).
+
+  MÄRKUS: See on ainuke lävi kogu süsteemis (80% / 800 energiat).
+  Vt "Muudatuste logi" - varasem "alla 20%" sõnastus on kehtetu.
+
+
+3.3 REFINERY
+------------------------------------------------------------------------
+  Töötleb ore -> alloy
+  OreToAlloyRate     = 1 (1 ühik ore kohta väljundis, konfigureeritav)
+  OreToAlloyInterval = 5 sekundit
+
+
+3.4 ASSEMBLER
+------------------------------------------------------------------------
+  Kasutab alloyd hoonete uuenduste jaoks
+  AlloyConsumptionRate     = 1
+  AlloyConsumptionInterval = 5 sekundit
+
+
+3.5 DEFENDER
+------------------------------------------------------------------------
+  Sisend:
+    energyCost     = 10 energiat
+    costInterval   = 5 sekundi järel
+    Ei kasuta ore't, crystalit ega alloyd MVP-s.
+
+  Väljund:
+    defensePoints  = 25
+    radius         = 3 hexi
+    fireInterval   = 1 sekund (rünnaku ajal)
+
+  Käitumine:
+    - Aktiveerub automaatselt rünnaku alguses (mängija ei käivita käsitsi)
+    - Kui Power Core peatub (Energy Leak vms tõttu) -> Defender peatub
+    - Ühendus Power Core'iga on otsene sõltuvus, mitte node-põhine
+      ressursivool (energia loetakse otse PowerCore:ConsumeEnergy() kaudu)
+
+
+3.6 SÕLTUVUSAHEL (TÄHTIS - JÄLGIMIST VAJAV, MITTE TÄPSUSTAMIST VAJAV)
+------------------------------------------------------------------------
+  Crystal Hex -> Extractor -> Power Core -> energia-puhver -> Defender
+
+  See ahel annab mängule strateegilise sügavuse, kuid MVP playtestis
+  tuleb kontrollida, kas mängija mõistab intuitiivselt:
+    a) Defender ei tööta ilma energiata
+    b) Energia tuleb Power Core'ist
+    c) Power Core vajab crystalit
+    d) Crystal tuleb Extractorist, mis peab olema Crystal Hex'il
+
+  KUI playtestis mängijad jäävad hätta:
+    -> lisada tutoriali üks 10-15 sekundiline samm:
+       "Defender vajab energiat. Energia tuleb Power Core'ist.
+        Power Core vajab crystalit."
+
+  See on testimisküsimus, MITTE disainipuudujääk. Kood ehitatakse
+  praeguse spec'i järgi; tutoriali samm lisatakse vajadusel hiljem.
+
+
+========================================================================
+4. RESSURSIVOO SÜSTEEM (NODE-PÕHINE)
+========================================================================
+
+  - Iga hoone omab InputNode ja OutputNode punkte
+  - Mängija ühendab hooned klõpsates (hoone -> hoone)
+  - Lubatud ühendustüübid:
+      1-to-many    (üks hoone saadab mitmele)
+      many-to-1    (mitu hoonet saadavad ühele)
+      many-to-many (kombinatsioon)
+
+  - Prioriteet:
+      Ressurss liigub prioriteedi järgi, MITTE juhuslikult.
+      Prioriteet = ühenduse loomise järjekord.
+      Esimesena loodud ühendus = kõrgeim prioriteet.
+
+  - Tick-süsteem:
+      Ressursid liiguvad iga 1 sekundi järel.
+      Tick on SERVERIPOOLNE, ei sõltu kliendi FPS-ist.
+
+  - Katkemine hoone hävimisel:
+      Kõik ühendused kustutatakse koheselt.
+      Ressursivool peatub jäädavalt (kuni uus ühendus luuakse).
+
+  - Katkemine ajutisel peatumisel (Overheat, Null Surge lag, jne):
+      Ühendused JÄÄVAD ALLES.
+      Ressursivool peatub ajutiselt, taastub automaatselt peatuse lõppedes.
+
+  - Visuaal:
+      Lihtsad jooned või nooled, mis näitavad voolu suunda.
+      EI kasutata torude mesh'e ega pathfinding-loogikat.
+
+
+========================================================================
+5. KAARTIDE TÄPNE MATEMAATIKA (10 MVP KAARTI)
+========================================================================
+
+5.1 OVERCLOCK (Rule Card)
+------------------------------------------------------------------------
+  Tootmiskiirus:        baseRate * 2.5
+  Ülekuumenemise kontroll: hoonepõhine (mitte globaalne)
+  Kontrolli intervall:  60 sekundit
+  Ülekuumenemise tõenäosus: 5%
+  Tagajärg:              hoone peatub 20 sekundiks
+  Tõenäosus EI KASVA ajas.
+
+
+5.2 FLUX TIDE (Cycle Card)
+------------------------------------------------------------------------
+  Tsükkel:              iga 180 sekundi järel
+  Boonusfaas:           +50% energia tootmine, 30 sekundit
+  Karistusfaas (kohe pärast boonust): -30% energia tootmine, 60 sekundit
+  Ülejäänud aeg:        normaalne tootmine
+  Ei stacki iseendaga.
+
+
+5.3 BLESSED HEX (Hex Mutation)
+------------------------------------------------------------------------
+  Valitud hex annab kõigile sellel hexil asuvatele hoonetele
+  +10% efektiivsust.
+
+
+5.4 FRACTURE PACT (Faction Card)
+------------------------------------------------------------------------
+  Fraktsioon nõuab 10% kogu tootmisest (ore + crystal).
+  Keeldumine -> fraktsioon läheb Hostile olekusse -> Attack 30 sek hiljem.
+  Nõustumine -> fraktsioon läheb Trade olekusse, kestab 60 sekundit.
+
+
+5.5 MIRROR WORLD (Rule Card)
+------------------------------------------------------------------------
+  Kõik biome-efektid pööratakse ümber:
+    Blessed Hex -> -10% (tavaliselt +10%)
+    Wild Hex    -> +10% (tavaliselt +20%, siin ümberpööratud baasefekt)
+    Stable Hex  ->  0%  (tavaliselt +10%)
+  Globaalne tootmiskiirus:  baseRate * 0.9
+  Globaalne kaitse:         baseDefense * 1.1
+
+
+5.6 NULL SURGE (Event Card)
+------------------------------------------------------------------------
+  Aktiveerub iga 240 sekundi järel.
+  Efektifaas (10 sekundit):
+    - kõik hooned ignoreerivad sisendressursse
+    - tootmine = baseRate * 3
+  Lag-periood (5 sekundit, kohe pärast efektifaasi):
+    - tootmine = 0
+
+  INTERAKTSIOON OVERCLOCKIGA:
+    - Null Surge ignoreerib Overclocki ülekuumenemismehaanikat
+    - Overclock EI AKTIVEERU Null Surge efektifaasi ajal
+    - Null Surge lag-periood (5 sek) peatab Overclocki efekti üleüldiselt
+
+
+5.7 RESOURCE BLOOM (Rule Card)
+------------------------------------------------------------------------
+  Extractor:   +25% tootmine
+  Refinery:    +10% tootmine
+  Assembler:   +5% tootmine
+  Energiatootmine (Power Core) EI MUUTU.
+  Efekt on PÜSIV kogu run'i vältel (ei aegu).
+
+
+5.8 ENERGY LEAK (Rule Card)
+------------------------------------------------------------------------
+  Power Core kaotab 5% energiat iga 30 sekundi järel:
+    currentEnergy = currentEnergy * 0.95
+
+  Peatumistingimus:
+    KUI currentEnergy < 800 (80% maxEnergyStorage'ist):
+      -> Power Core peatub 10 sekundiks
+
+  Ei stacki iseendaga.
+  Energiakadu peatub (kaart lakkab mõjumast), kui Power Core on
+  jõudnud tagasi üle 80% täituvuse (st täitunud üle läve).
+
+  (Vt "Muudatuste logi" ülal - see on lõplik, korrigeeritud versioon.)
+
+
+5.9 HEX MUTATION: WILD
+------------------------------------------------------------------------
+  Määratud hex annab sellel asuvale hoonele:
+    +20% tootlikkust
+    10% tõenäosus iga 45 sekundi järel, et hoone peatub 5 sekundiks
+  Efekt rakendub AINULT sellele hexile.
+
+
+5.10 HEX MUTATION: STABLE
+------------------------------------------------------------------------
+  Määratud hex annab sellel asuvale hoonele:
+    +10% tootlikkust
+    0% rikke tõenäosus (täiesti stabiilne)
+  Efekt rakendub AINULT sellele hexile.
+
+
+========================================================================
+6. FRAKTSIOONI OLEKUMASIN — FRACTURE SYNDICATE
+========================================================================
+
+OLEKUD (järjekord, tüüpiline liikumistee):
+
+  Neutral -> Friendly -> Trade -> Demand -> Hostile -> Attack -> Recover
+
+ÜLEMINEKUD:
+  Koostöö (missiooni täitmine)     -> Friendly
+  Missiooni täitmine               -> Trade
+  Pakkumise ignoreerimine          -> Demand
+  Demand ignoreeritud              -> Hostile
+  Demand'ist keeldutud             -> Hostile -> Attack (30 sek hiljem)
+  Rünnaku (Attack) lõpp            -> Recover -> Neutral
+
+
+DEMAND OLEKU TÄPSED TINGIMUSED:
+------------------------------------------------------------------------
+  Nõutav kogus:     50 ore + 20 crystal
+  Tähtaeg:          30 sekundit
+
+  Kui mängija TÄIDAB nõude enne tähtaega:
+    -> fraktsioon liigub Friendly olekusse
+    -> mängija saab 1 tasuta kaardi
+
+  Kui mängija IGNOREERIB nõuet (tähtaeg möödub):
+    -> fraktsioon liigub Hostile olekusse
+
+  Kui mängija KEELDUB nõudest aktiivselt:
+    -> fraktsioon liigub Hostile olekusse
+    -> Attack käivitub 30 sekundit hiljem
+
+
+========================================================================
+7. TEHNILINE ARHITEKTUUR (FAILISTRUKTUUR)
+========================================================================
+
+ServerScriptService/
+  Core/
+    GameManager.lua       - run'i elutsükkel, seed, meta-progress
+    TickService.lua       - 1s server-tick, kõik ressursivood siit
+  Buildings/
+    BuildingBase.lua       - ühine input/output/pause/destroy loogika
+    Extractor.lua
+    PowerCore.lua
+    Refinery.lua
+    Assembler.lua
+    Defender.lua
+  Cards/
+    CardBase.lua
+    CardEffects/            - iga kaart eraldi moodul (OnActivate/OnTick/OnDeactivate)
+    CardManager.lua         - aktiivsed kaardid, interaktsioonide haldus
+  Resources/
+    NodeSystem.lua          - ühendused, prioriteet, ressursivool, tick
+    ResourceTypes.lua       - ore/crystal/alloy konstandid (viide Constants.lua'le)
+  Factions/
+    FactionStateMachine.lua
+    FractureSyndicate.lua
+  Hex/
+    HexGrid.lua              - axial-grid, adjacency, hex-tüübid, mutatsioonid
+
+ReplicatedStorage/
+  Shared/
+    Constants.lua             - KÕIK balance-arvud ühes kohas
+    RemoteEvents.lua
+  UI/
+    HUD.lua
+
+StarterGui/
+  MainUI/                     - HUD, kaardipakk, minimap
+
+PÕHIMÕTTED:
+  - Constants.lua on AINUS koht, kus balance-arvud elavad. Muudatused
+    tehakse ainult seal, mitte hajutatult koodi sees.
+  - BuildingBase pärimine tagab, et kõik hooned jagavad sama
+    input/output/pause/destroy loogikat.
+  - Iga kaart on eraldi moodul selge API-ga (OnActivate, OnTick,
+    OnDeactivate), mis lihtsustab interaktsioonide (nt Null Surge
+    vs Overclock) haldamist ilma spagetikoodita.
+
+
+========================================================================
+8. STAATUS
+========================================================================
+
+Kõik disainiotsused on tehtud ja sisemiselt kooskõlalised:
+
+  [x] Tycoon-baasi ehitus
+  [x] Node-põhine ressursivool
+  [x] 5 hoonet (profiilid, sisend/väljund)
+  [x] 10 kaarti (täielik matemaatika)
+  [x] 1 fraktsioon (olekumasin + Demand tingimused)
+  [x] 3 ressursitüüpi
+  [x] Hex-tüübid (Ore Hex, Crystal Hex)
+  [x] Energiamehaanika (Power Core puhver + Energy Leak, lävi
+      korrigeeritud ja ühtlustatud: 80% / 800 energiat)
+  [x] Kaitsesüsteem (Defender <-> energia sõltuvus)
+  [x] Run-süsteem
+  [x] Tutoriali struktuur
+  [x] Failistruktuur ja moodulite jaotus
+  [x] Kõik kaartide interaktsioonid (Null Surge vs Overclock)
+  [x] Node-süsteemi prioriteedid ja ühenduste reeglid
+
+AINUS AVATUD PUNKT (testimisküsimus, mitte disainiküsimus):
+  Sõltuvusahela (Crystal Hex -> Extractor -> Power Core -> Defender)
+  arusaadavus playtestis. Lahendus valmis (tutoriali lisasamm),
+  rakendatakse ainult vajadusel.
+
+SPEC ON 100% VALMIS JA KODEERIMISEKS KINNITATUD.
+
+Juba kirjutatud koodifailid (vastavad sellele spec'ile):
+  - ReplicatedStorage/Shared/Constants.lua
+  - ServerScriptService/Hex/HexGrid.lua
+  - ServerScriptService/Buildings/BuildingBase.lua
+  - ServerScriptService/Buildings/Extractor.lua
+  - ServerScriptService/Buildings/PowerCore.lua
+
+Järgmisena kirjutatavad failid:
+  - ServerScriptService/Buildings/Refinery.lua
+  - ServerScriptService/Buildings/Assembler.lua
+  - ServerScriptService/Buildings/Defender.lua
+  - ServerScriptService/Resources/NodeSystem.lua
+  - ServerScriptService/Core/TickService.lua

@@ -1,0 +1,69 @@
+## File: `StarterPlayer.StarterPlayerScripts.DroneCamera` studio AI help.
+
+### Change 1 — Add a targeting flag helper (after line 41, near other state variables)
+
+```lua
+local function isTargeting()
+    local flag = player.PlayerGui and player.PlayerGui:FindFirstChild("HexagoniumTargeting")
+    return flag ~= nil and flag.Value == true
+end
+```
+
+### Change 2 — Add right-click as an orbit trigger in `InputBegan` (around line 99-105)
+
+Replace this block:
+
+```lua
+local isMiddle = input.UserInputType == Enum.UserInputType.MouseButton3
+local isAltLeft = input.UserInputType == Enum.UserInputType.MouseButton1 and altHeld()
+
+if isMiddle or isAltLeft then
+    isOrbiting = true
+    UserInputService.MouseBehavior = Enum.MouseBehavior.LockCurrentPosition
+end
+```
+
+With:
+
+```lua
+local isMiddle = input.UserInputType == Enum.UserInputType.MouseButton3
+local isAltLeft = input.UserInputType == Enum.UserInputType.MouseButton1 and altHeld()
+local isRight = input.UserInputType == Enum.UserInputType.MouseButton2 and not isTargeting()
+
+if isMiddle or isAltLeft or isRight then
+    isOrbiting = true
+    UserInputService.MouseBehavior = Enum.MouseBehavior.LockCurrentPosition
+end
+```
+
+### Change 3 — Add right-click release to `InputEnded` (around line 116-123)
+
+Replace:
+
+```lua
+if input.UserInputType == Enum.UserInputType.MouseButton3
+    or input.UserInputType == Enum.UserInputType.MouseButton1
+then
+```
+
+With:
+
+```lua
+if input.UserInputType == Enum.UserInputType.MouseButton3
+    or input.UserInputType == Enum.UserInputType.MouseButton1
+    or input.UserInputType == Enum.UserInputType.MouseButton2
+then
+```
+
+---
+
+## Why this works
+
+- **Right-click on empty space**: DroneCamera starts orbiting. ContextMenu's handler also fires but finds no building under the cursor, so it just calls `closeMenu()` and returns — no conflict.
+- **Right-click on a building**: Both DroneCamera orbit and ContextMenu menu open. The menu appears at the cursor, and the orbit is harmless since the player is interacting with the menu. If this is undesirable, you can add a raycast check in DroneCamera to skip orbit when a building is under the cursor.
+- **Right-click during building placement**: `isTargeting()` returns true, so DroneCamera skips orbit. BuildMenu's handler catches it and cancels placement.
+- **Middle mouse and Alt+Left**: Still work exactly as before.
+
+## No changes needed to ContextMenu or BuildMenu
+
+They already handle right-click correctly for their respective cases.

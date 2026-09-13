@@ -1,0 +1,549 @@
+HEXAGONIUM — PEADOKUMENT
+Versioon: 4.0
+Kuupäev: 11. september 2026
+Place: Hexagonium (placeId: 104026897810299)
+
+SEE FAIL ASENDAB KÕIK VARASEMAD DOKUMENDID.
+Allikas on alati KOOD. See dokument selgitab, miks kood on selline.
+
+========================================================================
+SISUKORD
+========================================================================
+  1.  Mängu tuumidee ja staatus
+  2.  Mängutsükkel
+  3.  Hoonete profiilid
+  4.  Ressursivoo süsteem
+  5.  Kaardid (10)
+  6.  Fraktsioon ja rünnakud
+  7.  Saar, ookean ja laiendus
+  8.  Salvestamine
+  9.  Exploit-kaitsed
+  10. Mängija juhtimine
+  11. Failistruktuur
+  12. Arenduse konventsioonid
+  13. Roblox'i lõksud, mille otsa oleme jooksnud
+  14. Otsused, mis erinevad algsest spec'ist
+  15. Teadaolev võlg
+  16. Roadmap
+
+
+========================================================================
+1. MÄNGU TUUMIDEE JA STAATUS
+========================================================================
+
+Hexagonium on run-põhine tycoon, mis ühendab kolm süsteemi:
+  1. Tycoon-baasi ehitus hex-ruudustikul saarel keset ookeani
+  2. Reality Cards — kaardid, mis muudavad jooksvalt mängureegleid
+  3. Run-süsteem — lühikesed sessioonid + püsiv meta-progressioon
+
+STAATUS: MÄNGITAV. Tuumtsükkel, konflikt ja püsivus on olemas.
+
+VALMIS
+  [x] Hex-saar ookeanis, müra-põhine ressursijaotus
+  [x] 5 hoonet täieliku tootmisloogikaga
+  [x] Node-põhine ressursivoog prioriteetidega
+  [x] 10 Reality Card'i + exploit-kaitsed
+  [x] Saare laiendus kahel tasandil
+  [x] Fraktsioon (olekumasin + Demand)
+  [x] Rünnakusüsteem (ründajad, Defenderi tuli, hoonete hävimine)
+  [x] Minimap
+  [x] Salvestamine (DataStore)
+  [x] Täielik mängija-UI
+
+PUUDUB
+  [ ] Hoonete hinnad
+  [ ] Run-süsteem (algus/lõpp, Hex Seed)
+  [ ] Tutorial
+  [ ] Tasakaalustamine
+
+
+========================================================================
+2. MÄNGUTSÜKKEL
+========================================================================
+
+  Crystal Hex -> Extractor -> Power Core -> energia -> Defender
+  Ore Hex     -> Extractor -> Refinery -> Alloy -> Assembler
+                                                -> UpgradePoints
+                                                -> saare laiendus
+
+Iga hoonetüüp on vajalik. Assembler toodab valuutat.
+
+AJALINE SURVE: Fracture Syndicate esitab nõude iga 150 sekundi järel.
+Maksad või valmistud rünnakuks. Rünnak hävitab hooneid päriselt.
+
+
+========================================================================
+3. HOONETE PROFIILID
+========================================================================
+
+3.1 EXTRACTOR
+    Ore Hex     -> 5 ore / 5 sek
+    Crystal Hex -> 3 crystal / 5 sek
+    Peab olema ressursi-hexil (server valideerib).
+
+3.2 POWER CORE
+    MaxEnergyStorage = 1000, algus täis
+    EnergyPerCrystal = 50          <- EI OLNUD ALGSES SPEC'IS
+    Energy Leak: energia *= 0.95 iga 30 sek, alla 800 -> seisak 10 sek
+
+3.3 REFINERY      ore -> alloy, 1 ühik / 5 sek
+3.4 ASSEMBLER     alloy -> upgradePoints, 1 ühik / 5 sek
+
+3.5 DEFENDER
+    Sisend: 10 energiat / 5 sek (OTSE Power Core'ist, mitte node'i kaudu)
+    25 kahju / sek, raadius 3 hexi
+    Power Core seisab -> Defender seisab
+    Seotakse automaatselt lähima Power Core'iga
+
+3.6 ELUPUNKTID (kõigil hoonetel)
+    100 HP, taastub 2/sek, kui pole 15 sekundit kahju saanud
+    0 HP -> hoone hävib, ühendused kustuvad
+
+
+========================================================================
+4. RESSURSIVOO SÜSTEEM
+========================================================================
+
+  - Mängija ühendab klõpsates (allikas -> sihtmärk)
+  - Lubatud: 1-to-many, many-to-1, many-to-many
+  - Prioriteet = loomise järjekord (nähtav numbrina joonel)
+  - Ressursid liiguvad iga 1 sek, serveripoolne tick, FPS-sõltumatu
+  - Hoone hävimisel ühendused kustuvad koheselt
+
+ÜHILDUVUS (BuildingInfo.lua — üks allikas serverile ja kliendile):
+    Extractor  väljastab  Variable (sõltub hexist)
+    Refinery   väljastab  Alloy,    võtab vastu Ore
+    PowerCore  võtab vastu Crystal
+    Assembler  võtab vastu Alloy
+    Defender   ei osale node-süsteemis
+
+SAMA KANAL TEEB MÕLEMAT: sama paari uuesti klõpsamine katkestab.
+VISUAAL: Beam liikuva tekstuuriga, värv = ressursi värv.
+
+
+========================================================================
+5. KAARDID (10)
+========================================================================
+
+KOMBINEERIMINE: multiplikaatorid KORRUTUVAD.
+SCOPE: "global" | "hex" | "buildingType".
+KESTUS: kord aktiveeritud -> aktiivne kuni run'i lõpuni.
+
+  Overclock      2.5x tootmine; iga 60s 5% shanss -> 20s seisak
+  Flux Tide      iga 180s: +50% energia 30s, siis -30% energia 60s
+  Blessed Hex    valitud hex +10%
+  Fracture Pact  fraktsioon nõuab 10% ore/crystal toodangust
+  Mirror World   biome-efektid pööratud; tootmine 0.9x, kaitse 1.1x
+  Null Surge     iga 240s: 10s 3x ja sisendid ignoreeritud, siis 5s seisak
+  Resource Bloom Extractor +25%, Refinery +10%, Assembler +5%, püsiv
+  Energy Leak    lülitab sisse Power Core lekke
+  Wild Hex       hex +20%, iga 45s 10% shanss -> 5s seisak
+  Stable Hex     hex +10%, 0% rikkeid
+
+TÄHTIS: kirjeldused mängijale GENEREERITAKSE Constants'ist
+(CardInfo.lua). Balansi muutmisel muutub ka mängija nägev tekst.
+
+
+========================================================================
+6. FRAKTSIOON JA RÜNNAKUD
+========================================================================
+
+6.1 OLEKUD
+    Neutral -> Friendly -> Trade -> Demand -> Hostile -> Attack -> Recover
+
+6.2 DEMAND
+    Nõuab 50 ore + 20 crystal, tähtaeg 30 sek
+    Täidetud     -> Friendly (60 sek) + 1 tasuta kaart
+    Ignoreeritud -> Hostile
+    Keeldutud    -> Hostile -> Attack 30 sek hiljem
+
+    Maksmine käib ResourceLedger kaudu: korjab ressursid kokku
+    hoonete puhvritest, KÕIK-VÕI-MITTE-MIDAGI.
+
+6.3 AJASTUS
+    Neutral: uus nõue 150 sek järel
+    Attack kestab 20 sek, Recover 30 sek
+
+    Mängija näeb iga oleku juures pöördloendust koos selgitusega
+    ("ATTACK IN 30s", "Next demand in 131s"). Ilma selleta tundub
+    rünnak ebaaus, mitte pingeline.
+
+6.4 RÜNNAKUD
+    Laine suurus: 3 ründajat + 1 iga saare raadiuse ühiku kohta
+    üle algse, maksimum 10.
+    Ründaja: 60 HP, 20 kahju iga 2 sek, 6 studi/sek
+    Ilmuvad saare servalt, valivad lähima hoone.
+
+    Defenderid tulistavad lähimat ründajat raadiuses. Sihtmärgi
+    valik on AttackManageris, mitte tornis — nii ei pea Defender
+    ründajatest midagi teadma.
+
+    Tasakaal praeguste arvudega:
+      Ründaja tapmiseks: 3 lasku = 3 sekundit
+      Hoone hävitamiseks: 5 lööki = 10 sekundit
+    Üks Defender jõuab tappa ründaja enne hoone hävimist — aga
+    ainult siis, kui tal on energiat.
+
+
+========================================================================
+7. SAAR, OOKEAN JA LAIENDUS
+========================================================================
+
+7.1 GENEREERIMINE
+    Hex-grid Roblox Terrain vees (raadius 500, pind Y=-2).
+    Hexid on kuusnurksed UnionOperation'id:
+      Ore = Granite, Crystal = Slate, Neutral = Basalt
+    Vahe 0.25 studi, paksus 6, pealispind alati Y=0.5
+
+7.2 RESSURSIJAOTUS (Perlin-müra, mitte juhuslik)
+    Müra loob KOBARAD — hex-paigutus muutub strateegiliseks.
+    Lävendid empiiriliselt timmitud (25 saart kandidaadi kohta):
+      crystal ~19%, ore ~36%, neutraalne ~45%
+    Crystal on teadlikult haruldasem (toidab energiaahelat).
+    GARANTII: vähemalt 6 ore + 4 crystal igal saarel.
+    Seeme: juhuslik iga run, sama seeme = sama saar.
+
+7.3 LAIENDUS — KAHEASTMELINE
+    aktiivne raadius = metaRadius + runExpansions
+
+    RUN-TASAND: kuni 2 laiendust, kulu 40 -> 120 -> 360 upgradePoints
+    META-TASAND: metaRadius 4 -> 6, tasuta (Hex Seed tasu), SALVESTUB
+    Maksimum kokku: raadius 8
+
+7.4 LUKUSTATUD HEXID
+    Kogu saar (217 hexi) genereeritakse korraga. Lukustatud on vee
+    all ja tumedad — mängija näeb kogu aeg, kui palju on avamata.
+
+
+========================================================================
+8. SALVESTAMINE
+========================================================================
+
+SaveService.lua, DataStore "HexagoniumPlayer_v1"
+
+SALVESTATAKSE
+    metaRadius                saare püsiv suurus
+    stats.runsPlayed          (ootab run-süsteemi)
+    stats.attacksSurvived     töötab
+    stats.buildingsLost       töötab
+    stats.totalUpgradePoints  (ootab run-süsteemi)
+
+PÕHIMÕTTED
+  - Mäng käivitub ALLES pärast mängija andmete laadimist
+  - Kõik DataStore kutsed on pcall'i sees; ebaõnnestumine ei
+    peata mängu, ainult logib hoiatuse
+  - Puuduvad väljad täidetakse vaikeväärtustest -> vanad
+    salvestused ei lagune, kui lisame uue välja
+  - metaRadius clamp'itakse [StartRadius, MetaMaxRadius]
+  - Autosave 120 sek, pluss PlayerRemoving ja BindToClose
+  - Versioon nimes: kui struktuur muutub ühilduvusetult, tõsta number
+
+STUDIOS VAJALIK
+    Game Settings -> Security -> Enable Studio Access to API Services
+    Ilma selleta mäng töötab, aga edenemine ei salvestu.
+
+
+========================================================================
+9. EXPLOIT-KAITSED
+========================================================================
+
+EXPLOIT #1: Null Surge + Overclock
+  Ilma kaitseta: 3.0 x 2.5 x 1.25 x 1.20 = 11.25x RISKIVABA tootmist
+  KAITSE: Null Surge ASENDAB Overclocki, ei korrutu sellega.
+  Tulemus: 11.25x -> 4.50x (testitud)
+
+EXPLOIT #2: Stable Hex + Overclock
+  "0% rikkeid" + Overclock oleks riskivaba 2.5x = dominantne strateegia.
+  KAITSE: Stable Hex kaitseb AINULT Wild Hexi rikete eest.
+
+DIAGNOSTIKA: CardManager.EXPLOIT_WARN_THRESHOLD = 6.0
+
+
+========================================================================
+10. MÄNGIJA JUHTIMINE
+========================================================================
+
+KLAHVID
+  C          Kaardipakk
+  B          Ehitusmenüü
+  N          Node-ühendused
+  M          Minimap sisse/välja
+  L          Saare laiendus (Land)
+  Q          Tühista sihtimine / sulge menüü
+  WASD       Kaamera pann
+  Nooled     Kaamera pööramine
+  Home / F   Kaamera saare keskele
+
+HIIR
+  Vasak klõps           Vali / ehita / ühenda
+  Paremklõps + lohista  Kaamera orbiit
+  Paremklõps hoonel     Kontekstimenüü (info + lammutamine)
+  Paremklõps sihtides   Tühista
+  Keskmine / Alt+vasak  Orbiit
+  Hiireratas            Zoom
+  Hiir ekraani serval   Pann
+  Klõps minimapil       Kaamera liigub sinna
+
+MIKS MITTE ESC: Roblox võtab selle endale.
+MIKS L, MITTE E: E on inglise keeles sage täht, satub vestluses ette.
+
+PAREMKLÕPS: KLÕPS vs LOHISTAMINE
+  Liigutus üle 6 piksli -> orbiit (menüü ei avane)
+  Liigutust pole        -> kontekstimenüü
+  Mõõdetakse KURSORI POSITSIOONI, mitte Delta järgi (vt punkt 13).
+
+
+========================================================================
+11. FAILISTRUKTUUR (43 skripti)
+========================================================================
+
+ReplicatedStorage/
+  Shared/
+    Constants.lua          KÕIK balance-arvud + Debug-lipud
+    RemoteEvents.lua       8 server<->klient kanalit
+    Theme.lua              värvid, fondid, mõõdud, hotkeyd
+    CardInfo.lua           kaartide kirjeldused (GENEREERITUD)
+    BuildingInfo.lua       hoonete kirjeldused + ressursiühilduvus
+  BuildingTemplates/       5 hoonemudelit (loodud koodiga)
+  HexTemplates/            4 kuusnurkset malli
+
+ServerStorage/
+  HexOriginals/            originaalide varukoopia (ei replikeeru)
+  UnusedSkies/             vana Sky varukoopia
+
+ServerScriptService/
+  Bootstrap.lua            käivitab mängu pärast andmete laadimist
+  CardSystemTest.lua       9 testiplokki (Debug.RunTests taga)
+
+  Core/
+    GameManager.lua        seob kõik kokku
+    TickService.lua        1s server-tick, FPS-sõltumatu
+    MapGenerator.lua       maailma genereerimine, saare laiendus
+    IslandManager.lua      laienduse kaheastmeline loogika
+    StateBroadcaster.lua   mänguseis kliendile 0.5s intervalliga
+    PlayerActionHandler.lua KÕIGI mängija tegevuste valideerimine
+    SaveService.lua        DataStore
+
+  Hex/         HexGrid.lua
+  Buildings/   BuildingBase, BuildingFactory, Extractor, PowerCore,
+               Refinery, Assembler, Defender
+  Resources/   NodeSystem.lua, ResourceLedger.lua
+  Factions/    FactionStateMachine, FractureSyndicate, AttackManager
+  Cards/       CardBase, CardManager, CardRegistry
+               CardEffects/ (10 kaardimoodulit)
+
+StarterPlayer/StarterPlayerScripts/
+  DroneCamera.lua          RTS-kaamera
+  HUD.lua                  ressursid, energia, aktiivsed kaardid
+  CardDeck.lua             kaardipakk + hex-sihtimine
+  BuildMenu.lua            ehitusmenüü + eelvaade
+  NodeLinks.lua            ühenduste loomine + Beam-visuaalid
+  ContextMenu.lua          paremklõpsu menüü + lammutamine
+  IslandPanel.lua          saare suurus + laiendus
+  FactionPanel.lua         fraktsioon + rünnaku hoiatus
+  Minimap.lua              hex-ülevaade + kaamera hüpe
+
+MÄRKUS: UI-skriptid EI OLE StarterGui's. Need loovad oma ScreenGui
+koodiga ja elavad StarterPlayerScripts'is — vt punkt 13.
+
+
+========================================================================
+12. ARENDUSE KONVENTSIOONID
+========================================================================
+
+12.1 ÜKS ALLIKAS IGA ASJA KOHTA
+     Constants.lua    balance-arvud
+     Theme.lua        värvid, fondid, mõõdud, hotkeyd
+     BuildingInfo.lua ressursiühilduvus (server JA klient)
+     MapGenerator     maailma genereerimine
+     BuildingFactory  hoonete loomine
+     PlaceBuilding()  ehitusvalideerimine
+     ResourceLedger   ressursside lugemine ja kulutamine
+
+12.2 KLIENT EI OLE USALDUSVÄÄRNE
+     Klient teeb eelkontrolli ainult kohese tagasiside jaoks.
+     Server valideerib iga päringu uuesti.
+
+12.3 VISUAAL ON LOOGIKAST LAHUTATUD
+     Hoone = Model + PrimaryPart + atribuudid (Q, R, BuildingType).
+
+12.4 HOONED EI TUNNE KAARTE
+     CardManager seab hoonetele lipud. Kaardid ei tunne üksteist —
+     nad küsivad CardManagerilt.
+
+12.5 KOOD VÕIB OLLA EESTI/INGLISE SEGU, TÄPITÄHED LUBATUD
+     Varem kehtis "ainult ASCII" reegel. See on TÜHISTATUD.
+
+     Reegel ei olnud kunagi koodi pärast — see kompenseeris seda,
+     et otsi-asenda operatsioonid tehti vana teksti mälu järgi
+     rekonstrueerides, mitte faili lugedes. Täpitähed ise ei riku
+     midagi; lugemata muutmine rikub.
+
+     REEGEL SELLE ASEMEL: loe fail enne muutmist.
+
+12.6 MÄNGIJALE NÄHTAV TEKST INGLISE KEELES
+     Kood, kommentaarid ja konsoolilogid võivad olla eesti keeles
+     või segakeelsed, täpitähtedega.
+
+12.7 ÄRA MINE ALLA TextSize 12
+     Väiksemal suurusel surutakse glüüfid kokku.
+
+12.8 TESTI IGA TÜKI JÄREL
+     Play -> konsool -> ekraanipilt -> Stop.
+
+
+========================================================================
+13. ROBLOX'I LÕKSUD, MILLE OTSA OLEME JOOKSNUD
+========================================================================
+
+Need on kõik päris probleemid, mis maksid aega. Kirjas selleks,
+et neid teist korda ei avastaks.
+
+13.1 ModuleScript'id on Edit-režiimis vahemälustatud
+     Uue koodi testimiseks kloonи moodul või testi Play-režiimis.
+
+13.2 screen_capture EI renderda BillboardGui ega Beam elemente
+     Neid tuleb kontrollida programmaatiliselt või Studios käsitsi.
+
+13.3 _G ei jagune plugina ja mängu serveri vahel
+     Silumine peab toimuma mängu seest (Debug-lipud), mitte väljast.
+
+13.4 StarterGui kopeeritakse PlayerGui'sse ALLES karakteri tekkimisel
+     Kui CharacterAutoLoads = false, ei jõua UI kunagi kohale.
+     Lahendus: UI-skriptid StarterPlayerScripts'i.
+
+13.5 StreamingEnabled vajab replikatsiooni fookuspunkti
+     Ilma karakterita see puudub ja maailm ei jõua kliendini
+     (serveris 217 hexi, kliendis 0). Saar on väike — streaming välja.
+
+13.6 input.Delta on NULL, kui hiir pole lukustatud
+     Lohistamise tuvastus Delta järgi ei tööta enne lukustamist.
+     Mõõda kursori ABSOLUUTSET positsiooni (GetMouseLocation).
+
+13.7 GetMouseLocation ja AbsolutePosition mõõdavad eri nullpunktist
+     Vahe on ~36px (topbar inset). Minimapi klõps vajas
+     GuiService:GetGuiInset() parandust.
+
+13.8 Ilma karakterita märgib Roblox paremklõpsu gameProcessed'iks
+     Käsitlejad peavad paremklõpsu läbi laskma, aga kontrollima
+     GetGuiObjectsAtPosition abil, kas kursor on paneeli peal.
+
+13.9 Roblox'i karakteri-hajutamise loogika lähtestab
+     LocalTransparencyModifier'i suumimisel
+     Karakteri peitmine läbipaistvusega ei tööta. Parem: ära tekita.
+
+13.10 ScreenGui lükatakse vaikimisi topbarist allapoole
+      IgnoreGuiInset = true võtab selle ~36px kasutusele.
+
+13.11 Studio instantsi id vahetub sessioonide vahel
+
+
+========================================================================
+14. OTSUSED, MIS ERINEVAD ALGSEST SPEC'IST
+========================================================================
+
+14.1 upgradePoints on MÄNGU VALUUTA
+     Algne spec: "Assembler kasutab alloyd hoonete uuenduste jaoks".
+     Nüüd maksab saare laienduse eest. Ilma selleta oli tupiktee.
+
+14.2 EnergyPerCrystal = 50
+     Spec ei määratlenud crystal->energia määra. Vajab tasakaalustamist.
+
+14.3 Saar ookeanis + kaheastmeline laiendus
+     Puudus algses spec'is täielikult.
+
+14.4 Perlin-müra ressursijaotus + miinimumgarantii
+     Spec ei määratlenud, kuidas hex-tüübid tekivad.
+
+14.5 Hoonete ehitamine on TASUTA
+     Teadlik MVP-otsus. Vajab otsustamist enne avaldamist.
+
+14.6 Energy Leak lävi: 80% (mitte 20%)
+     Algne spec oli iseendaga vastuolus.
+
+14.7 Fraktsiooni ajastus ja rünnaku arvud
+     Spec ei määratlenud, millal nõue tekib ega kui tugev rünnak on.
+
+14.8 Hoonetel on elupunktid
+     Spec ei maininud. Rünnakud ilma kahjuta oleks mõttetu.
+
+14.9 Karakterit ei tekitata
+     Droonivaates tycoon ei vaja mängijamudelit.
+
+
+========================================================================
+15. TEADAOLEV VÕLG
+========================================================================
+
+ENNE AVALDAMIST
+  [ ] Hoonete hinnad — kas tasuta jääb?
+  [ ] Constants.Debug kõik false (praegu on)
+  [ ] Studio API-ligipääs sisse, et salvestust päriselt testida
+
+TEHNILINE
+  [ ] HexTemplates sõltub ReplicatedStorage'is olevatest union'itest.
+      Kui need kaovad, viskab MapGenerator nüüd vea (varem langes
+      vaikselt silinditele — vali viga on parem kui vale mäng)
+  [ ] UI kasutab fikseeritud pikslipositsioone — mobiilil võivad
+      paneelid kokku joosta
+  [ ] metaRadius muutub ainult GrantMetaExpansion kaudu, mida
+      kutsub run-süsteem — mida veel pole
+
+LAHENDATUD
+  [x] FracturePact rippuv lüli — fraktsioon on olemas
+  [x] Dubleeritud ModuleScriptid Core kaustas
+  [x] Prügiskriptid (Workspace, StarterPack, StarterGui)
+  [x] _G.HexagoniumState Debug-lipu taga
+  [x] Balance-arvud kolmes kohas -> genereeritakse Constants'ist
+  [x] Testid jooksid iga Play vajutusega -> Debug-lipu taga
+  [x] Ressursiühilduvus kolmes kohas -> BuildingInfo.lua
+  [x] HexOriginals replikeerus asjatult -> ServerStorage
+  [x] Topelt Sky Lighting'us -> vanem ServerStorage'i
+  [x] Kasutamata: FactionStateMachine üleminekutabel, silindri-fallback
+  [x] ASCII-reegel tühistatud — see kompenseeris vale töövõtet
+      (mälu järgi muutmine), mitte päris piirangut. Õige lahendus
+      on lugeda fail enne muutmist. Olemasolevaid ASCII-kommentaare
+      EI konverteerita tagasi: see oleks churn ilma kasuta.
+      Uus kood kirjutatakse loomulikus keeles.
+
+
+========================================================================
+16. ROADMAP
+========================================================================
+
+SAMM 1 — FRAKTSIOONIDE OLEKUMASIN              [VALMIS]
+SAMM 2 — RÜNNAKUSÜSTEEM                        [VALMIS]
+SAMM 3 — MINIMAP                               [VALMIS]
+SAMM 4 — metaRadius SALVESTUS                  [VALMIS]
+
+SAMM 5 — HOONETE HINNAD                        [JÄRGMINE]
+  ResourceLedger on olemas, seega loogikat ei pea uuesti kirjutama.
+  Otsustada: mis ressurss ja kui palju.
+  Kaalutlus: hind muudab hex-ruumi asemel ressursid piiravaks —
+  see on suur tasakaalumuudatus, mitte kosmeetika.
+
+SAMM 6 — RUN-SÜSTEEM
+  Run'i algus (kaardipakk, algressursid, seed)
+  Run'i lõpp (statistika, Hex Seed boonus, meta-laiendus)
+  See teeb metaRadius'e salvestuse päriselt kasulikuks.
+
+SAMM 7 — TUTORIAL                              [VIIMASENA]
+  Extractor -> Power Core -> kaart -> rünnak
+  + energiaahel, node-ühendused, saare laiendus
+  MIKS VIIMASENA: tutorial ei saa olla hea enne, kui kõik
+  süsteemid on olemas.
+
+PÄRAST MVP-d
+  - Tasakaalustamine telemeetria põhjal
+  - Visuaalne poleerimine (mesh'id, heliefektid)
+  - Mobiilitugi (UI responsiivsus)
+
+MÄRKUS ROADMAPI MUUTUSE KOHTA
+  Algses plaanis oli run-süsteem "pärast MVP-d". Nüüd on see
+  sammuna 6, sest salvestus (samm 4) on valmis ja ootab seda —
+  metaRadius salvestub, aga miski ei tõsta seda.
+
+
+========================================================================
+LÕPP
+========================================================================

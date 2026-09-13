@@ -1,0 +1,300 @@
+HEXAGONIUM — ARENDUSE HETKESEIS
+Kuupäev: 10. september 2026
+Roblox Studio place: Hexagonium (placeId: 104026897810299)
+========================================================================
+
+STAATUS LÜHIDALT
+------------------------------------------------------------------------
+Mängu tuumloogika, kaart (map), kaamera ja kogu kaardisüsteem (Reality
+Cards) on VALMIS ja Roblox Studios testitud. Kõik testid läbivad.
+
+Valmis:      Hex-grid, 5 hoonet, node-ressursivool, tick-süsteem,
+             droonikaamera, kõik 10 kaarti + exploit-kaitse
+Pooleli:     (mitte midagi — kaardisüsteem sai lõpetatud)
+Järgmisena:  Fraktsioonisüsteem VÕI mängija UI
+
+
+========================================================================
+1. MIS ON ROBLOX STUDIOS OLEMAS
+========================================================================
+
+1.1 MAAILM JA VISUAALID
+------------------------------------------------------------------------
+Workspace.Map.Hexes
+  - 61 hex-tile'i (raadius 4), genereeritud axial-koordinaatidega
+  - Värvikood: sinine = Crystal Hex, oranž = Ore Hex, hall = neutraalne
+  - Iga hex kannab atribuute: Q, R, HexType
+
+Workspace.Map.Buildings
+  - 6 paigutatud hoonet (demo-ahel), igal atribuudid Q, R, BuildingType
+
+ReplicatedStorage.BuildingTemplates
+  - 5 placeholder-mudelit (värvitud plokid + nimesilt)
+  - Extractor (kollane), PowerCore (tsüaan), Refinery (lilla),
+    Assembler (roheline), Defender (punane)
+  - Kloonitavad mallid — ehitusmenüü saab neid hiljem otse kasutada
+
+StarterPlayer.StarterPlayerScripts.DroneCamera (LocalScript)
+  - Fikseeritud 55° droonivaade, tegelane peidetud ja liikumine välja
+  - WASD/nooled = kaamera pann (kaamera-suhteline, mitte maailma-suhteline)
+  - Hiireratas = zoom (20–120 studi)
+  - Keskmine hiirenupp + lohistamine = 360° orbiit (yaw piiramatu,
+    pitch 10–89° vahel)
+  - Kasutab BindToRenderStep prioriteeti (Camera+1), et Roblox'i
+    sisseehitatud kaameraskriptid ei kirjutaks CFrame'i üle
+
+
+1.2 KOODIMOODULID (kõik reaalselt Studios)
+------------------------------------------------------------------------
+ReplicatedStorage/
+  Shared/
+    Constants.lua           - KÕIK balance-arvud ühes kohas
+
+ServerScriptService/
+  Bootstrap.lua (Script)     - käivitab GameManageri + debug-väljund
+  CardSystemTest.lua (Script)- 9 testiplokki kaardisüsteemile
+
+  Core/
+    GameManager.lua          - seob visuaalid loogikaga, loob ühendused
+    TickService.lua          - 1s server-tick (FPS-sõltumatu)
+
+  Hex/
+    HexGrid.lua              - axial-grid, adjacency, raadius, mutatsioonid
+
+  Buildings/
+    BuildingBase.lua         - ühine ühendus/pause/destroy loogika
+    Extractor.lua            - ore VÕI crystal vastavalt hex-tüübile
+    PowerCore.lua            - energia-puhver, Energy Leak, crystal→energia
+    Refinery.lua             - ore → alloy
+    Assembler.lua            - alloy → upgradePoints
+    Defender.lua             - energiasõltuv kaitsetorn
+
+  Resources/
+    NodeSystem.lua           - ühendused, prioriteet, ressursivoog
+
+  Cards/
+    CardBase.lua             - baasklass, scope-süsteem
+    CardManager.lua          - aktiivsed kaardid, EXPLOIT-KAITSE
+    CardRegistry.lua         - kõik 10 kaarti loodavad nime järgi
+    CardEffects/
+      Overclock.lua
+      FluxTide.lua
+      BlessedHex.lua
+      FracturePact.lua
+      MirrorWorld.lua
+      NullSurge.lua
+      ResourceBloom.lua
+      EnergyLeak.lua
+      HexMutationWild.lua
+      HexMutationStable.lua
+
+Kokku: 22 koodifaili
+
+
+========================================================================
+2. KAARDISÜSTEEMI ARHITEKTUURSED OTSUSED
+========================================================================
+
+2.1 KOLM KINNITATUD ALUSOTSUST
+------------------------------------------------------------------------
+1) MULTIPLIKAATORID KORRUTUVAD (mitte ei liitu)
+   Nt Overclock(2.5) x Bloom(1.25) x Wild(1.20) = 3.75x
+   Põhjus: teeb kaardikombinatsioonid põnevaks, mis on mängu tuumidee.
+   Risk: power-creep — maandatud allpool kirjeldatud kaitsetega.
+
+2) ÜHTNE SCOPE-SÜSTEEM
+   Iga kaart deklareerib: "global" | "hex" | "buildingType"
+   Põhjus: vähem koodikordust, uute kaartide lisamine lihtne.
+
+3) KORD AKTIVEERITUD = AKTIIVNE KUNI RUN'I LÕPUNI
+   Tsüklilised efektid (Flux Tide, Null Surge) toimuvad kaardi SEES.
+   Põhjus: vastab spec'ile, lihtsam olekuhaldus.
+
+
+2.2 EXPLOIT-KAITSED (TÄHTIS — need on teadlikud otsused)
+------------------------------------------------------------------------
+EXPLOIT #1: Null Surge + Overclock
+  Probleem: NullSurge(3.0) x Overclock(2.5) x Bloom(1.25) x Wild(1.20)
+            = 11.25x tootmine, JA Null Surge ajal ignoreeritakse
+            sisendeid ning ülekuumenemist ei kontrollita.
+            = 10 sekundit täiesti riskivaba 11x tootmist iga 240 sek.
+
+  Lahendus: Null Surge efektifaasis Overclock VÄLISTATAKSE arvutusest
+            (asendab, ei korruta). Vastab spec'i sõnastusele
+            "Overclock ei aktiveeru Null Surge ajal".
+
+  Tulemus:  11.25x → 4.50x  (kaitse säästis 6.75x)
+  Asukoht:  CardManager:ComputeProductionMultiplier(), ERAND 2
+
+
+EXPLOIT #2: Stable Hex + Overclock
+  Probleem: Stable Hex lubab "0% rikke tõenäosust". Kui see kaitseks ka
+            Overclocki ülekuumenemise vastu, saaks mängija riskivaba
+            2.5x — Overclocki ainus miinus kaoks täielikult.
+            See muutuks dominantseks strateegiaks.
+
+  Lahendus: Stable Hex kaitseb AINULT Wild Hexi enda rikete vastu,
+            MITTE Overclocki ülekuumenemise vastu.
+
+  Asukoht:  CardManager:HexPreventsFailures() (kommenteeritud koodis)
+  MÄRKUS:   See on üherealine muudatus, kui tahad hiljem teisiti.
+
+
+DIAGNOSTIKA PLAYTESTIKS
+  CardManager.EXPLOIT_WARN_THRESHOLD = 6.0
+  Kui mõne hoone efektiivne kordaja ületab 6x, logitakse konsooli
+  hoiatus koos aktiivsete kaartide nimekirjaga.
+  See on TÖÖRIIST, mitte hard-cap — päris tasakaalustamise otsused
+  tehakse telemeetria põhjal, mitte ennatlikult.
+
+
+========================================================================
+3. TESTITULEMUSED
+========================================================================
+
+3.1 RESSURSIVOO TEST (Bootstrap debug-väljund)
+------------------------------------------------------------------------
+Ore Hex → ExtractorOre → Refinery → Assembler
+  ✔ TÖÖTAB — Assembler upgradePoints kasvas ~iga 5 sek
+
+Crystal Hex → Extractor → Power Core
+  ✔ TÖÖTAB — Power Core on algseisus täis (1000/1000), seega crystal
+    jääb Extractori puhvrisse ootele. See on ÕIGE käitumine.
+
+Node-süsteemi prioriteet ja 1s tick
+  ✔ KINNITATUD — ressursid liikusid täpselt iga sekund, FPS-sõltumatult
+
+
+3.2 KAARDISÜSTEEMI TEST (9 plokki, kõik läbivad)
+------------------------------------------------------------------------
+1. Üksikud kaardid
+   Ilma kaartideta                          1.000x  [OK]
+   Overclock                                2.500x  [OK]
+   Overclock + ResourceBloom                3.125x  [OK]
+   + HexMutationWild (sama hex)             3.750x  [OK]
+
+2. EXPLOIT-KAITSE: Null Surge + Overclock
+   NullSurge idle (Overclock kehtib)        3.750x  [OK]
+   NullSurge EFFECT (Overclock välistatud)  4.500x  [OK]
+     → ilma kaitseta oleks: 11.25x
+     → kaitse säästis: 6.75x
+   NullSurge LAG (tootmine peatub)          0.000x  [OK]
+
+3. Mirror World pöörab biome-efektid ümber  3.094x  [OK]
+
+4. Hex-scope: kaart ei mõjuta teisi hexe    2.812x  [OK]
+
+5. BuildingType-scope: PowerCore ei saa Bloomi  2.250x  [OK]
+
+6. CardRegistry: kõik 10 kaarti loodavad    [OK]
+
+7. Stable Hex väldib Wild Hexi rikkeid      jah  [OK]
+   (Overclocki ülekuumenemine EI ole kaitstud — teadlik otsus)
+
+8. Null Surge ignoreerib sisendressursse
+   idle-faasis sisendid vajalikud           jah  [OK]
+   effect-faasis sisendid ignoreeritud      jah  [OK]
+
+9. Flux Tide mõjutab PowerCore energiatootmist
+   1 crystal → normal:  50 energiat
+   1 crystal → bonus:   75 energiat  [OK]
+   1 crystal → penalty: 35 energiat  [OK]
+
+
+========================================================================
+4. OTSUSED, MIS SPEC'IS PUUDUSID (minu tehtud, vajavad ülevaatamist)
+========================================================================
+
+4.1 EnergyPerCrystal = 50
+    Spec ei määratlenud crystal→energia konversioonimäära.
+    Asukoht: Constants.Buildings.PowerCore.EnergyPerCrystal
+    Staatus: ESIALGNE — vajab playtestimisel tasakaalustamist.
+    Kommenteeritud koodis selgelt.
+
+4.2 Stable Hex ei kaitse Overclocki eest
+    Spec ütles "0% rikke tõenäosus", jättes lahtiseks, mille vastu.
+    Otsus: kaitseb ainult Wild Hexi rikete vastu (vt EXPLOIT #2).
+
+4.3 Demo-paigutuse parandus
+    Algne Refinery seisis Ore Hexil, aga tal puudus oma Extractor,
+    kes ore't tarniks. Lisasin ExtractorOre (Q=0, R=-4).
+
+
+========================================================================
+5. TEADAOLEVAD LÜNGAD JA JÄRGMISED SAMMUD
+========================================================================
+
+5.1 AINUS RIPPUV LÜLI
+------------------------------------------------------------------------
+FracturePact:SetPlayerDecision() kutsub context.faction meetodeid
+(EnterTrade, EnterHostile), mida veel EI OLE.
+
+Kaart töötab ilma vigadeta (kontrollib `if not faction then return`),
+aga fraktsiooni olekumuutus jõustub alles siis, kui
+FactionStateMachine.lua valmis saab.
+
+
+5.2 VEEL KIRJUTAMATA MOODULID
+------------------------------------------------------------------------
+ServerScriptService/
+  Factions/
+    FactionStateMachine.lua   - Neutral→Friendly→Trade→Demand→
+                                Hostile→Attack→Recover
+    FractureSyndicate.lua     - konkreetne fraktsioon, rünnakuloogika
+
+ReplicatedStorage/
+  Shared/
+    RemoteEvents.lua          - server↔klient suhtlus
+  UI/
+    HUD.lua
+
+StarterGui/
+  MainUI/                     - ressursid, kaardipakk, hoonete menüü, minimap
+
+
+5.3 FUNKTSIONAALSED LÜNGAD
+------------------------------------------------------------------------
+- Mängija ei saa veel kaarte ise aktiveerida (ainult koodist)
+- Mängija ei saa veel hooneid ise ehitada (ainult skriptiga paigutatud)
+- Mängija ei saa veel node-ühendusi klõpsates luua
+- Ressursid/energia nähtavad ainult konsoolis, mitte ekraanil
+- Rünnakusüsteem puudub (Defender on valmis, aga pole kellegagi võidelda)
+- Run-süsteem ja meta-progressioon (Hex Seed) puuduvad
+- Tutorial puudub
+
+
+5.4 SOOVITATUD JÄRJEKORD
+------------------------------------------------------------------------
+Valik A: FRAKTSIOONISÜSTEEM
+  Plussid: lõpetab Fracture Pacti ahela, teeb Defenderi kasulikuks,
+           annab mängule konflikti ja pinge
+  Miinused: mängija ei näe ikka midagi ekraanil
+
+Valik B: MÄNGIJA UI
+  Plussid: teeb mängu esimest korda päriselt MÄNGITAVAKS,
+           kaardid ja hooned saavad mängija kontrolli alla
+  Miinused: fraktsioonide puudumine jätab mängu konfliktivabaks
+
+Mõlemad on mõistlikud. UI teeb mängu kiiremini testitavaks;
+fraktsioonid teevad mängu tervikuks.
+
+
+========================================================================
+6. TÖÖPÕHIMÕTTED, MIDA OLEME JÄRGINUD
+========================================================================
+
+- Constants.lua on AINUS koht, kus balance-arvud elavad
+- Iga hoone pärib BuildingBase'ist (ühine ühendus/pause/destroy loogika)
+- Iga kaart on eraldi moodul selge API-ga (OnActivate/OnTick/
+  OnDeactivate + GetProductionModifier/GetDefenseModifier)
+- Kaardid ei tunne üksteist otse — nad küsivad CardManager'ilt
+  (nt Blessed Hex küsib, kas Mirror World on aktiivne)
+- Hooned ei tunne CardManager'it — CardManager seab neile lipud
+  (multiplikaatorid, ignoreInputs)
+- Iga suurem muudatus testitakse play-režiimis enne edasiminekut
+- Exploidid otsitakse ja dokumenteeritakse KOODI SEES, mitte
+  ainult vestluses
+
+========================================================================
+LÕPP
+========================================================================

@@ -1,0 +1,230 @@
+'HEXAGONIUM'. Ülimalt põhjalik 150% mänguoleku kirjeldus
+Alljärgnev on täielik, mänguarenduseks ja mängukasutuseks valmis kirjeldus minu Roblox‑mängule Hexagonium. See seletab mängu olekut „150%“ — ehk iga süsteem on lahti kirjutatud, näited, disainiotsused, mängutsükkel, kasutajaliides, tasakaalustamise põhimõtted ja arendus‑roadmap. Kasuta seda otse mängukirjeldusena, wiki‑leheks, dev‑dokumendiks või pitch‑materjaliks.
+
+1. Ülevaade ja mängu tuumidee
+Hexagonium on run‑põhine tycoon koos sügava kaardipõhise reeglimuutmise süsteemiga. Mängu tuum on kolmeosaline sümbioos:
+
+Tycoon‑baasi ehitus kuusnurksel ruudustikul;
+
+Reality Cards — kaardid, mis muudavad jooksvaid reegleid ja baasi tingimusi;
+
+Run‑süsteem — iga sessioon (run) on lühike, intensiivne ja korduv, kuid iga run jätab püsiva meta‑progressiooni.
+
+Kogemus: mängija tunneb end insenerina, strateegina ja eksperimenteerijana — ehitad, katsetad, kohandad ja kordad, kuni leiad optimaalse kombinatsiooni kaartidest, hoonetest ja fraktsioonidest.
+
+Mängu toon: nutikas, süsteemne, mänguline ja loominguline; mäng premeerib planeerimist ja loovat eksperimenteerimist.
+
+2. Põhisüsteemid ja mängutsükkel
+Mängutsükkel kokku
+Seed ja algus — mängija valib või genereerib runi algseadistuse: algkaardid, algressursid, fraktsioonide algseis.
+
+Baasi ehitus — paigutad hooned kuusnurksesse ruudustikku; iga hoone võtab ühe või mitu hex‑ruutu.
+
+Reality Cards aktiveerimine — kaardid annavad jooksvaid modifikaatoreid; mõned on püsivad, mõned tsüklilised.
+
+Sündmused ja fraktsioonid — fraktsioonid reageerivad, ilmnevad missioonid, rünnakud või kaubandusvõimalused.
+
+Runi lõpp ja meta‑tulu — saavutused, uued kaardid, ressurssidest osa püsivalt salvestatakse (meta‑progressioon).
+
+Uus run — uued reeglid, uued väljakutsed, uued kombinatsioonid.
+
+Põhimehaanika detailid
+Kuusnurkne ruudustik annab täpsuse ja ruumilise planeerimise: adjacency‑efektid, võrgustiku optimeerimine, energia‑ja ressursside voog.
+
+Hooned: tootmine, energia, ladustamine, töötlemine, kaitse, laborid, kaardigeneraatorid. Igal hoonel on sisend‑väljund‑profil.
+
+Ressursid: baasressursid (ore, biomass, crystal energy), töödeldud ressursid (alloy, bio‑compound, flux), eriresursid (essence, anomaly shards).
+
+Automaatika: torustikud/kanalid või „logic nodes“ mis suunavad ressursse; lihtne visuaalne wiring süsteem.
+
+Fraktsioonid: NPC‑grupid, kelle käitumine sõltub kaartidest ja mängija valikutest (sõbralik, neutraalne, vaenulik).
+
+3. Reality Cards ja run‑dünaamika
+Reality Cards üldpõhimõte
+Kaardid on reeglimuutjad: nad ei genereeri uut maailma, vaid muudavad baasi, hoonete käitumist, ressursside omadusi või fraktsioonide käitumist.
+
+Kaarditüübid: Rule Cards, Cycle Cards, Hex Mutations, Fraktsioonikaardid, Event Cards, Legacy Cards.
+
+Kaardipakk: iga run algab kindla kaardipakiga; mängija saab runi jooksul uusi kaarte avada või vahetada.
+
+Näited kaardiefektidest
+Overclock (Rule Card) — kõik tootmishooned töötavad +150% tootlikkusega, kuid iga 60 sekundi järel 5% tõenäosusega üks hoone „overheatib“ ja lakkab töötamast 20 sekundi jooksul.
+
+Flux Tide (Cycle Card) — iga 3 minuti järel energia tootmine tõuseb 50% 30 sekundi jooksul, seejärel langeb 30% 60 sekundi jooksul.
+
+Blessed Hex (Hex Mutation) — valitud hex annab kõigile sellel asuvatele hoonetele +10% efektiivsust.
+
+Fracture Pact (Fraktsioonikaart) — Fracture Syndicate pakub kaubandust, kuid nõuab 10% tootmisest tasu; kui keeldud, ründavad nad baasi.
+
+Eternal Night (Event Card) — valgus‑süsteemid ei tööta; kaitsetornid kaotavad 40% efektiivsusest, kuid stealth‑NPC‑d tugevnevad.
+
+Kaartide kombinatsioonide tähtsus
+Kaardid loovad kompositsioone: mõned kaardid koos annavad sünergiaid, teised konflikte. Mängija ülesanne on leida kasumlikud kombinatsioonid ja maandada riskid.
+
+4. Tycoon‑süsteemi sügavus ja optimeerimine
+Hoonete kategooriad ja näited
+Extractor — kogub baasressursse; sõltub hex‑biomest.
+
+Refinery — töötleb baasressursse kõrgema väärtusega toodeteks.
+
+Power Core — toodab energiat; erinevad tüübid (steady, burst, flux).
+
+Assembler — kombineerib ressursse keerukamateks objektideks.
+
+Lab — avab uusi kaarte või uuendusi; riskiga seotud eksperimendid.
+
+Defender — kaitsetornid ja turvasüsteemid.
+
+Node — loogikapunktid, mis suunavad ressursse ja aktiveerivad automaatika.
+
+Võrgustiku optimeerimine
+Adjacency bonus: teatud hooned saavad boonuseid, kui paigutatud teatud tüüpi hexide kõrvale.
+
+Throughput bottlenecks: mängija peab jälgima sisend‑väljund vooge ja vältima pudelikaelu.
+
+Fail‑safe süsteemid: automaatne ümberlülitus, kui hoone ülekuumeneb või rünnak tabab.
+
+Näide optimeerimisest
+Crystal Plains Extractor + Flux Converter + Overclock kaart → kõrge tootlikkus, kuid vajab järelvalvet ja reserveeritud jahutussüsteemi (kui jahutus puudub, risk plahvatuseks).
+
+5. Progressioon, meta‑süsteemid ja mängija motivatsioon
+Meta‑progressioon
+Hex Seed — iga run lõpus saad „seed“ tulemuse, mis annab püsiva boonuse järgmistele runidele (nt algressurss, üks tasuta kaart, hoone‑blueprint).
+
+Card Collection — kaardid kogunevad; uued kaardid avanevad saavutuste, missioonide ja poe kaudu.
+
+Blueprints ja Upgrades — hoonete püsivad uuendused, mis avanevad meta‑tasemel.
+
+Fraktsioon Rep — suhtepunktid fraktsioonidega avavad unikaalseid boonuseid ja missioone.
+
+Mängija motivatsioonikettad
+Lühiajaline: optimeeri run, saavutused, kiire edasiminek.
+
+Keskmine: koguda kaarte, katsetada kombinatsioone, avada blueprinte.
+
+Pikaajaline: ehitada ideaalne „Perfect Hex“, saavutada kõrgeim fraktsioonirep ja täita kõik kaardikombinatsioonid.
+
+Tasakaalustamise põhimõtted
+Risk vs Reward: tugevamad boonused toovad kaasa suuremad riskid.
+
+Kompleksuse kasv: uued mehhanismid avanevad järk‑järgult, et mitte ülekoormata mängijat.
+
+Mitmekesine edu: erinevad mängustiilid (agressiivne overclock, konservatiivne steady‑build, eksperimenteeriv lab‑fokus) on kõik elujõulised.
+
+6. UI, UX ja mängukogemus
+Peamenüü ja run‑valik
+Run Builder: vali algkaardid, fraktsioonide eelistused, raskusaste.
+
+Card Deck Editor: koostad oma kaardipaki (piiratud suurusega), mida run kasutab.
+
+Blueprint Library: salvestatud baasimallid ja hoone‑kombinatsioonid.
+
+In‑game HUD
+Top bar: ressursid, energia, run‑kell, aktiivsed kaardid.
+
+Left panel: hoonete tööriistad, upgrade menüü.
+
+Right panel: kaardipakk ja aktiivsed modifikaatorid.
+
+Mini map: kuusnurkne grid, kiire navigeerimine.
+
+Log stream: sündmuste ajajoon (rünnakud, kaardi‑tsüklid, hoone rikked).
+
+Õpetus ja onboarding
+Lühike interaktiivne tutorial, mis õpetab kuusnurksust, hoonete paigutust, kaardisüsteemi ja runi tsüklit.
+
+Progressive disclosure: keerukamad süsteemid avanevad järk‑järgult.
+
+7. Fraktsioonid, sündmused ja narratiivne kiht
+Fraktsioonide roll
+Hex Order — toetab korra ja stabiilsust; pakub kaitse‑boonuseid.
+
+Fracture Syndicate — pakub kaubandust ja riskantseid boonuseid; ründab, kui ignoreeritud.
+
+Verdant Circle — bioloogilised boonused ja regeneratsioon; nõuab ökoloogilist tasakaalu.
+
+Astral Dominion — pakub portaalitehnoloogiat ja astral‑kaarte; nõuab flux‑ressurssi.
+
+Sündmused ja narratiiv
+Iga run võib käivitada mini‑lore sündmusi: fraktsioonide konfliktid, vanade Hex‑tehnoloogiate avastused, anomaaliate ilmnemine.
+
+Narratiiv on modulaarne: mängija valikud mõjutavad fraktsioonide suhteid ja avanevat lore’it.
+
+8. Tehniline ja arenduslik roadmap
+MVP funktsioonid (esimene versioon)
+Kuusnurkne grid ja baasi paigutus.
+
+8–10 põhihoonet (extractor, refinery, power core, assembler, lab, defender, node, storage).
+
+Reality Cards baaspakett (20–30 kaarti).
+
+Run‑süsteem ja meta‑progressioon (Hex Seed, blueprints).
+
+Üks fraktsioon ja lihtsad sündmused.
+
+UI/HUD ja tutorial.
+
+Versioonijärgne laiendus
+Rohkem kaarte ja fraktsioone.
+
+Kaardide sünergia‑süsteem ja „combo“ tunnustused.
+
+PvE sündmused ja fraktsioonide AI‑parandus.
+
+QoL funktsioonid: baasi mallid, automaatne optimeerimine, jagatud blueprints.
+
+Kosmeetilised elemendid ja mängija profiilid.
+
+Testimine ja mõõdikud
+Key metrics: retention D1/D7/D30, average run length, average cards per run, conversion rate (kui monetiseerid), average time to first meta reward.
+
+Playtest: iteratiivne testimine, A/B testid kaartide tugevuse ja riskide osas.
+
+Balanss: telemetria‑põhine tasakaalustamine; logi kõige sagedasemaid pudelikaelu ja kaardikombinatsioone.
+
+9. Monetiseerimine, sotsiaalsus ja kogukond
+Monetiseerimise ideed (sõbralikud ja mitte‑pay‑to‑win)
+Kosmeetika: baasi skin’id, hoone visuaalid, embleemid.
+
+Battle Pass / Season Pass: hooajalised kaardipaketid ja kosmeetilised auhinnad.
+
+Card Packs: tasuta ja tasulised kaardipaketid, kuid mitte otseselt võitmiseks vajalikud (tasulised pakid kiirendavad progressiooni, mitte ei murra tasakaalu).
+
+Blueprint Market: mängijad saavad jagada ja müüa oma blueprinte (sisemine valuuta).
+
+Sotsiaalsus
+Co‑op runs: kuni 4 mängijat jagavad baasi ja ressursse; kaardid mõjutavad kõiki.
+
+Leaderboards: parimad runsid, parimad kaardikombinatsioonid, „Perfect Hex“ saavutused.
+
+Community Events: hooajalised väljakutsed ja lore‑üritused.
+
+10. Näited mänguseansist (stseenipõhine kirjeldus)
+Algus: Mängija valib „Standard Run“, algkaardid: Overclock, Blessed Hex, Fracture Pact. Algressursid: 500 ore, 200 crystal.
+5 minutit: Paigutan kaks Extractorit ja ühe Power Core’i; Overclock aktiveerub, tootmine tõuseb, kuid üks Extractor hakkab ülekuumenema.
+10 minutit: Lab avab uue kaardi „Flux Tide“; Fracture Syndicate pakub kaubandust, nõudes 10% tootmisest. Otsustan teha ajutise paktiga, et rahastada lab eksperimenti.
+15 minutit: Cycle Card aktiveerib Flux Tide boonuse; tootmine plahvatab, kuid kaitsetornid on nõrgad — Fracture Syndicate ründab. Kasutan Defenderit ja automaatset ümberlülitust, et hoida baasi püsti.
+Runi lõpp: Saavutan Hex Seed boonuse: +5% algressurss järgmisele runile; avastan uue kaardi „Mirror World“ ja salvestan blueprindi.
+
+11. Disaini‑filosoofia ja mängija tunnetus
+Kontroll vs Kaos: mäng peab andma mängijale tunde, et ta saab kontrollida süsteeme, kuid kaardid toovad ootamatust ja pinget.
+
+Õppimine läbi korduse: run‑süsteem premeerib kordusi ja eksperimenteerimist.
+
+Loovus ja meisterlikkus: mängija peaks tundma uhkust oma unikaalsete build’ide ja kaardikombinatsioonide üle.
+
+Kättesaadavus: algtaseme mängijale lihtne, ent sügavus ekspertidele.
+
+12. Järgmised sammud ja soovitus arenduseks
+MVP prototüüp: ehita grid, 6 hoonet, 15 kaarti, üks fraktsioon. Testi 100 playtesti.
+
+Iteratiivne tasakaal: koguge telemetriat ja reguleerige kaarte/hooneid.
+
+Laienemine: lisa fraktsioonid, co‑op, season pass ja blueprint market.
+
+Kogukonna kaasamine: avatud beta, Discord, mängijate loodud blueprints.
+
+Polish ja optimeerimine: UI, tutorial, performance.
+
+Lõppsõna
+Hexagonium on mäng, mis ühendab tycooni sügavuse ja kaardipõhise roguelite‑tunde ilma massiivse maailma genereerimise koormuseta. See on optimeeritud sinu stiili jaoks: süsteemne, loov ja analüütiline. Mäng pakub lõputult kombinatsioone, strateegiat ja korduvväärtust, samal ajal hoides arenduskulusid ja tehnilist keerukust hallatavana.

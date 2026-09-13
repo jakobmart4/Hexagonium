@@ -1,0 +1,34 @@
+# Roblox place-failid
+# Binaarne .rbxl on suur ja halvasti diffitav. Hoia ainult .rbxlx,
+# ja sedagi ainult siis, kui tahad mudeleid (HexTemplates jms)
+# versioonis hoida.
+*.rbxl
+*.rbxl.lock
+*.rbxlx.lock
+
+# Rojo
+sourcemap.json
+
+# rbxlx-to-rojo ekspordi logi
+rbxlx-to-rojo.log
+
+# Ajutised ekspordid
+*.rbxmx
+/export/
+/temp/
+
+# Toolchain
+/.foreman/
+/bin/
+
+# Editor
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini

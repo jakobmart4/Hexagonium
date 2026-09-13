@@ -1,0 +1,246 @@
+--[[
+	SaveService.lua
+	Mangija puusiva edenemise salvestamine DataStore'i.
+
+	MIDA SALVESTATAKSE:
+	  metaRadius   - saare pusiv suurus (Hex Seed tasu)
+	  stats        - mangustatistika (runid, runnakud, punktid)
+
+	OLULINE STUDIO KOHTA:
+	DataStore ei toota Studios, kui "Enable Studio Access to API
+	Services" on valjas (Game Settings -> Security). Sel juhul
+	langeme vaikevaartustele ja logime hoiatuse - mang tootab
+	edasi, ainult ilma salvestamiseta.
+
+	KOIK DATASTORE KUTSED ON pcall'i sees. DataStore voib
+	ebaonnestuda ka avaldatud mangus (vorguprobleemid, limiidid),
+	ja siis ei tohi mang katki minna.
+]]
+
+local DataStoreService = game:GetService("DataStoreService")
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local Constants = require(ReplicatedStorage.Shared.Constants)
+
+local SaveService = {}
+
+-- Versioon nimes: kui andmestruktuur muutub uhilduvusetult,
+-- tosta numbrit, et vanad andmed ei laguneks.
+SaveService.STORE_NAME = "HexagoniumPlayer_v1"
+SaveService.AUTOSAVE_INTERVAL = 120
+
+local store = nil
+local storeAvailable = false
+
+-- Malus hoitav seis mangija kohta: [userId] = data
+local cache = {}
+local dirty = {}
+
+-- ============================================================
+-- VAIKEANDMED
+-- ============================================================
+
+function SaveService.GetDefaults()
+	return {
+		metaRadius = Constants.IslandExpansion.StartRadius,
+		stats = {
+			runsPlayed = 0,
+			attacksSurvived = 0,
+			buildingsLost = 0,
+			totalUpgradePoints = 0,
+		},
+	}
+end
+
+-- Liidab puuduvad valjad vaikeandmetest. Nii ei lagune vanad
+-- salvestused, kui lisame uue valja.
+local function fillDefaults(data)
+	local defaults = SaveService.GetDefaults()
+
+	if type(data) ~= "table" then
+		return defaults
+	end
+
+	if type(data.metaRadius) ~= "number" then
+		data.metaRadius = defaults.metaRadius
+	end
+
+	if type(data.stats) ~= "table" then
+		data.stats = defaults.stats
+	else
+		for key, value in pairs(defaults.stats) do
+			if type(data.stats[key]) ~= "number" then
+				data.stats[key] = value
+			end
+		end
+	end
+
+	-- Kaitse rikutud vaartuste vastu
+	local isl = Constants.IslandExpansion
+	data.metaRadius = math.clamp(data.metaRadius, isl.StartRadius, isl.MetaMaxRadius)
+
+	return data
+end
+
+-- ============================================================
+-- ALGSEADISTUS
+-- ============================================================
+
+function SaveService.Init()
+	local ok, result = pcall(function()
+		return DataStoreService:GetDataStore(SaveService.STORE_NAME)
+	end)
+
+	if ok and result then
+		store = result
+		storeAvailable = true
+	else
+		storeAvailable = false
+		warn("[SaveService] DataStore pole saadaval. Studios: luba " ..
+			"Game Settings -> Security -> Enable Studio Access to API Services. " ..
+			"Mang tootab edasi, aga edenemine ei salvestu.")
+	end
+
+	return storeAvailable
+end
+
+function SaveService.IsAvailable()
+	return storeAvailable
+end
+
+-- ============================================================
+-- LAADIMINE
+-- ============================================================
+
+function SaveService.Load(player)
+	local userId = player.UserId
+
+	if cache[userId] then
+		return cache[userId]
+	end
+
+	local data = nil
+
+	if storeAvailable then
+		local ok, result = pcall(function()
+			return store:GetAsync("player_" .. userId)
+		end)
+
+		if ok then
+			data = result
+		else
+			warn("[SaveService] Laadimine ebaonnestus (" .. player.Name .. "): " ..
+				tostring(result))
+		end
+	end
+
+	data = fillDefaults(data)
+	cache[userId] = data
+	dirty[userId] = false
+
+	return data
+end
+
+function SaveService.Get(player)
+	return cache[player.UserId]
+end
+
+-- ============================================================
+-- MUUTMINE
+-- ============================================================
+
+function SaveService.SetMetaRadius(player, radius)
+	local data = cache[player.UserId]
+	if not data then
+		return false
+	end
+
+	local isl = Constants.IslandExpansion
+	data.metaRadius = math.clamp(radius, isl.StartRadius, isl.MetaMaxRadius)
+	dirty[player.UserId] = true
+	return true
+end
+
+function SaveService.AddStat(player, key, amount)
+	local data = cache[player.UserId]
+	if not data or type(data.stats[key]) ~= "number" then
+		return false
+	end
+
+	data.stats[key] = data.stats[key] + (amount or 1)
+	dirty[player.UserId] = true
+	return true
+end
+
+-- ============================================================
+-- SALVESTAMINE
+-- ============================================================
+
+function SaveService.Save(player, force)
+	local userId = player.UserId
+	local data = cache[userId]
+
+	if not data then
+		return false, "no data"
+	end
+
+	if not dirty[userId] and not force then
+		return true, "unchanged"
+	end
+
+	if not storeAvailable then
+		return false, "datastore unavailable"
+	end
+
+	local ok, err = pcall(function()
+		store:SetAsync("player_" .. userId, data)
+	end)
+
+	if ok then
+		dirty[userId] = false
+		return true, "saved"
+	end
+
+	warn("[SaveService] Salvestamine ebaonnestus (" .. player.Name .. "): " .. tostring(err))
+	return false, tostring(err)
+end
+
+function SaveService.Release(player)
+	SaveService.Save(player, true)
+	cache[player.UserId] = nil
+	dirty[player.UserId] = nil
+end
+
+-- ============================================================
+-- AUTOMAATNE SALVESTAMINE JA VALJUMINE
+-- ============================================================
+
+function SaveService.StartAutosave()
+	task.spawn(function()
+		while true do
+			task.wait(SaveService.AUTOSAVE_INTERVAL)
+			for _, player in ipairs(Players:GetPlayers()) do
+				SaveService.Save(player)
+			end
+		end
+	end)
+
+	Players.PlayerRemoving:Connect(function(player)
+		SaveService.Release(player)
+	end)
+
+	-- Serveri sulgemisel: viimane voimalus salvestada.
+	-- Studios ei kaivitu BindToClose alati, avaldatud mangus kull.
+	game:BindToClose(function()
+		if RunService:IsStudio() then
+			return
+		end
+		for _, player in ipairs(Players:GetPlayers()) do
+			SaveService.Save(player, true)
+		end
+	end)
+end
+
+return SaveService
