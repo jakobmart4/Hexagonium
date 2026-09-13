@@ -106,25 +106,20 @@ function FractureSyndicate:_setDefendersUnderAttack(value)
 	end
 end
 
--- Runnaku tulemus salvestusse. Vaikselt vahele, kui salvestust
--- pole (nt Studios ilma API-ligipaasuta).
+-- Runnaku tulemus run'i statistikasse. SaveService'iga ei suhelda
+-- siin otse - Bootstrap.server.lua salvestab KOGU run'i statistika
+-- uhes kohas, alles siis kui run pariselt lopeb (vt run:OnEnd).
 function FractureSyndicate:_recordStats(buildingsLost)
-	local player = self.gameState.savePlayer
-	local saveService = self.gameState.saveService
-	if not player or not saveService then
+	local run = self.gameState.runManager
+	if not run then
 		return
 	end
 
-	saveService.AddStat(player, "attacksSurvived", 1)
-	if buildingsLost > 0 then
-		saveService.AddStat(player, "buildingsLost", buildingsLost)
-	end
-	saveService.Save(player)
-
 	-- Run'i tasu: ule elatud runnak on vaartuslik
-	local run = self.gameState.runManager
-	if run then
-		run:RecordAttackSurvived()
+	run:RecordAttackSurvived()
+
+	if buildingsLost > 0 then
+		run:RecordBuildingsLost(buildingsLost)
 	end
 end
 

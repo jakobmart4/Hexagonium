@@ -1,6 +1,6 @@
 HEXAGONIUM — PEADOKUMENT
-Versioon: 4.0
-Kuupäev: 11. september 2026
+Versioon: 4.1
+Kuupäev: 13. september 2026
 Place: Hexagonium (placeId: 104026897810299)
 
 SEE FAIL ASENDAB KÕIK VARASEMAD DOKUMENDID.
@@ -36,7 +36,8 @@ Hexagonium on run-põhine tycoon, mis ühendab kolm süsteemi:
   2. Reality Cards — kaardid, mis muudavad jooksvalt mängureegleid
   3. Run-süsteem — lühikesed sessioonid + püsiv meta-progressioon
 
-STAATUS: MÄNGITAV. Tuumtsükkel, konflikt ja püsivus on olemas.
+STAATUS: MÄNGITAV. Tuumtsükkel, konflikt, run-süsteem (algus JA
+lõpp) ja püsivus on olemas.
 
 VALMIS
   [x] Hex-saar ookeanis, müra-põhine ressursijaotus
@@ -49,10 +50,10 @@ VALMIS
   [x] Minimap
   [x] Salvestamine (DataStore)
   [x] Täielik mängija-UI
+  [x] Hoonete hinnad (ehitus kulutab, lammutus tagastab poole)
+  [x] Run-süsteem (algus, lõpp, automaatne taaskäivitus, Hex Seed)
 
 PUUDUB
-  [ ] Hoonete hinnad
-  [ ] Run-süsteem (algus/lõpp, Hex Seed)
   [ ] Tutorial
   [ ] Tasakaalustamine
 
@@ -221,12 +222,12 @@ TÄHTIS: kirjeldused mängijale GENEREERITAKSE Constants'ist
 
 SaveService.lua, DataStore "HexagoniumPlayer_v1"
 
-SALVESTATAKSE
+SALVESTATAKSE (kõik run'i lõpus, Bootstrap.server.lua wireRunEnd)
     metaRadius                saare püsiv suurus
-    stats.runsPlayed          (ootab run-süsteemi)
-    stats.attacksSurvived     töötab
-    stats.buildingsLost       töötab
-    stats.totalUpgradePoints  (ootab run-süsteemi)
+    stats.runsPlayed          töötab
+    stats.attacksSurvived     töötab (parandatud, vt punkt 15)
+    stats.buildingsLost       töötab (parandatud, vt punkt 15)
+    stats.totalUpgradePoints  töötab
 
 PÕHIMÕTTED
   - Mäng käivitub ALLES pärast mängija andmete laadimist
@@ -455,8 +456,10 @@ et neid teist korda ei avastaks.
 14.4 Perlin-müra ressursijaotus + miinimumgarantii
      Spec ei määratlenud, kuidas hex-tüübid tekivad.
 
-14.5 Hoonete ehitamine on TASUTA
-     Teadlik MVP-otsus. Vajab otsustamist enne avaldamist.
+14.5 Hoonete ehitamine maksab UP-i (Constants.BuildCosts)
+     VAREM: teadlik MVP-otsus jätta tasuta. SAMM 5 käigus otsustati
+     hinnad lisada — ilma nendeta piiras mängijat ainult hex-ruum,
+     mitte ressurss/aeg, mis oleks tycoon'ile liiga lihtne.
 
 14.6 Energy Leak lävi: 80% (mitte 20%)
      Algne spec oli iseendaga vastuolus.
@@ -470,15 +473,24 @@ et neid teist korda ei avastaks.
 14.9 Karakterit ei tekitata
      Droonivaates tycoon ei vaja mängijamudelit.
 
+14.10 Uus run algab AUTOMAATSELT, mitte mängija valikul
+      Spec ei täpsustanud run'ide vahelist üleminekut. Valiti
+      hõõrdevaba tsükkel: RestartDelay (8s) pärast run'i lõppu
+      algab järgmine run iseenesest samas maailmas. Kui mängu
+      testimine näitab, et mängija vajab kaardipaki vaatamiseks
+      või hingetõmbeks rohkem kontrolli, lisada vahepealne
+      "kinnita jätkamine" olek (vt punkt 15).
+
 
 ========================================================================
 15. TEADAOLEV VÕLG
 ========================================================================
 
 ENNE AVALDAMIST
-  [ ] Hoonete hinnad — kas tasuta jääb?
   [ ] Constants.Debug kõik false (praegu on)
   [ ] Studio API-ligipääs sisse, et salvestust päriselt testida
+  [ ] Run'i taaskäivituse viivitus (Constants.Run.RestartDelay, 8s)
+      on esialgne väärtus — vajab playtesti
 
 TEHNILINE
   [ ] HexTemplates sõltub ReplicatedStorage'is olevatest union'itest.
@@ -486,8 +498,10 @@ TEHNILINE
       vaikselt silinditele — vali viga on parem kui vale mäng)
   [ ] UI kasutab fikseeritud pikslipositsioone — mobiilil võivad
       paneelid kokku joosta
-  [ ] metaRadius muutub ainult GrantMetaExpansion kaudu, mida
-      kutsub run-süsteem — mida veel pole
+  [ ] Run'i taaskäivitus on AUTOMAATNE (Bootstrap.server.lua
+      wireRunEnd, RestartDelay järel) — mängijal pole veel valikut
+      midagi teha enne järgmise run'i algust. Kui see osutub
+      vajalikuks, lisada vahepealne "kinnita jätkamine" olek.
 
 LAHENDATUD
   [x] FracturePact rippuv lüli — fraktsioon on olemas
@@ -505,6 +519,18 @@ LAHENDATUD
       on lugeda fail enne muutmist. Olemasolevaid ASCII-kommentaare
       EI konverteerita tagasi: see oleks churn ilma kasuta.
       Uus kood kirjutatakse loomulikus keeles.
+  [x] Hoonete hinnad puudusid -> Constants.BuildCosts +
+      DemolishRefund, täielikult integreeritud (samm 5)
+  [x] metaRadius muutus ainult GrantMetaExpansion kaudu, mida pidi
+      kutsuma run-süsteem, mida polnud -> GameManager.RestartRun +
+      Bootstrap.server.lua wireRunEnd (samm 6)
+  [x] attacksSurvived/buildingsLost ei salvestunud KUNAGI —
+      FractureSyndicate:_recordStats kirjutas SaveService'i otse
+      läbi väljade (gameState.savePlayer/saveService), mida keegi
+      ei seadnud, nii et kaitse (if not player or not saveService)
+      vaikimisi katkestas iga kord. Nüüd suunatud
+      RunManager:RecordAttackSurvived/RecordBuildingsLost kaudu,
+      mida Bootstrap juba tsentraalselt run'i lõpus salvestab.
 
 
 ========================================================================
@@ -516,22 +542,48 @@ SAMM 2 — RÜNNAKUSÜSTEEM                        [VALMIS]
 SAMM 3 — MINIMAP                               [VALMIS]
 SAMM 4 — metaRadius SALVESTUS                  [VALMIS]
 
-SAMM 5 — HOONETE HINNAD                        [JÄRGMINE]
-  ResourceLedger on olemas, seega loogikat ei pea uuesti kirjutama.
-  Otsustada: mis ressurss ja kui palju.
-  Kaalutlus: hind muudab hex-ruumi asemel ressursid piiravaks —
-  see on suur tasakaalumuudatus, mitte kosmeetika.
+SAMM 5 — HOONETE HINNAD                        [VALMIS]
+  Constants.BuildCosts + DemolishRefund (0.5). Ehitamine kontrollib
+  ja kulutab UP (PlayerActionHandler.HandleBuildBuilding), lammutamine
+  tagastab poole (HandleDemolishBuilding). BuildMenu näitab hinda
+  enne ehitamist.
+  OTSUS: hind piirab UP-i (aeg/tootmisvõimsus), mitte hex-ruumi —
+  vt punkt 14. See on suur tasakaalumuudatus, mitte kosmeetika.
 
-SAMM 6 — RUN-SÜSTEEM
-  Run'i algus (kaardipakk, algressursid, seed)
-  Run'i lõpp (statistika, Hex Seed boonus, meta-laiendus)
-  See teeb metaRadius'e salvestuse päriselt kasulikuks.
+SAMM 6 — RUN-SÜSTEEM                           [VALMIS]
+  Lõpp oli osaliselt olemas (RunManager kolme lõpustsenaariumiga:
+  Timeout/Destroyed/Extract); puudus ALGUS. Lisatud:
 
-SAMM 7 — TUTORIAL                              [VIIMASENA]
+    GameManager.RestartRun(world) — taasgenereerib saare uue
+    juhusliku seemnega SAMAS maailmas. islandManager (metaRadius)
+    ja world.owners säilivad; kõik ülejäänu (hexGrid, nodeSystem,
+    cardManager, pointBank, tickService, hooned, runManager,
+    faction) luuakse uuesti täpselt nagu esimesel loomisel
+    (jagatud buildWorldSystems-helper CreateWorld'i ja RestartRun'i
+    vahel — üks allikas).
+
+    Bootstrap.server.lua: wireRunEnd(world) haagitakse iga run'i
+    OnEnd külge uuesti pärast taaskäivitust, sest uuel RunManager'il
+    on uus, tühi OnEnd-nimekiri. Run'i lõpust Constants.Run.
+    RestartDelay (8s) järel käivitub järgmine run automaatselt —
+    mängija ei pea midagi tegema.
+
+    RunPanel.client.lua: "RUN COMPLETE"/"RUN LOST" ekraan peitub
+    automaatselt, kui uus run algab (tulemus kustub payload'ist).
+
+  KÕRVALPARANDUS SAMAS TÖÖS: attacksSurvived/buildingsLost stats
+  ei salvestunud kunagi (FractureSyndicate üritas SaveService'i
+  kutsuda väljade kaudu, mida keegi ei seadnud) — vt punkt 15.
+
+  TESTITUD: Play-režiimis Extract-nupu kaudu run lõpetatud, 8s
+  pärast kontrollitud, et uus run algas (taimer, tasu, ohutase
+  nullist, lõpuekraan peitunud).
+
+SAMM 7 — TUTORIAL                              [JÄRGMINE]
   Extractor -> Power Core -> kaart -> rünnak
   + energiaahel, node-ühendused, saare laiendus
-  MIKS VIIMASENA: tutorial ei saa olla hea enne, kui kõik
-  süsteemid on olemas.
+  MIKS ALLES NÜÜD JÄRGMINE: kõik süsteemid, sh run, on olemas —
+  spec'i enda eeltingimus tutoriali jaoks on täidetud.
 
 PÄRAST MVP-d
   - Tasakaalustamine telemeetria põhjal
@@ -539,9 +591,10 @@ PÄRAST MVP-d
   - Mobiilitugi (UI responsiivsus)
 
 MÄRKUS ROADMAPI MUUTUSE KOHTA
-  Algses plaanis oli run-süsteem "pärast MVP-d". Nüüd on see
-  sammuna 6, sest salvestus (samm 4) on valmis ja ootab seda —
-  metaRadius salvestub, aga miski ei tõsta seda.
+  Algses plaanis oli run-süsteem "pärast MVP-d". Sammuna 6 sai see
+  valmis, sest salvestus (samm 4) ootas seda — metaRadius salvestus,
+  aga miski ei tõstnud seda enne, kui run'id päriselt lõppesid ja
+  uuesti algasid.
 
 
 ========================================================================

@@ -292,6 +292,14 @@ if stateRemote then
 			return
 		end
 
+		-- Uus run on alanud (tulemus kustus) - peida lopuekraan ja
+		-- naita jooksva run'i riba jalle.
+		if shown and not r.result then
+			shown = false
+			endScreen.Visible = false
+			panel.Visible = true
+		end
+
 		if shown then
 			return
 		end

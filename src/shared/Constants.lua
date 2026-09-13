@@ -246,6 +246,12 @@ Constants.Run = {
 	-- Ilma selleta ei saaks run'i alguses midagi ehitada:
 	-- punkte toodab Assembler, aga Assembler ise maksab punkte.
 	StartingPoints = 150,
+
+	-- Kui kaua RUN COMPLETE/LOST ekraan seisab, enne kui jargmine
+	-- run samas maailmas automaatselt algab. Piisavalt pikk, et
+	-- mangija jouaks tulemust lugeda, aga mitte nii pikk, et istuks
+	-- tegevuseta.
+	RestartDelay = 8,
 }
 
 -- ============================================================

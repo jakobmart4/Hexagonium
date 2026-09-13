@@ -54,6 +54,7 @@ function RunManager.new(gameState)
 	self.lastMinuteRewarded = 0
 	self.attacksSurvived = 0
 	self.expansionsMade = 0
+	self.buildingsLost = 0
 
 	-- Kuulajad run'i lopule
 	self.onEnd = {}
@@ -110,6 +111,10 @@ end
 function RunManager:RecordExpansion()
 	self.expansionsMade = self.expansionsMade + 1
 	self:AddReward(CFG.RewardPerExpansion)
+end
+
+function RunManager:RecordBuildingsLost(amount)
+	self.buildingsLost = self.buildingsLost + amount
 end
 
 -- Kui palju punkte on run'i jooksul KOKKU toodetud.
@@ -203,6 +208,7 @@ function RunManager:EndRun(reason)
 		duration = self:GetElapsed(),
 		attacksSurvived = self.attacksSurvived,
 		expansionsMade = self.expansionsMade,
+		buildingsLost = self.buildingsLost,
 		pointsProduced = math.floor(self.totalPointsProduced),
 	}
 

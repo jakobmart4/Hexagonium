@@ -33,13 +33,19 @@ local Constants = require(ReplicatedStorage.Shared.Constants)
 
 local GameManager = {}
 
--- config: {slot, origin, folder, metaRadius, seed}
-function GameManager.CreateWorld(config)
+-- ============================================================
+-- MAAILMA SUSTEEMIDE EHITUS
+--
+-- UHINE nii esimese loomise (CreateWorld) kui run'i taaskaivituse
+-- (RestartRun) vahel. Vahe on ainult selles, KES kutsub ja mis
+-- metaRadius/seed kaasa antakse - islandManager (pusiv, sailib
+-- run'ide vahel) ja world.owners (mangijad ei vaheta) JAAVAD ALLES,
+-- koik ulejaanu (saar, hooned, kaardid, pank, run) tehakse uuesti.
+-- ============================================================
+local function buildWorldSystems(world, metaRadius, seed)
 	local islandConfig = Constants.IslandExpansion
-	local metaRadius = config.metaRadius or islandConfig.StartRadius
-
-	local folder = config.folder
-	local origin = config.origin or Vector3.new()
+	local folder = world.folder
+	local origin = world.origin
 
 	-- 1) Genereeri saar sellesse kausta
 	local gridStats = MapGenerator.GenerateIsland({
@@ -47,7 +53,7 @@ function GameManager.CreateWorld(config)
 		origin = origin,
 		radius = metaRadius,
 		maxRadius = islandConfig.MaxRadius,
-		seed = config.seed,
+		seed = seed,
 	})
 
 	MapGenerator.PlaceDemoBase({folder = folder, origin = origin})
@@ -83,20 +89,13 @@ function GameManager.CreateWorld(config)
 		end
 	end
 
-	local world = {
-		slot = config.slot,
-		origin = origin,
-		folder = folder,
-		owners = {},
-
-		hexGrid = hexGrid,
-		nodeSystem = nodeSystem,
-		cardManager = cardManager,
-		pointBank = pointBank,
-		tickService = tickService,
-		buildings = logicByVisualName,
-		seed = gridStats.seed,
-	}
+	world.hexGrid = hexGrid
+	world.nodeSystem = nodeSystem
+	world.cardManager = cardManager
+	world.pointBank = pointBank
+	world.tickService = tickService
+	world.buildings = logicByVisualName
+	world.seed = gridStats.seed
 
 	-- 4) Demo-ahela uhendused
 	local ex = logicByVisualName["Extractor"]
@@ -116,8 +115,6 @@ function GameManager.CreateWorld(config)
 	tickService:SetStateBroadcaster(broadcaster)
 	world.stateBroadcaster = broadcaster
 
-	world.islandManager = IslandManager.new(world, metaRadius)
-
 	world.runManager = RunManager.new(world)
 	tickService:SetRunManager(world.runManager)
 
@@ -125,6 +122,42 @@ function GameManager.CreateWorld(config)
 	tickService:SetFaction(world.faction)
 
 	tickService:Start()
+end
+
+-- config: {slot, origin, folder, metaRadius, seed}
+function GameManager.CreateWorld(config)
+	local islandConfig = Constants.IslandExpansion
+	local metaRadius = config.metaRadius or islandConfig.StartRadius
+
+	local world = {
+		slot = config.slot,
+		origin = config.origin or Vector3.new(),
+		folder = config.folder,
+		owners = {},
+	}
+
+	-- Pusib run'ide ule - EI looda RestartRun'is uuesti
+	world.islandManager = IslandManager.new(world, metaRadius)
+
+	buildWorldSystems(world, metaRadius, config.seed)
+
+	return world
+end
+
+-- Alustab UUE run'i SAMAS maailmas: saar taasgenereeritakse uue
+-- juhusliku seemnega, meta-raadius sailib (islandManager pusib),
+-- run-laiendused kaovad (ResetForNewRun). Kutsutakse pärast
+-- RunManager:EndRun'i, vt Bootstrap.server.lua.
+function GameManager.RestartRun(world)
+	if world.tickService then
+		world.tickService:Stop()
+	end
+	if world.faction and world.faction.attackManager then
+		world.faction.attackManager:EndWave()
+	end
+
+	local metaRadius = world.islandManager:ResetForNewRun()
+	buildWorldSystems(world, metaRadius, nil)
 
 	return world
 end
