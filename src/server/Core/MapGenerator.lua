@@ -74,6 +74,11 @@ MapGenerator.BuildingSizes = {
 -- seatuna liigub kaasa automaatselt, sest Model:PivotTo() liigutab
 -- koiki osi korraga (vt PlaceBuilding, CLAUDE.md "Visuaal on
 -- loogikast lahutatud").
+-- Detaili-varv (tume metall) - ei sobitu Theme.World.buildingXxx
+-- varvidega, mis on molemad reserveeritud alus+aktsent jaoks, aga
+-- peab eristuma neist molemast, et detail oleks nahtav.
+local DETAIL_COLOR = Color3.fromRGB(46, 48, 54)
+
 MapGenerator.BuildingShapes = {
 	Extractor = {
 		-- Lai madal alus + peenike korge vars = puurivarras
@@ -81,6 +86,16 @@ MapGenerator.BuildingShapes = {
 		accentSize = Vector3.new(1.6, 3.4, 1.6),
 		accentOffset = Vector3.new(0, 2.4, 0),
 		accentMaterial = Enum.Material.SmoothPlastic,
+		baseMaterial = Enum.Material.DiamondPlate,
+		-- Puuriots varre tipus - loeb "puurina", mitte lihtsalt vardana
+		extraPart = {
+			name = "DrillBit",
+			partType = Enum.PartType.Cylinder,
+			size = Vector3.new(0.8, 1.0, 1.0),
+			cframe = CFrame.new(0, 4.5, 0) * CFrame.Angles(0, 0, math.rad(90)),
+			material = Enum.Material.Metal,
+			color = DETAIL_COLOR,
+		},
 	},
 	PowerCore = {
 		-- Alus + helendav energiakera peal
@@ -88,6 +103,8 @@ MapGenerator.BuildingShapes = {
 		accentSize = Vector3.new(3.6, 3.6, 3.6),
 		accentOffset = Vector3.new(0, 2.8, 0),
 		accentMaterial = Enum.Material.Neon,
+		baseMaterial = Enum.Material.Metal,
+		pulse = true, -- energiakera "hingab" - vt PlaceBuilding
 	},
 	Refinery = {
 		-- Kaks paralleelset paaki kõrvuti (alus = paak 1)
@@ -95,6 +112,17 @@ MapGenerator.BuildingShapes = {
 		accentSize = Vector3.new(2.0, 3.6, 2.0),
 		accentOffset = Vector3.new(2.3, -0.2, 0),
 		accentMaterial = Enum.Material.SmoothPlastic,
+		baseMaterial = Enum.Material.Metal,
+		-- Ühendustoru paakide vahel - loeb "rafineerimistehasena", mitte
+		-- kahe juhusliku paagina
+		extraPart = {
+			name = "Pipe",
+			partType = Enum.PartType.Cylinder,
+			size = Vector3.new(1.0, 0.4, 0.4),
+			cframe = CFrame.new(1.2, 1.0, 0),
+			material = Enum.Material.Metal,
+			color = DETAIL_COLOR,
+		},
 	},
 	Assembler = {
 		-- Lai alus (tehasehoone) + korsten uhes nurgas
@@ -102,6 +130,7 @@ MapGenerator.BuildingShapes = {
 		accentSize = Vector3.new(1.0, 2.8, 1.0),
 		accentOffset = Vector3.new(1.5, 2.9, 1.5),
 		accentMaterial = Enum.Material.SmoothPlastic,
+		baseMaterial = Enum.Material.Concrete,
 	},
 	Defender = {
 		-- Peenike korge post + helendav sihtimiskera tipus
@@ -109,6 +138,17 @@ MapGenerator.BuildingShapes = {
 		accentSize = Vector3.new(2.4, 2.4, 2.4),
 		accentOffset = Vector3.new(0, 3.45, 0),
 		accentMaterial = Enum.Material.Neon,
+		baseMaterial = Enum.Material.Metal,
+		pulse = true, -- sihtimiskera vilgub - vt PlaceBuilding
+		-- Kahurutoru kera kulje - loeb "turnina", mitte lihtsalt postiga kerana
+		extraPart = {
+			name = "Barrel",
+			partType = Enum.PartType.Cylinder,
+			size = Vector3.new(1.8, 0.35, 0.35),
+			cframe = CFrame.new(1.6, 3.45, 0),
+			material = Enum.Material.Metal,
+			color = DETAIL_COLOR,
+		},
 	},
 }
 
@@ -261,7 +301,7 @@ function MapGenerator.CreateBuildingTemplates()
 		base.Shape = Enum.PartType.Block
 		base.Size = size
 		base.Color = color
-		base.Material = Enum.Material.SmoothPlastic
+		base.Material = (shape and shape.baseMaterial) or Enum.Material.SmoothPlastic
 		base.Anchored = true
 		base.CanCollide = true
 		base.Parent = model
@@ -297,6 +337,23 @@ function MapGenerator.CreateBuildingTemplates()
 				size.Y,
 				size.Y / 2 + shape.accentOffset.Y + shape.accentSize.Y / 2
 			)
+
+			-- Vaike detailosa (puuriots/toru/kahurutoru) - puhtalt
+			-- kosmeetiline, ei mojuta topOffsetFromBaseBottom't, sest
+			-- pole kunagi korgeim punkt.
+			if shape.extraPart then
+				local ep = shape.extraPart
+				local extra = Instance.new("Part")
+				extra.Name = ep.name
+				extra.Shape = ep.partType
+				extra.Size = ep.size
+				extra.CFrame = ep.cframe
+				extra.Color = ep.color or color
+				extra.Material = ep.material or Enum.Material.SmoothPlastic
+				extra.Anchored = true
+				extra.CanCollide = false
+				extra.Parent = model
+			end
 		end
 
 		local billboard = Instance.new("BillboardGui")
@@ -692,6 +749,21 @@ function MapGenerator.PlaceBuilding(buildingType, q, r, config)
 	clone:SetAttribute("R", r)
 	clone.Name = customName or buildingType
 	clone.Parent = buildings
+
+	-- Energiaosade pulseerimine (PowerCore/Defender) - Tween on seotud
+	-- osa enda eluajaga, Roblox koristab selle automaatselt kui
+	-- hoone havib/lammutatakse, seega eraldi cleanup pole vaja.
+	local shape = MapGenerator.BuildingShapes[buildingType]
+	if shape and shape.pulse then
+		local accent = clone:FindFirstChild("Accent")
+		if accent then
+			TweenService:Create(
+				accent,
+				TweenInfo.new(1.4, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true),
+				{Transparency = 0.45}
+			):Play()
+		end
+	end
 
 	return clone
 end
