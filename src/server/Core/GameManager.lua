@@ -26,6 +26,7 @@ local StateBroadcaster = require(ServerScriptService.Core.StateBroadcaster)
 local MapGenerator = require(ServerScriptService.Core.MapGenerator)
 local IslandManager = require(ServerScriptService.Core.IslandManager)
 local RunManager = require(ServerScriptService.Core.RunManager)
+local TutorialTracker = require(ServerScriptService.Core.TutorialTracker)
 local PointBank = require(ServerScriptService.Resources.PointBank)
 local BuildingFactory = require(ServerScriptService.Buildings.BuildingFactory)
 local FractureSyndicate = require(ServerScriptService.Factions.FractureSyndicate)
@@ -136,8 +137,9 @@ function GameManager.CreateWorld(config)
 		owners = {},
 	}
 
-	-- Pusib run'ide ule - EI looda RestartRun'is uuesti
+	-- Pusivad run'ide ule - EI looda RestartRun'is uuesti
 	world.islandManager = IslandManager.new(world, metaRadius)
+	world.tutorial = TutorialTracker.new(config.tutorialComplete)
 
 	buildWorldSystems(world, metaRadius, config.seed)
 

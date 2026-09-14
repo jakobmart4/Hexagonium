@@ -142,6 +142,8 @@ function StateBroadcaster:BuildPayload()
 		run = self.gameState.runManager
 			and self.gameState.runManager:GetClientState() or nil,
 		island = island,
+		tutorial = self.gameState.tutorial
+			and self.gameState.tutorial:GetClientState() or nil,
 
 		-- Saare nihe: klient vajab seda kaamera ja minimapi jaoks,
 		-- sest saared ei ole enam koordinaadil (0,0)

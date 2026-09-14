@@ -311,6 +311,11 @@ Constants.Faction = {
 	},
 
 	AttackDelayAfterHostile = 30,
+
+	-- Esimene Neutral -> Demand tsükkel tutoriali lõpetamata mängijale
+	-- (tavaliselt FractureSyndicate.DEMAND_INTERVAL = 150s). Ilma selleta
+	-- peaks uus mängija ootama runnaku-sammu jaoks üle 2 minuti.
+	TutorialDemandInterval = 30,
 }
 
 return Constants

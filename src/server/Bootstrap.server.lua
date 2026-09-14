@@ -103,6 +103,29 @@ local function wireRunEnd(world)
 end
 
 -- ============================================================
+-- TUTOORIUM VALMIS -> SALVESTA
+--
+-- Erinevalt wireRunEnd'ist EI pea seda RestartRun'i jarel uuesti
+-- kutsuma: world.tutorial (nagu world.islandManager) pusib run'ide
+-- ule, seega OnComplete-nimekiri ei kao kunagi.
+-- ============================================================
+local function wireTutorial(world)
+	local tutorial = world.tutorial
+	if not tutorial then
+		return
+	end
+
+	tutorial:OnComplete(function()
+		for _, owner in ipairs(world.owners) do
+			SaveService.SetTutorialComplete(owner, true)
+			SaveService.Save(owner, true)
+		end
+
+		print(string.format("[Hexagonium] TUTOORIUM LOPETATUD slot %d", world.slot))
+	end)
+end
+
+-- ============================================================
 -- MANGIJA LIITUB
 -- ============================================================
 
@@ -111,6 +134,7 @@ local function onPlayerJoined(player)
 
 	local world = WorldManager.CreateFor(player, {
 		metaRadius = data.metaRadius,
+		tutorialComplete = data.tutorialComplete,
 	})
 
 	if not world then
@@ -141,6 +165,7 @@ local function onPlayerJoined(player)
 	end
 
 	wireRunEnd(world)
+	wireTutorial(world)
 
 	if DEBUG.ForceAttackAfter and DEBUG.ForceAttackAfter > 0 then
 		task.delay(DEBUG.ForceAttackAfter, function()

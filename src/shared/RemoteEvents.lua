@@ -9,6 +9,7 @@
 	  BuildBuilding    klient -> server   (mangija ehitab hoone hexile)
 	  ConnectNodes     klient -> server   (mangija loob node-uhenduse)
 	  FactionDecision  klient -> server   (Fracture Pact jah/ei)
+	  SkipTutorial     klient -> server   (mängija jätab tutoriali vahele)
 	  Notification     server -> klient   (teated: runnak, kaardi efekt)
 ]]
 
@@ -25,6 +26,7 @@ local EVENT_NAMES = {
 	"FactionDecision",
 	"ExpandIsland",
 	"ExtractRun",
+	"SkipTutorial",
 	"Notification",
 }
 

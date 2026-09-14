@@ -61,6 +61,7 @@ function WorldManager.CreateFor(player, options)
 		folder = folder,
 		metaRadius = options.metaRadius,
 		seed = options.seed,
+		tutorialComplete = options.tutorialComplete,
 	})
 
 	table.insert(world.owners, player)

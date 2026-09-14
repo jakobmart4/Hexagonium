@@ -3,8 +3,9 @@
 	Mangija puusiva edenemise salvestamine DataStore'i.
 
 	MIDA SALVESTATAKSE:
-	  metaRadius   - saare pusiv suurus (Hex Seed tasu)
-	  stats        - mangustatistika (runid, runnakud, punktid)
+	  metaRadius       - saare pusiv suurus (Hex Seed tasu)
+	  tutorialComplete - kas mangija on esmase tutoriali labinud
+	  stats            - mangustatistika (runid, runnakud, punktid)
 
 	OLULINE STUDIO KOHTA:
 	DataStore ei toota Studios, kui "Enable Studio Access to API
@@ -45,6 +46,7 @@ local dirty = {}
 function SaveService.GetDefaults()
 	return {
 		metaRadius = Constants.IslandExpansion.StartRadius,
+		tutorialComplete = false,
 		stats = {
 			runsPlayed = 0,
 			attacksSurvived = 0,
@@ -65,6 +67,10 @@ local function fillDefaults(data)
 
 	if type(data.metaRadius) ~= "number" then
 		data.metaRadius = defaults.metaRadius
+	end
+
+	if type(data.tutorialComplete) ~= "boolean" then
+		data.tutorialComplete = defaults.tutorialComplete
 	end
 
 	if type(data.stats) ~= "table" then
@@ -159,6 +165,17 @@ function SaveService.SetMetaRadius(player, radius)
 
 	local isl = Constants.IslandExpansion
 	data.metaRadius = math.clamp(radius, isl.StartRadius, isl.MetaMaxRadius)
+	dirty[player.UserId] = true
+	return true
+end
+
+function SaveService.SetTutorialComplete(player, value)
+	local data = cache[player.UserId]
+	if not data then
+		return false
+	end
+
+	data.tutorialComplete = value and true or false
 	dirty[player.UserId] = true
 	return true
 end

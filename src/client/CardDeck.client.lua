@@ -209,6 +209,18 @@ local activeCardNames = {}   -- [cardName] = true
 local cardButtons = {}       -- [cardName] = {button, statusLabel}
 local targetingCard = nil    -- kaardi nimi, mis ootab hex-sihtmarki
 
+-- Saare viide: saared elavad Workspace.Islands.<nimi> all (sama muster
+-- mis BuildMenu.client.lua's)
+local islandFolderName = nil
+
+local function getIslandFolder()
+	if not islandFolderName then
+		return nil
+	end
+	local root = workspace:FindFirstChild("Islands")
+	return root and root:FindFirstChild(islandFolderName)
+end
+
 -- Jagatud lipp (sama mis BuildMenu's)
 local targetingFlag = playerGui:FindFirstChild("HexagoniumTargeting")
 if not targetingFlag then
@@ -256,11 +268,11 @@ local function getHexUnderMouse()
 
 	local params = RaycastParams.new()
 	params.FilterType = Enum.RaycastFilterType.Include
-	local hexFolder = workspace:FindFirstChild("Map")
-	if not hexFolder then
+	local islandFolder = getIslandFolder()
+	if not islandFolder then
 		return nil
 	end
-	hexFolder = hexFolder:FindFirstChild("Hexes")
+	local hexFolder = islandFolder:FindFirstChild("Hexes")
 	if not hexFolder then
 		return nil
 	end
@@ -465,7 +477,15 @@ end
 
 if stateRemote then
 	stateRemote.OnClientEvent:Connect(function(payload)
-		if not payload or not payload.cards then
+		if not payload then
+			return
+		end
+
+		if payload.islandFolder then
+			islandFolderName = payload.islandFolder
+		end
+
+		if not payload.cards then
 			return
 		end
 

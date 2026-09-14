@@ -93,6 +93,11 @@ function PlayerActionHandler:HandleActivateCard(player, request)
 		nodeSystem = world.nodeSystem,
 		faction = world.faction,
 	})
+
+	if world.tutorial then
+		world.tutorial:NotifyActivatedCard()
+	end
+
 	self:Notify(player, cardName .. " activated.", "success")
 end
 
@@ -153,6 +158,10 @@ function PlayerActionHandler:HandleBuildBuilding(player, request)
 
 	if cost > 0 then
 		bank:Spend(cost)
+	end
+
+	if world.tutorial and buildingType == "Extractor" then
+		world.tutorial:NotifyBuiltExtractor()
 	end
 
 	local uniqueName = string.format("%s_%d_%d", buildingType, q, r)
@@ -251,6 +260,13 @@ function PlayerActionHandler:HandleConnectNodes(player, request)
 	end
 
 	nodeSystem:Connect(source, target)
+
+	if world.tutorial
+		and (source.buildingType == "PowerCore" or target.buildingType == "PowerCore")
+	then
+		world.tutorial:NotifyConnectedToPowerCore()
+	end
+
 	self:Notify(player, string.format("Linked %s to %s (priority %d).",
 		source.buildingType, target.buildingType, #source.outputConnections), "success")
 end
@@ -338,6 +354,17 @@ function PlayerActionHandler:HandleExtract(player)
 	end
 end
 
+-- ============================================================
+-- TUTOORIUMI VAHELEJATMINE
+-- ============================================================
+
+function PlayerActionHandler:HandleSkipTutorial(player)
+	local world = self:GetWorld(player)
+	if not world or not world.tutorial then return end
+
+	world.tutorial:Complete()
+end
+
 function PlayerActionHandler:HandleExpandIsland(player)
 	local world = self:GetWorld(player)
 	if not world then return end
@@ -376,6 +403,7 @@ function PlayerActionHandler:Connect()
 	bind("FactionDecision", PlayerActionHandler.HandleFactionDecision)
 	bind("ExpandIsland", PlayerActionHandler.HandleExpandIsland)
 	bind("ExtractRun", PlayerActionHandler.HandleExtract)
+	bind("SkipTutorial", PlayerActionHandler.HandleSkipTutorial)
 end
 
 return PlayerActionHandler

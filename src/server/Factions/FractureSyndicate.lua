@@ -79,6 +79,10 @@ function FractureSyndicate:_wireTransitions()
 	m:OnEnter(S.ATTACK, function()
 		self:_setDefendersUnderAttack(true)
 		self.attackManager:StartWave(FractureSyndicate.ATTACK_DURATION)
+
+		if self.gameState.tutorial then
+			self.gameState.tutorial:NotifyAttackStarted()
+		end
 	end)
 
 	m:OnExit(S.ATTACK, function()
@@ -212,9 +216,24 @@ function FractureSyndicate:Tick()
 		m.nextState = S.NEUTRAL
 	end
 
-	-- Neutral olekus: uus noue teatud aja parast
+	-- Kui Demand'i tahtaeg aegus ilma mangija otsuseta, jouab
+	-- olekumasin Hostile'isse geneerilise 1-hupilise ulemineku kaudu,
+	-- mis kaotab jargmise kestuse. Taasta see siin, muidu jaab
+	-- Hostile igaveseks kestma ega lahe kunagi Attack'i.
+	if m:IsState(S.HOSTILE) and not m.stateDuration then
+		m.stateDuration = CFG.AttackDelayAfterHostile
+		m.nextState = S.ATTACK
+	end
+
+	-- Neutral olekus: uus noue teatud aja parast. Tutoriali lopetamata
+	-- mangijale on esimene tsukkel luhem, et runnaku-samm ei sunniks
+	-- ule 2 minuti ootama.
 	if m:IsState(S.NEUTRAL) then
-		if os.clock() - self.lastNeutralTime >= FractureSyndicate.DEMAND_INTERVAL then
+		local interval = (self.gameState.tutorial and not self.gameState.tutorial.complete)
+			and CFG.TutorialDemandInterval
+			or FractureSyndicate.DEMAND_INTERVAL
+
+		if os.clock() - self.lastNeutralTime >= interval then
 			self:EnterDemand()
 		end
 	end
