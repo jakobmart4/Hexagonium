@@ -296,7 +296,7 @@ PAREMKLÕPS: KLÕPS vs LOHISTAMINE
 
 
 ========================================================================
-11. FAILISTRUKTUUR (45 skripti)
+11. FAILISTRUKTUUR (46 skripti)
 ========================================================================
 
 ReplicatedStorage/
@@ -316,6 +316,7 @@ ServerStorage/
 ServerScriptService/
   Bootstrap.lua            käivitab mängu pärast andmete laadimist
   CardSystemTest.lua       9 testiplokki (Debug.RunTests taga)
+  BalanceSimulator.lua     tasakaalustamise simulaator (Debug.RunBalanceSim taga)
 
   Core/
     GameManager.lua        seob kõik kokku
@@ -671,8 +672,15 @@ SAMM 7 — TUTORIAL                              [VALMIS]
 
 SAMM 1-7 (MVP ROADMAP) ON NÜÜD TÄIELIKULT VALMIS.
 
-PÄRAST MVP-d
-  - Tasakaalustamine telemeetria põhjal
+SAMM 8 — TASAKAALUSTAMINE                      [POOLELI]
+  Raamistik ja mõõtmise mehhanism valmis: balance-tabel + muudatuste
+  logi `docs/TASAKAALUSTAMINE.md`'s, kiire matemaatiline simulaator
+  `src/server/BalanceSimulator.server.lua` (Constants.Debug.
+  RunBalanceSim taga, mirrors CardSystemTest.server.lua). Konkreetsed
+  Constants.lua väärtuste muudatused tulevad simulaatori ja käsitsi
+  Play-testide tulemuste põhjal — vt TASAKAALUSTAMINE.md.
+
+PÄRAST TASAKAALUSTAMIST
   - Visuaalne poleerimine (mesh'id, heliefektid)
   - Mobiilitugi (UI responsiivsus)
 

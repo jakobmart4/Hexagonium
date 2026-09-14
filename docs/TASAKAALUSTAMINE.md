@@ -1,0 +1,75 @@
+# Hexagonium — Tasakaalustamine
+
+Allikas on alati `Constants.lua`. See fail on tööriist tasakaalu
+jälgimiseks ja muudatuste logiks — mitte kirjeldus, miks kood on
+selline (see elab `HEXAGONIUM_Peadokument.txt`'is).
+
+Metoodika: `src/server/BalanceSimulator.server.lua`
+(`Constants.Debug.RunBalanceSim = true`, Play, loe konsool) annab
+kiire matemaatilise hinnangu küsimustele, mida saab arvutada.
+Tunnetuslikud küsimused (pacing, UX) vajavad käsitsi Play-testi —
+vt punkt 3.
+
+---
+
+## 1. Praegused väärtused (seisuga 14. september 2026)
+
+| Parameter | Praegune väärtus | Koht Constants.lua's |
+|---|---|---|
+| Ründaja HP | 60 (x threatScale) | `Attack.AttackerHealth` |
+| Ründaja DPS hoonele | 20 kahju / 2s = 10 DPS | `Attack.AttackerDamage` / `AttackerHitInterval` |
+| Ründaja kiirus | 6 studi/s | `Attack.AttackerSpeed` |
+| Defenderi DPS | 25 kahju / 1s = 25 DPS | `Buildings.Defender.DefensePoints` / `FireInterval` |
+| Defenderi energiakulu | 10 energiat / 5s | `Buildings.Defender.EnergyCostPerTick` / `Interval` |
+| Defenderi raadius | 3 hexi | `Buildings.Defender.DefenseRadius` |
+| EnergyPerCrystal | 50 | `Buildings.PowerCore.EnergyPerCrystal` |
+| Energy Leak | x0.95 iga 30s, seisak alla 80% (10s) | `Buildings.PowerCore.EnergyLeak*` |
+| Demand intervall (tavaline) | 150s | `FractureSyndicate.DEMAND_INTERVAL` |
+| Demand intervall (tutorial) | 30s | `Faction.TutorialDemandInterval` |
+| Demand kulu | 50 ore + 20 crystal, tähtaeg 30s | `Faction.Demand.*` |
+| Hostile -> Attack viivitus | 30s | `Faction.AttackDelayAfterHostile` |
+| Hoonete hinnad | Extractor 20, Refinery 35, Assembler 50, PowerCore 40, Defender 45 | `BuildCosts` |
+| Lammutuse tagastus | 50% | `DemolishRefund` |
+| Saare laienduse kulu (run) | 40 -> 120 -> 360 UP | `IslandExpansion.RunExpansionBaseCost` / `CostMultiplier` |
+| Saare laienduse kulu (meta) | tasuta, Hex Seed (+600 UP tasu run'i lõpus) | `IslandExpansion` / `Run.RewardPerMetaRadius` |
+| Run'i Timeout | 3600s (60 min, ülempiir) | `Run.Duration` |
+| RestartDelay | 8s | `Run.RestartDelay` |
+| Ohu kasv | +12%/min, lagi 8.0x (~60. minutil) | `Attack.ScalePerMinute` / `MaxScale` |
+| Rünnaku laine suurus | 3 + 1/rõngas, lagi 20 | `Attack.BaseAttackers` / `AttackersPerRing` / `MaxAttackers` |
+| Kaardikordajad | vt Constants.Cards — igal kaardil oma | `Cards.*` |
+
+## 2. Tuletatud suurused
+
+| Suurus | Valem | Väärtus |
+|---|---|---|
+| Assembler baastoodang | 1 UP / 5s | 12 UP/min |
+| Tuumaheла hind (Extractor+Refinery+Assembler+PowerCore) | 20+35+50+40 | 145 UP (algkapital 150) |
+| Defender taskukohane | 45 UP / 12 UP/min | ~4. minutil |
+| 1. saare laiendus taskukohane | 40 UP / 12 UP/min | ~4. minutil |
+| Tutoriali samm 4 (rünnaku algus) | 30+30+30s | ~90s (worst case) |
+
+---
+
+## 3. Testide tulemused
+
+Täidetakse `BalanceSimulator.server.lua` väljundi ja käsitsi
+Play-testide põhjal. Vormis: kuupäev, mida testiti, mis leiti.
+
+| Kuupäev | Küsimus | Simulatsiooni tulemus | Manuaalse testi tähelepanek |
+|---|---|---|---|
+| 14.09.2026 | 1. Kaotuse % | 20 run'i (4 arhetüüpi x 5 seemet): **75% DESTROYED**. Üks Defender puhastab minut-0 laine (180 HP vs 500 kahju), aga MITTE enam minutist 15 (threatScale 2.8x, 1344 HP vs 500 kahju). Vastab dokumenteeritud disainile ("iga baas lõpuks murdub"), aga 75% on kõrge isegi lühikeste run'ide juures — vaata Samm 3 kaalutlusena, kas Defenderi DPS/laine kasv vajab tuunimist, ENNE kui otsustada. | — |
+| 14.09.2026 | 2/3. Demand-maksmine / Defenderi ehitamine | Arhetüübi-eeldused (mitte mõõdetud): 75% maksavad, 75% ehitavad kunagi Defenderi (3/4 arhetüüpi). Tautoloogiline tulemus praeguse mudeliga — vajab reaalset mängijaandmeid (telemeetria), kui see peaks kunagi täpsem olema. | — |
+| 14.09.2026 | 4. UP majanduse tempo | Tuumahel (145 UP) valmib algkapitalist minutil 0. Sealt 12 UP/min — Defender ja 1. saare laiendus mõlemad taskukohased ~minutil 4. Tundub mõistlik: mängija saab midagi uut otsustada iga paari minuti tagant, mitte liiga tihti ega liiga harva. | — |
+| 14.09.2026 | 5. Tutoriali pacing | Deterministlik: ~90s halvimal juhul (30+30+30s). | KINNITATUD SAMM 7 Play-testimisel: täielik 4-sammuline tsükkel (ehitus->ühendus->kaart->rünnak) läbis reaalselt ~90-120s piires liitumisest — tundus mõistlik, mitte venitatud ega kiirustatud. |
+| 14.09.2026 | 6. Rünnaku raskus | Checkpointid: minut 0 OK (Defender puhastab), minut 15/30/60 EI puhasta üksi. Vahe minuti 0 ja 15 vahel on JÄRSK (threatScale 1.0x -> 2.8x kasvatab ründaja koguHP-d 180 -> 1344, 7.5x). | — |
+| 14.09.2026 | 7. Run'i pikkus | Keskmine simuleeritud lõpp minut 25/60 — enamik run'e lõpeb tunduvalt enne Timeout'it (baas hävib enne 60 min täitumist). Duration=3600s ülempiir tundub harva reaalselt mõjutav tegur — enamik run'e lõpeb DESTROYED/EXTRACT kaudu enne. | — |
+| 14.09.2026 | 8. RestartDelay | (arv ei kohaldu) | Vaadeldud SAMM 6/7 Play-testimisel (Extract-nupp -> "RUN COMPLETE" ekraan 5 reaga tulemusi -> 8-9s -> uus run algas automaatselt): 8s tundus piisav tulemuse lugemiseks, mitte liiga pikk tegevusetuks jäämiseks. |
+| 14.09.2026 | (lisaks) Demand-bänneri hoiatusaeg | — | Vaadeldud SAMM 7 testimisel: "Decide within Ns" pöördloendus koos "Wants X ore + Y crystal (have A/B)" progressiga oli selgelt loetav; 30s tundus piisav teadliku Pay/Refuse otsuse jaoks. |
+
+## 4. Muudatuste logi
+
+Täidetakse SAMM 8 samm 3 käigus (eraldi plaan). Vorm:
+
+| Kuupäev | Parameeter | Vana -> uus | Põhjus |
+|---|---|---|---|
+| — | — | — | — |

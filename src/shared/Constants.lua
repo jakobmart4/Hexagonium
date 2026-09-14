@@ -14,6 +14,7 @@ local Constants = {}
 -- ============================================================
 Constants.Debug = {
 	RunTests = false,        -- CardSystemTest iga Play vajutusega
+	RunBalanceSim = false,   -- BalanceSimulator iga Play vajutusega
 	VerboseLogging = false,  -- Bootstrapi ressursivoo print iga 3 sek
 	ExposeGameState = false, -- _G.HexagoniumState testskriptide jaoks
 
