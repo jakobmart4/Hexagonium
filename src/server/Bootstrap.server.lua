@@ -8,6 +8,7 @@ Players.CharacterAutoLoads = false
 local Constants = require(ReplicatedStorage.Shared.Constants)
 local RemoteEvents = require(ReplicatedStorage.Shared.RemoteEvents)
 local MapGenerator = require(ServerScriptService.Core.MapGenerator)
+local Environment = require(ServerScriptService.Core.Environment)
 local WorldManager = require(ServerScriptService.Core.WorldManager)
 local GameManager = require(ServerScriptService.Core.GameManager)
 local PlayerActionHandler = require(ServerScriptService.Core.PlayerActionHandler)
@@ -24,6 +25,7 @@ local DEBUG = Constants.Debug
 -- ============================================================
 
 RemoteEvents.InitAll()
+Environment.Setup()
 MapGenerator.EnsureOcean()
 MapGenerator.CreateBuildingTemplates()
 
