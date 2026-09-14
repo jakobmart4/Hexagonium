@@ -693,9 +693,36 @@ SAMM 8 — TASAKAALUSTAMINE                      [ESIMENE RING VALMIS]
   isegi minut-60 lae. Täpsem kalibreerimine vajab PÄRIS mängijate
   telemeetriat, mitte täiendavat simulaatori-arvamist — vt allpool.
 
-PÄRAST TASAKAALUSTAMIST
-  - Visuaalne poleerimine (mesh'id, heliefektid)
-  - Mobiilitugi (UI responsiivsus)
+VISUAALNE POLEERIMINE                          [POOLELI]
+  Osa 1 — hoonete kuju [VALMIS]: kõik 5 hoonet olid identsed värvilised
+  kuubikud (Body Part + nimesilt), ainult värv/mõõt eristasid. Nüüd
+  igaühel 2-osaline silhuett (PrimaryPart-alus + Enum.Material.Neon'iga
+  aktsent, kus sobib): Extractor = puurivarras, PowerCore = helendav
+  energiakera, Refinery = kaks paralleelset paaki, Assembler = korstnaga
+  tehas, Defender = post + sihtimiskera. Ainult
+  `MapGenerator.CreateBuildingTemplates()` (uus `BuildingShapes`
+  config-tabel) — kooskõlas "Visuaal on loogikast lahutatud" põhimõttega,
+  PlaceBuilding/AttackManager/NodeLinks/Minimap kõik loevad ainult
+  PrimaryPart'i, mis jäi muutumatuks mustriks.
+    LÕKS: alus PEAB jääma Enum.PartType.Block (mitte Cylinder) - Place-
+    Building loeb otse PrimaryPart.Size.Y maailma-kõrguseks, aga Size on
+    alati KOHALIK, nii et roteeritud Cylinder'i Size.Y ei vasta enam
+    tegelikule kõrgusele. Cylinder-kuju telg on Robloxis alati kohalik X,
+    seega vertikaalse silindri jaoks: Size = (kõrgus, läbimõõt, läbimõõt)
+    + 90° pööre Z ümber (kohalik +X -> maailma +Y).
+    LÕKS 2: `ReplicatedStorage.BuildingTemplates` oli PÜSIVALT Edit-
+    režiimi salvestatud (vana ühe-Part'ilise kujuga), nii et
+    `CreateBuildingTemplates()`'i "if existing then return" jättis uue
+    koodi kunagi käivitamata. Ühekordne käsitsi kustutamine Edit-
+    režiimis (execute_luau) lahendas - edaspidi genereerib Play iga
+    kord värskelt, sest Play-režiimi loodud instansid ei jää Edit-
+    režiimi püsima.
+
+  Osa 2+ [PUUDUB]: heliefektid, UI responsiivsus, animatsioonid,
+  minimapi visuaalid, rünnakute efektid, tutoriali tekstid,
+  kaardipaki animatsioonid.
+
+MOBIILITUGI (UI responsiivsus)                 [PUUDUB]
 
 MÄRKUS ROADMAPI MUUTUSE KOHTA
   Algses plaanis oli run-süsteem "pärast MVP-d". Sammuna 6 sai see

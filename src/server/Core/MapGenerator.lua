@@ -58,12 +58,58 @@ MapGenerator.BuildingColors = {
 	Defender  = Theme.World.buildingDefender,
 }
 
+-- PrimaryPart'i (aluse) mõõt. Alus istub ALATI hexi pinnal (vt
+-- PlaceBuilding: worldPos.Y = origin.Y + HEX_TOP_Y + size.Y/2).
 MapGenerator.BuildingSizes = {
-	Extractor = Vector3.new(4.2, 4.5, 4.2),
-	PowerCore = Vector3.new(4.8, 5.5, 4.8),
-	Refinery  = Vector3.new(4.5, 4.5, 4.5),
-	Assembler = Vector3.new(4.5, 4.5, 4.5),
-	Defender  = Vector3.new(3.2, 7.0, 3.2),
+	Extractor = Vector3.new(4.2, 1.4, 4.2),
+	PowerCore = Vector3.new(4.8, 2.0, 4.8),
+	Refinery  = Vector3.new(2.4, 4.0, 2.4),
+	Assembler = Vector3.new(4.5, 3.0, 4.5),
+	Defender  = Vector3.new(2.0, 4.5, 2.0),
+}
+
+-- Aktsendiosa iga hoonetuubi jaoks - annab silhueti, mis eristub
+-- teistest hoonetest kujult, mitte ainult varvilt. accentOffset on
+-- KOHALIK nihe ALUSE KESKPUNKTIST (mitte hexist) - kord oigesti
+-- seatuna liigub kaasa automaatselt, sest Model:PivotTo() liigutab
+-- koiki osi korraga (vt PlaceBuilding, CLAUDE.md "Visuaal on
+-- loogikast lahutatud").
+MapGenerator.BuildingShapes = {
+	Extractor = {
+		-- Lai madal alus + peenike korge vars = puurivarras
+		accentPartType = Enum.PartType.Cylinder,
+		accentSize = Vector3.new(1.6, 3.4, 1.6),
+		accentOffset = Vector3.new(0, 2.4, 0),
+		accentMaterial = Enum.Material.SmoothPlastic,
+	},
+	PowerCore = {
+		-- Alus + helendav energiakera peal
+		accentPartType = Enum.PartType.Ball,
+		accentSize = Vector3.new(3.6, 3.6, 3.6),
+		accentOffset = Vector3.new(0, 2.8, 0),
+		accentMaterial = Enum.Material.Neon,
+	},
+	Refinery = {
+		-- Kaks paralleelset paaki kõrvuti (alus = paak 1)
+		accentPartType = Enum.PartType.Cylinder,
+		accentSize = Vector3.new(2.0, 3.6, 2.0),
+		accentOffset = Vector3.new(2.3, -0.2, 0),
+		accentMaterial = Enum.Material.SmoothPlastic,
+	},
+	Assembler = {
+		-- Lai alus (tehasehoone) + korsten uhes nurgas
+		accentPartType = Enum.PartType.Cylinder,
+		accentSize = Vector3.new(1.0, 2.8, 1.0),
+		accentOffset = Vector3.new(1.5, 2.9, 1.5),
+		accentMaterial = Enum.Material.SmoothPlastic,
+	},
+	Defender = {
+		-- Peenike korge post + helendav sihtimiskera tipus
+		accentPartType = Enum.PartType.Ball,
+		accentSize = Vector3.new(2.4, 2.4, 2.4),
+		accentOffset = Vector3.new(0, 3.45, 0),
+		accentMaterial = Enum.Material.Neon,
+	},
 }
 
 MapGenerator.NoiseConfig = {
@@ -199,26 +245,67 @@ function MapGenerator.CreateBuildingTemplates()
 	local created = 0
 	for buildingType, color in pairs(MapGenerator.BuildingColors) do
 		local size = MapGenerator.BuildingSizes[buildingType]
+		local shape = MapGenerator.BuildingShapes[buildingType]
 
 		local model = Instance.new("Model")
 		model.Name = buildingType .. "Template"
 
-		local part = Instance.new("Part")
-		part.Name = "Body"
-		part.Size = size
-		part.Color = color
-		part.Material = Enum.Material.SmoothPlastic
-		part.Anchored = true
-		part.CanCollide = true
-		part.Parent = model
+		-- Alus: ALATI PrimaryPart, ALATI Block (vaikimisi kuju, ROTEERIMATA).
+		-- PlaceBuilding loeb otse PrimaryPart.Size.Y kui MAAILMA vertikaalset
+		-- korgust (worldPos.Y = origin.Y + HEX_TOP_Y + size.Y/2) - Size on
+		-- alati KOHALIKUS ruumis, seega roteeritud Cylinder'i Size.Y ei
+		-- vastaks enam tegelikule korgusele. Seepärast on alus alati Block;
+		-- silueti annab aktsendiosa (vt allpool).
+		local base = Instance.new("Part")
+		base.Name = "Body"
+		base.Shape = Enum.PartType.Block
+		base.Size = size
+		base.Color = color
+		base.Material = Enum.Material.SmoothPlastic
+		base.Anchored = true
+		base.CanCollide = true
+		base.Parent = model
+
+		local topOffsetFromBaseBottom = size.Y
+
+		if shape then
+			local accentPart = Instance.new("Part")
+			accentPart.Name = "Accent"
+			accentPart.Shape = shape.accentPartType
+			accentPart.Color = color
+			accentPart.Material = shape.accentMaterial
+			accentPart.Anchored = true
+			accentPart.CanCollide = true
+
+			if shape.accentPartType == Enum.PartType.Cylinder then
+				-- Cylinder'i telg on Robloxis ALATI kohalik X, seega
+				-- "korgus" (meie tabelis Size.Y) laheb Size.X'i ja part
+				-- keeratakse 90 kraadi Z umber, et telg saaks vertikaalne
+				-- (kohalik +X -> maailma +Y sellise poordega).
+				accentPart.Size = Vector3.new(
+					shape.accentSize.Y, shape.accentSize.X, shape.accentSize.Z
+				)
+				accentPart.CFrame = CFrame.new(shape.accentOffset) * CFrame.Angles(0, 0, math.rad(90))
+			else
+				accentPart.Size = shape.accentSize
+				accentPart.CFrame = CFrame.new(shape.accentOffset)
+			end
+
+			accentPart.Parent = model
+
+			topOffsetFromBaseBottom = math.max(
+				size.Y,
+				size.Y / 2 + shape.accentOffset.Y + shape.accentSize.Y / 2
+			)
+		end
 
 		local billboard = Instance.new("BillboardGui")
 		billboard.Name = "Label"
 		billboard.Size = UDim2.new(0, 110, 0, 26)
-		billboard.StudsOffset = Vector3.new(0, size.Y / 2 + 1.5, 0)
+		billboard.StudsOffset = Vector3.new(0, topOffsetFromBaseBottom - size.Y / 2 + 1.5, 0)
 		billboard.AlwaysOnTop = true
 		billboard.MaxDistance = 200
-		billboard.Parent = part
+		billboard.Parent = base
 
 		local text = Instance.new("TextLabel")
 		text.Name = "NameLabel"
@@ -231,7 +318,7 @@ function MapGenerator.CreateBuildingTemplates()
 		text.Font = Theme.Font.bold
 		text.Parent = billboard
 
-		model.PrimaryPart = part
+		model.PrimaryPart = base
 		model:SetAttribute("BuildingType", buildingType)
 		model.Parent = templates
 		created += 1
