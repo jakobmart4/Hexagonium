@@ -171,14 +171,19 @@ Constants.Cards = {
 -- Naide: meta=5, run-laiendusi 2 -> aktiivne raadius 7
 -- ============================================================
 Constants.IslandExpansion = {
-	-- Tasakaalustatud kasutaja tagasiside jargi: 4 -> 2 (-2 ronga).
-	-- Algne saar oli liiga suur juba enne esimest laiendust - need 2
-	-- ronga said nuud meta-progressiooni osaks (StartRadius..MetaMaxRadius
-	-- vahe kasvas 2 sammult 4 sammule). MITTE 1 (3 ronga maha): siis
-	-- oleks vaid 7 hexi kokku, ei mahutaks MinResources'i nouet
-	-- (6 ore + 4 crystal UKSI avatud hexide seas).
-	StartRadius = 2,        -- uue mangija algne saar
-	MetaMaxRadius = 6,      -- meta-progressiooni lagi
+	-- Tasakaalustatud kasutaja tagasiside jargi kahes vooris:
+	-- 1) 4 -> 2 ei olnud piisav - kasutaja votis vordluseks
+	--    Workspace.Islands._Preview (Studio Edit-vaates nahtav staatiline
+	--    eelvaade, 37 hexi = tapselt raadius 3, koik lahti) kui oige
+	--    alguse suuruse.
+	-- 2) MetaMaxRadius 6 -> 7, et StartRadius'est saaks TAPSELT 4
+	--    eraldi meta-laiendust (3->4->5->6->7), nagu kasutaja soovis.
+	-- MaxRadius jaab 8 - pusiv RunExpansionsMax=2 puudutab ainult
+	-- kaugelearenenud (meta=7) mangijaid: neile jaab reaalselt kasutada
+	-- 1 run-laiendus 2-st (7+2=9 > MaxRadius 8), mitte disainiviga,
+	-- vaid olemasoleva MaxRadius lae loomulik korvalmoju.
+	StartRadius = 3,        -- uue mangija algne saar (= _Preview suurus)
+	MetaMaxRadius = 7,      -- meta-progressiooni lagi (StartRadius + 4)
 	MaxRadius = 8,          -- genereeritud saare koguulatus
 
 	RunExpansionsMax = 2,   -- mitu ronga saab uhe run'i jooksul avada
