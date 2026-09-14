@@ -25,16 +25,19 @@ local MASTER_VOLUME = 0.5
 -- Kõik valitud helid ühes kohas - kui mõni ei kõla oodatult, vaheta
 -- siin, mujal midagi muutma ei pea.
 local SOUND_IDS = {
-	build     = 9119730203,
-	demolish  = 102757491685632,
-	error     = 5229833733,
-	card      = 134787800528297,
-	connect   = 9125539780,
-	demand    = 6783209805,
-	attack    = 9118805665,
-	destroyed = 9116547480,
-	victory   = 110616737058623,
-	defeat    = 107485186727325,
+	build           = 9119730203,
+	demolish        = 102757491685632,
+	error           = 5229833733,
+	-- kaardi hex-sihtimise nurjumine - kasutaja tagasiside jargi vahetatud
+	-- eraldi heliks, mitte enam uldine "error"
+	cardTargetError = 127004853365412,
+	card            = 134787800528297,
+	connect         = 9125539780,
+	demand          = 6783209805,
+	attack          = 9118805665,
+	destroyed       = 9116547480,
+	victory         = 110616737058623,
+	defeat          = 107485186727325,
 }
 
 local sounds = {}

@@ -72,11 +72,11 @@ function PlayerActionHandler:HandleActivateCard(player, request)
 	local q, r = request.q, request.r
 	if CardRegistry.NeedsHex(cardName) then
 		if type(q) ~= "number" or type(r) ~= "number" then
-			self:Notify(player, "Select a hex first.", "warning")
+			self:Notify(player, "Select a hex first.", "warning", "cardTargetError")
 			return
 		end
 		if not world.hexGrid:GetCell(q, r) then
-			self:Notify(player, "That hex does not exist.", "error")
+			self:Notify(player, "That hex does not exist.", "error", "cardTargetError")
 			return
 		end
 	end

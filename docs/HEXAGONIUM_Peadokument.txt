@@ -720,10 +720,14 @@ VISUAALNE POLEERIMINE                          [POOLELI]
     režiimi püsima.
 
   Osa 2 — heliefektid [VALMIS]: mängus polnud enne ÜHTEGI heli. Uus
-  `src/client/SoundEffects.client.lua` (10 valmis Sound-instantsi
+  `src/client/SoundEffects.client.lua` (11 valmis Sound-instantsi
   SoundService all, `rbxassetid://` otse, ilma insert_asset'ita) +
   `PlayerActionHandler:Notify`'le valikuline 4. parameeter
-  (`soundHint`) 4 kutsekohas (ehitus/lammutus/ühendus/kaart).
+  (`soundHint`) 6 kutsekohas (ehitus/lammutus/ühendus/kaart/kaardi
+  hex-sihtimise 2 nurjumisjuhtu). Kasutaja kuulas kõik 10 algset heli
+  üle ja palus vahetada AINULT kaardi hex-sihtimise nurjumise heli
+  (varem üldine "error", nüüd eraldi `cardTargetError`, assetId
+  127004853365412) — ülejäänud 9 jäid muutmata.
   ENAMIK helisid (demand/attack/destroyed/victory/defeat) käivituvad
   kliendis OLEMASOLEVA `GameStateUpdate`'i eelmise-vs-praeguse
   payload'i võrdlusest — ZERO server-muudatust, sama muster mis
