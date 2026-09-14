@@ -1,20 +1,18 @@
 --[[
 	StartScreen.client.lua (LocalScript)
-	Peamenüü / start screen: täisekraani ülekate, mis näitab
-	salvestuse ülevaadet ja elu-aegset statistikat, kuni mängija
-	klõpsab Start/Continue.
+	Title screen: täisekraani ülekate elava 3D maailma peal (DroneCamera
+	juba raamib saare kena nurga alt liitumisel - see ONGI meie "art",
+	eraldi tausta ei vaja), logo üleval vasakul, Continue/stats all paremal.
 
 	EI GATE'I SERVERIT: maailm laadib nagu alati taustal
 	(Bootstrap.server.lua muutumatu vool). Ülekate lihtsalt NEELAB
 	klõpsud (Active=true, kõrge DisplayOrder), kuni mängija otsustab
-	jätkata - visuaalselt sama efekt, ilma serveripoolset
-	käivitusvoogu puutumata.
+	jätkata.
 
 	ANDMEVOOG: world.profileSnapshot (server, Bootstrap.server.lua)
 	-> StateBroadcaster.BuildPayload()'i "profile" väli ->
 	GameStateUpdate (juba olemas, korduv kanal) - EI vaja uut
-	ühekordset remote'i, mis oleks race-altis (vt CLAUDE.md 13.-laadsed
-	lõksud: hiline kuulaja jääks ühekordsest FireClient'ist ilma).
+	ühekordset remote'i, mis oleks race-altis.
 ]]
 
 local Players = game:GetService("Players")
@@ -28,6 +26,33 @@ local playerGui = player:WaitForChild("PlayerGui")
 
 local FONT = Theme.Font.regular
 local FONT_BOLD = Theme.Font.bold
+
+-- Ainus koht, mis on kindlalt vaba: minimap (x kuni ~222) ja
+-- ülemised ressursiribad (y kuni ~146) jätavad selle vaba nurga.
+local COL_X = 270
+local COL_WIDTH = 460
+
+-- Vaikselt legendarne kaugustunnetus (TextStroke, mitte eraldi
+-- varjufreim) - loetav ka siis kui maailm taga heledam on.
+local function applyStroke(label, transparency)
+	label.TextStrokeColor3 = Color3.new(0, 0, 0)
+	label.TextStrokeTransparency = transparency or 0.5
+end
+
+local function infoLabel(parent, y, height, size, color, text)
+	local label = Instance.new("TextLabel")
+	label.Size = UDim2.new(0, COL_WIDTH, 0, height)
+	label.Position = UDim2.new(0, COL_X + 2, 0, y)
+	label.BackgroundTransparency = 1
+	label.Text = text or ""
+	label.TextColor3 = color
+	label.TextXAlignment = Enum.TextXAlignment.Left
+	label.Font = FONT
+	label.TextSize = size
+	label.Parent = parent
+	applyStroke(label, 0.65)
+	return label
+end
 
 -- =========================================================
 -- GUI
@@ -44,102 +69,74 @@ screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 screenGui.DisplayOrder = 100 -- kindlasti koige teise UI peal
 screenGui.Parent = playerGui
 
--- Täisekraani tume taust, mis neelab klõpsud (Active=true)
+-- Täisekraani tume taust, mis neelab klõpsud (Active=true). Maailm
+-- jääb nähtavaks (title-screen "art" on juba olemasolev 3D vaade),
+-- aga tumedam kui varem, et tekst oleks kontrastsem.
 local backdrop = Instance.new("Frame")
 backdrop.Name = "Backdrop"
 backdrop.Size = UDim2.new(1, 0, 1, 0)
 backdrop.Position = UDim2.new(0, 0, 0, 0)
 backdrop.BackgroundColor3 = Theme.UI.background
-backdrop.BackgroundTransparency = 0.15
+backdrop.BackgroundTransparency = 0.3
 backdrop.BorderSizePixel = 0
 backdrop.Active = true
 backdrop.Parent = screenGui
 
-local panel = Theme.Panel(
-	"StartPanel",
-	UDim2.new(0, 420, 0, 340),
-	UDim2.new(0.5, -210, 0.5, -170),
-	backdrop
-)
-Theme.ClampToViewport(panel)
-
-local title = Theme.Title("HEXAGONIUM", panel)
-title.TextSize = Theme.TextSize.large
+-- ---------- Logo ----------
+local title = Instance.new("TextLabel")
+title.Name = "Title"
+title.Size = UDim2.new(0, 700, 0, 64)
+title.Position = UDim2.new(0, COL_X, 0, 150)
+title.BackgroundTransparency = 1
+title.Text = "HEXAGONIUM"
+title.TextColor3 = Theme.UI.accent
+title.TextXAlignment = Enum.TextXAlignment.Left
 title.Font = FONT_BOLD
+title.TextSize = 52
+title.Parent = backdrop
+applyStroke(title, 0.45)
 
 local subtitle = Instance.new("TextLabel")
 subtitle.Name = "Subtitle"
-subtitle.Size = UDim2.new(1, -Theme.Layout.padding * 2, 0, 16)
-subtitle.Position = UDim2.new(0, Theme.Layout.padding, 0, 32)
+subtitle.Size = UDim2.new(0, 500, 0, 20)
+subtitle.Position = UDim2.new(0, COL_X + 2, 0, 218)
 subtitle.BackgroundTransparency = 1
 subtitle.Text = ""
 subtitle.TextColor3 = Theme.UI.textDim
 subtitle.TextXAlignment = Enum.TextXAlignment.Left
 subtitle.Font = FONT
-subtitle.TextSize = Theme.TextSize.small
-subtitle.Parent = panel
+subtitle.TextSize = Theme.TextSize.body
+subtitle.Parent = backdrop
+applyStroke(subtitle, 0.65)
 
-local function makeSectionLabel(text, y)
-	local label = Instance.new("TextLabel")
-	label.Size = UDim2.new(1, -Theme.Layout.padding * 2, 0, 16)
-	label.Position = UDim2.new(0, Theme.Layout.padding, 0, y)
-	label.BackgroundTransparency = 1
-	label.Text = text
-	label.TextColor3 = Theme.UI.accent
-	label.TextXAlignment = Enum.TextXAlignment.Left
-	label.Font = FONT_BOLD
-	label.TextSize = Theme.TextSize.label
-	label.Parent = panel
-	return label
-end
-
-local function makeRow(y)
-	local label = Instance.new("TextLabel")
-	label.Size = UDim2.new(1, -Theme.Layout.padding * 2, 0, 18)
-	label.Position = UDim2.new(0, Theme.Layout.padding, 0, y)
-	label.BackgroundTransparency = 1
-	label.Text = ""
-	label.TextColor3 = Theme.UI.text
-	label.TextXAlignment = Enum.TextXAlignment.Left
-	label.Font = FONT
-	label.TextSize = Theme.TextSize.body
-	label.Parent = panel
-	return label
-end
-
-makeSectionLabel("SAVE FILE", 58)
-local islandRow = makeRow(78)
-local tutorialRow = makeRow(98)
-
-makeSectionLabel("LIFETIME STATS", 126)
-local runsRow = makeRow(146)
-local attacksRow = makeRow(166)
-local lostRow = makeRow(186)
-local pointsRow = makeRow(206)
-
+-- ---------- Continue/Start + save-ülevaade (logo all) ----------
 local startButton = Instance.new("TextButton")
 startButton.Name = "StartButton"
-startButton.Size = UDim2.new(1, -Theme.Layout.padding * 2, 0, 44)
-startButton.Position = UDim2.new(0, Theme.Layout.padding, 1, -60)
-startButton.BackgroundColor3 = Theme.UI.panel
-startButton.BorderSizePixel = 0
-startButton.Text = "START"
+startButton.Size = UDim2.new(0, COL_WIDTH, 0, 44)
+startButton.Position = UDim2.new(0, COL_X, 0, 280)
+startButton.BackgroundTransparency = 1
+startButton.Text = "\u{203A} START"
 startButton.TextColor3 = Theme.UI.success
+startButton.TextXAlignment = Enum.TextXAlignment.Left
 startButton.Font = FONT_BOLD
-startButton.TextSize = Theme.TextSize.value
+startButton.TextSize = 30
 startButton.AutoButtonColor = false
-startButton.Parent = panel
-Theme.Corner(startButton, Theme.Layout.cornerSmall)
+startButton.Parent = backdrop
+applyStroke(startButton, 0.45)
 
 startButton.MouseEnter:Connect(function()
-	startButton.BackgroundColor3 = Theme.UI.panelHover
+	startButton.TextColor3 = Theme.UI.text
 end)
 startButton.MouseLeave:Connect(function()
-	startButton.BackgroundColor3 = Theme.UI.panel
+	startButton.TextColor3 = Theme.UI.success
 end)
 startButton.MouseButton1Click:Connect(function()
 	backdrop.Visible = false
 end)
+
+local infoLine1 = infoLabel(backdrop, 336, 18, Theme.TextSize.small, Theme.UI.textDim)
+local infoLine2 = infoLabel(backdrop, 356, 18, Theme.TextSize.small, Theme.UI.textDim)
+local infoLine3 = infoLabel(backdrop, 376, 18, Theme.TextSize.small, Theme.UI.textDim)
 
 -- =========================================================
 -- ALUMINE-VASAK "MENU" NUPP: taasavab ülekatte igal ajal.
@@ -191,15 +188,18 @@ stateRemote.OnClientEvent:Connect(function(payload)
 	subtitle.Text = isNewPlayer
 		and "Welcome to Hexagonium."
 		or "Welcome back."
-	startButton.Text = isNewPlayer and "START" or "CONTINUE"
+	startButton.Text = (isNewPlayer and "\u{203A} START" or "\u{203A} CONTINUE")
 
-	islandRow.Text = string.format("Island: permanent radius %d", profile.metaRadius or 0)
-	tutorialRow.Text = "Tutorial: " .. (profile.tutorialComplete and "Complete" or "In progress")
-
-	runsRow.Text = string.format("Runs played: %d", stats.runsPlayed or 0)
-	attacksRow.Text = string.format("Attacks survived: %d", stats.attacksSurvived or 0)
-	lostRow.Text = string.format("Buildings lost: %d", stats.buildingsLost or 0)
-	pointsRow.Text = string.format("Lifetime UP earned: %d", stats.totalUpgradePoints or 0)
+	infoLine1.Text = string.format(
+		"Island: permanent radius %d  \u{00B7}  Tutorial: %s",
+		profile.metaRadius or 0,
+		profile.tutorialComplete and "Complete" or "In progress"
+	)
+	infoLine2.Text = string.format(
+		"%d runs played  \u{00B7}  %d attacks survived  \u{00B7}  %d lost",
+		stats.runsPlayed or 0, stats.attacksSurvived or 0, stats.buildingsLost or 0
+	)
+	infoLine3.Text = string.format("%d UP earned lifetime", stats.totalUpgradePoints or 0)
 end)
 
 print("[Hexagonium] StartScreen laaditud")
