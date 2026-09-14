@@ -39,9 +39,12 @@ local function applyStroke(label, transparency)
 	label.TextStrokeTransparency = transparency or 0.5
 end
 
+local INFO_TEXT_SIZE = Theme.TextSize.small + 12
+local INFO_WIDTH = 820
+
 local function infoLabel(parent, y, height, size, color, text)
 	local label = Instance.new("TextLabel")
-	label.Size = UDim2.new(0, COL_WIDTH, 0, height)
+	label.Size = UDim2.new(0, INFO_WIDTH, 0, height)
 	label.Position = UDim2.new(0, COL_X + 2, 0, y)
 	label.BackgroundTransparency = 1
 	label.Text = text or ""
@@ -134,9 +137,9 @@ startButton.MouseButton1Click:Connect(function()
 	backdrop.Visible = false
 end)
 
-local infoLine1 = infoLabel(backdrop, 336, 18, Theme.TextSize.small, Theme.UI.textDim)
-local infoLine2 = infoLabel(backdrop, 356, 18, Theme.TextSize.small, Theme.UI.textDim)
-local infoLine3 = infoLabel(backdrop, 376, 18, Theme.TextSize.small, Theme.UI.textDim)
+-- Kaks rida: save-info (island/tutorial), siis KÕIK statid ühes reas.
+local infoLine1 = infoLabel(backdrop, 340, 30, INFO_TEXT_SIZE, Theme.UI.textDim)
+local infoLine2 = infoLabel(backdrop, 374, 30, INFO_TEXT_SIZE, Theme.UI.textDim)
 
 -- =========================================================
 -- ALUMINE-VASAK "MENU" NUPP: taasavab ülekatte igal ajal.
@@ -196,10 +199,10 @@ stateRemote.OnClientEvent:Connect(function(payload)
 		profile.tutorialComplete and "Complete" or "In progress"
 	)
 	infoLine2.Text = string.format(
-		"%d runs played  \u{00B7}  %d attacks survived  \u{00B7}  %d lost",
-		stats.runsPlayed or 0, stats.attacksSurvived or 0, stats.buildingsLost or 0
+		"%d runs played  \u{00B7}  %d attacks survived  \u{00B7}  %d lost  \u{00B7}  %d UP earned",
+		stats.runsPlayed or 0, stats.attacksSurvived or 0, stats.buildingsLost or 0,
+		stats.totalUpgradePoints or 0
 	)
-	infoLine3.Text = string.format("%d UP earned lifetime", stats.totalUpgradePoints or 0)
 end)
 
 print("[Hexagonium] StartScreen laaditud")
