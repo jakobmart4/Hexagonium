@@ -22,6 +22,12 @@ Constants.Debug = {
 	-- 0 = valjas. Ainus viis runnakususteemi testida ilma
 	-- 150 sekundit ootamata.
 	ForceAttackAfter = 0,
+
+	-- Kustutab mangija DataStore-salvestuse enne laadimist. Ainus viis
+	-- Studios kontrollida, mida PARIS uus mangija naeb - olemasolev
+	-- metaRadius jm CLAMPITAKSE uude vahemikku, kui Constants muutub,
+	-- mitte ei lahtestata (vt SaveService.fillDefaults).
+	WipeSaveOnJoin = false,
 }
 
 -- ============================================================
@@ -171,18 +177,25 @@ Constants.Cards = {
 -- Naide: meta=5, run-laiendusi 2 -> aktiivne raadius 7
 -- ============================================================
 Constants.IslandExpansion = {
-	-- Tasakaalustatud kasutaja tagasiside jargi kahes vooris:
-	-- 1) 4 -> 2 ei olnud piisav - kasutaja votis vordluseks
-	--    Workspace.Islands._Preview (Studio Edit-vaates nahtav staatiline
-	--    eelvaade, 37 hexi = tapselt raadius 3, koik lahti) kui oige
-	--    alguse suuruse.
-	-- 2) MetaMaxRadius 6 -> 7, et StartRadius'est saaks TAPSELT 4
-	--    eraldi meta-laiendust (3->4->5->6->7), nagu kasutaja soovis.
-	-- MaxRadius jaab 8 - pusiv RunExpansionsMax=2 puudutab ainult
-	-- kaugelearenenud (meta=7) mangijaid: neile jaab reaalselt kasutada
-	-- 1 run-laiendus 2-st (7+2=9 > MaxRadius 8), mitte disainiviga,
-	-- vaid olemasoleva MaxRadius lae loomulik korvalmoju.
-	StartRadius = 3,        -- uue mangija algne saar (= _Preview suurus)
+	-- Tasakaalustatud kasutaja tagasiside jargi. SEE TABEL ON AINUS
+	-- allikas saare suuruse jaoks - Workspace.Islands._Preview
+	-- (Studio Edit-vaates nahtav staatiline "eelvaade") EI OLE
+	-- kunagi seotud selle koodiga (Bootstrap kustutab selle iga
+	-- Play alguses, vt "eelvaade eemale" kommentaar) ja labi
+	-- audititeerimise selgus, et see oli lihtsalt vananenud
+	-- kasutamatta jaanud objekt, mitte usaldusvaarne vordlus.
+	--
+	-- MetaMaxRadius = StartRadius + 4, et pusiv progressioon oleks
+	-- TAPSELT 4 eraldi meta-laiendust (nt 3->4->5->6->7).
+	-- MaxRadius jaab 8 - kaugelearenenud (meta=7) mangijatel jaab
+	-- reaalselt kasutada 1 run-laiendus 2-st (7+2=9 > MaxRadius 8),
+	-- olemasoleva MaxRadius lae loomulik korvalmoju, mitte viga.
+	--
+	-- TESTIMINE: olemasolev salvestus CLAMPITAKSE uude vahemikku,
+	-- mitte ei lahtestata, kui neid vaartusi muudad - kasuta
+	-- Constants.Debug.WipeSaveOnJoin = true, et naha, mida PARIS uus
+	-- mangija saab (ja lulita See uuesti valja parast testimist!).
+	StartRadius = 3,        -- uue mangija algne saar
 	MetaMaxRadius = 7,      -- meta-progressiooni lagi (StartRadius + 4)
 	MaxRadius = 8,          -- genereeritud saare koguulatus
 

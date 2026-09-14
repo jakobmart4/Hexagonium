@@ -231,6 +231,31 @@ function SaveService.Release(player)
 end
 
 -- ============================================================
+-- TESTIMINE (Constants.Debug.WipeSaveOnJoin taga)
+-- ============================================================
+
+-- Kustutab mangija salvestuse TAIELIKULT enne laadimist - ilma
+-- selleta ei saa Studios kunagi kontrollida, mida PARIS uus mangija
+-- naeb: olemasolev metaRadius jm ainult CLAMPITAKSE uude vahemikku
+-- (vt fillDefaults), mitte ei lahtestata, kui Constants.lua muutub.
+function SaveService.WipeForTesting(player)
+	local userId = player.UserId
+	cache[userId] = nil
+	dirty[userId] = nil
+
+	if not storeAvailable then
+		return
+	end
+
+	local ok, err = pcall(function()
+		store:RemoveAsync("player_" .. userId)
+	end)
+	if not ok then
+		warn("[SaveService] Testi-kustutus ebaonnestus (" .. player.Name .. "): " .. tostring(err))
+	end
+end
+
+-- ============================================================
 -- AUTOMAATNE SALVESTAMINE JA VALJUMINE
 -- ============================================================
 

@@ -132,6 +132,10 @@ end
 -- ============================================================
 
 local function onPlayerJoined(player)
+	if DEBUG.WipeSaveOnJoin then
+		SaveService.WipeForTesting(player)
+	end
+
 	local data = SaveService.Load(player)
 
 	local world = WorldManager.CreateFor(player, {
