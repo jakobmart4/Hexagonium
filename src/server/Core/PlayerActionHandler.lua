@@ -34,10 +34,11 @@ function PlayerActionHandler:GetWorld(player)
 	return self.worldManager.Get(player)
 end
 
-function PlayerActionHandler:Notify(player, message, kind)
+function PlayerActionHandler:Notify(player, message, kind, soundHint)
 	self.notify:FireClient(player, {
 		message = message,
 		kind = kind or "info",
+		sound = soundHint,
 	})
 end
 
@@ -98,7 +99,7 @@ function PlayerActionHandler:HandleActivateCard(player, request)
 		world.tutorial:NotifyActivatedCard()
 	end
 
-	self:Notify(player, cardName .. " activated.", "success")
+	self:Notify(player, cardName .. " activated.", "success", "card")
 end
 
 -- ============================================================
@@ -174,7 +175,7 @@ function PlayerActionHandler:HandleBuildBuilding(player, request)
 
 	self:Notify(player, cost > 0
 		and string.format("%s built for %d UP.", buildingType, cost)
-		or (buildingType .. " built."), "success")
+		or (buildingType .. " built."), "success", "build")
 end
 
 -- ============================================================
@@ -268,7 +269,7 @@ function PlayerActionHandler:HandleConnectNodes(player, request)
 	end
 
 	self:Notify(player, string.format("Linked %s to %s (priority %d).",
-		source.buildingType, target.buildingType, #source.outputConnections), "success")
+		source.buildingType, target.buildingType, #source.outputConnections), "success", "connect")
 end
 
 -- ============================================================
@@ -325,7 +326,7 @@ function PlayerActionHandler:HandleDemolish(player, request)
 
 	self:Notify(player, refund > 0
 		and string.format("%s demolished, %d UP refunded.", buildingType, refund)
-		or (buildingType .. " demolished."), "success")
+		or (buildingType .. " demolished."), "success", "demolish")
 end
 
 -- ============================================================

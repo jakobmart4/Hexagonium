@@ -296,7 +296,7 @@ PAREMKLÕPS: KLÕPS vs LOHISTAMINE
 
 
 ========================================================================
-11. FAILISTRUKTUUR (46 skripti)
+11. FAILISTRUKTUUR (47 skripti)
 ========================================================================
 
 ReplicatedStorage/
@@ -347,6 +347,7 @@ StarterPlayer/StarterPlayerScripts/
   FactionPanel.lua         fraktsioon + rünnaku hoiatus
   Minimap.lua              hex-ülevaade + kaamera hüpe
   Tutorial.lua             4-sammuline vihjebänner + Skip-nupp
+  SoundEffects.lua         heliefektid (Notification kind/hint + GameStateUpdate diff)
 
 MÄRKUS: UI-skriptid EI OLE StarterGui's. Need loovad oma ScreenGui
 koodiga ja elavad StarterPlayerScripts'is — vt punkt 13.
@@ -718,9 +719,33 @@ VISUAALNE POLEERIMINE                          [POOLELI]
     kord värskelt, sest Play-režiimi loodud instansid ei jää Edit-
     režiimi püsima.
 
-  Osa 2+ [PUUDUB]: heliefektid, UI responsiivsus, animatsioonid,
-  minimapi visuaalid, rünnakute efektid, tutoriali tekstid,
-  kaardipaki animatsioonid.
+  Osa 2 — heliefektid [VALMIS]: mängus polnud enne ÜHTEGI heli. Uus
+  `src/client/SoundEffects.client.lua` (10 valmis Sound-instantsi
+  SoundService all, `rbxassetid://` otse, ilma insert_asset'ita) +
+  `PlayerActionHandler:Notify`'le valikuline 4. parameeter
+  (`soundHint`) 4 kutsekohas (ehitus/lammutus/ühendus/kaart).
+  ENAMIK helisid (demand/attack/destroyed/victory/defeat) käivituvad
+  kliendis OLEMASOLEVA `GameStateUpdate`'i eelmise-vs-praeguse
+  payload'i võrdlusest — ZERO server-muudatust, sama muster mis
+  `Tutorial.client.lua`. 10 kandidaat-heli leiti paralleelse
+  Workflow'iga (üks agent kategooria kohta, Creator Store otsing) —
+  vt sessiooni ajalugu, kui valikuid tuleb muuta (kõik ID'd ühes
+  kohas, üherealine vahetus).
+    OLULINE PIIRANG: Claude ei kuule heli — kontrollitud AINULT, et
+    õige heli MÄNGIB õigel hetkel (Play, päästa sündmus, konsooli
+    ajutine debug-print + `Sound.IsPlaying`/`TimePosition`), MITTE
+    et see kõlab õigesti. Reaalne kõla jääb kasutaja enda
+    järelkontrolliks.
+    LÕKS: `Sound.IsPlaying`/`TimePosition` ei sobi lühikeste helide
+    kontrolliks MCP kaudu — iga execute_luau/get_console_output
+    tsükkel võtab mitu PÄRIS sekundit, mis on juba pikem kui paljud
+    heliefektid (0.5-2.5s). Ajutine `print()` `play()` funktsiooni
+    sees (eemaldatud enne commit'i) andis usaldusväärse,
+    ajastusest sõltumatu kinnituse.
+
+  Osa 3+ [PUUDUB]: UI responsiivsus, animatsioonid, minimapi
+  visuaalid, rünnakute efektid, tutoriali tekstid, kaardipaki
+  animatsioonid.
 
 MOBIILITUGI (UI responsiivsus)                 [PUUDUB]
 
