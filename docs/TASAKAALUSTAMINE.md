@@ -12,14 +12,14 @@ vt punkt 3.
 
 ---
 
-## 1. Praegused väärtused (seisuga 14. september 2026)
+## 1. Praegused väärtused (seisuga 14. september 2026, pärast SAMM 8 samm 3)
 
 | Parameter | Praegune väärtus | Koht Constants.lua's |
 |---|---|---|
-| Ründaja HP | 60 (x threatScale) | `Attack.AttackerHealth` |
+| Ründaja HP | ~~60~~ **30** (x threatScale) | `Attack.AttackerHealth` |
 | Ründaja DPS hoonele | 20 kahju / 2s = 10 DPS | `Attack.AttackerDamage` / `AttackerHitInterval` |
 | Ründaja kiirus | 6 studi/s | `Attack.AttackerSpeed` |
-| Defenderi DPS | 25 kahju / 1s = 25 DPS | `Buildings.Defender.DefensePoints` / `FireInterval` |
+| Defenderi DPS | ~~25~~ **35** kahju / 1s = 35 DPS | `Buildings.Defender.DefensePoints` / `FireInterval` |
 | Defenderi energiakulu | 10 energiat / 5s | `Buildings.Defender.EnergyCostPerTick` / `Interval` |
 | Defenderi raadius | 3 hexi | `Buildings.Defender.DefenseRadius` |
 | EnergyPerCrystal | 50 | `Buildings.PowerCore.EnergyPerCrystal` |
@@ -28,7 +28,7 @@ vt punkt 3.
 | Demand intervall (tutorial) | 30s | `Faction.TutorialDemandInterval` |
 | Demand kulu | 50 ore + 20 crystal, tähtaeg 30s | `Faction.Demand.*` |
 | Hostile -> Attack viivitus | 30s | `Faction.AttackDelayAfterHostile` |
-| Hoonete hinnad | Extractor 20, Refinery 35, Assembler 50, PowerCore 40, Defender 45 | `BuildCosts` |
+| Hoonete hinnad | Extractor 20, Refinery 35, Assembler 50, PowerCore 40, Defender ~~45~~ **35** | `BuildCosts` |
 | Lammutuse tagastus | 50% | `DemolishRefund` |
 | Saare laienduse kulu (run) | 40 -> 120 -> 360 UP | `IslandExpansion.RunExpansionBaseCost` / `CostMultiplier` |
 | Saare laienduse kulu (meta) | tasuta, Hex Seed (+600 UP tasu run'i lõpus) | `IslandExpansion` / `Run.RewardPerMetaRadius` |
@@ -44,7 +44,7 @@ vt punkt 3.
 |---|---|---|
 | Assembler baastoodang | 1 UP / 5s | 12 UP/min |
 | Tuumaheла hind (Extractor+Refinery+Assembler+PowerCore) | 20+35+50+40 | 145 UP (algkapital 150) |
-| Defender taskukohane | 45 UP / 12 UP/min | ~4. minutil |
+| Defender taskukohane | 35 UP / 12 UP/min | ~3. minutil |
 | 1. saare laiendus taskukohane | 40 UP / 12 UP/min | ~4. minutil |
 | Tutoriali samm 4 (rünnaku algus) | 30+30+30s | ~90s (worst case) |
 
@@ -57,7 +57,7 @@ Play-testide põhjal. Vormis: kuupäev, mida testiti, mis leiti.
 
 | Kuupäev | Küsimus | Simulatsiooni tulemus | Manuaalse testi tähelepanek |
 |---|---|---|---|
-| 14.09.2026 | 1. Kaotuse % | 20 run'i (4 arhetüüpi x 5 seemet): **75% DESTROYED**. Üks Defender puhastab minut-0 laine (180 HP vs 500 kahju), aga MITTE enam minutist 15 (threatScale 2.8x, 1344 HP vs 500 kahju). Vastab dokumenteeritud disainile ("iga baas lõpuks murdub"), aga 75% on kõrge isegi lühikeste run'ide juures — vaata Samm 3 kaalutlusena, kas Defenderi DPS/laine kasv vajab tuunimist, ENNE kui otsustada. | — |
+| 14.09.2026 | 1. Kaotuse % | 20 run'i (4 arhetüüpi x 5 seemet), ENNE muudatusi: **75% DESTROYED**. Üks Defender puhastab minut-0 laine, aga MITTE enam minutist 15. Käsitsi tuunitud (vt punkt 4 muudatuste logi) — checkpoint-tabel paranes minut-15 osas, aga agregeeritud % jäi samaks tööriista enda piirangu tõttu (üksainus Defender kogu run'i jooksul), mitte muudatuste ebaõnnestumise tõttu. Täielik analüüs punktis 4. | — |
 | 14.09.2026 | 2/3. Demand-maksmine / Defenderi ehitamine | Arhetüübi-eeldused (mitte mõõdetud): 75% maksavad, 75% ehitavad kunagi Defenderi (3/4 arhetüüpi). Tautoloogiline tulemus praeguse mudeliga — vajab reaalset mängijaandmeid (telemeetria), kui see peaks kunagi täpsem olema. | — |
 | 14.09.2026 | 4. UP majanduse tempo | Tuumahel (145 UP) valmib algkapitalist minutil 0. Sealt 12 UP/min — Defender ja 1. saare laiendus mõlemad taskukohased ~minutil 4. Tundub mõistlik: mängija saab midagi uut otsustada iga paari minuti tagant, mitte liiga tihti ega liiga harva. | — |
 | 14.09.2026 | 5. Tutoriali pacing | Deterministlik: ~90s halvimal juhul (30+30+30s). | KINNITATUD SAMM 7 Play-testimisel: täielik 4-sammuline tsükkel (ehitus->ühendus->kaart->rünnak) läbis reaalselt ~90-120s piires liitumisest — tundus mõistlik, mitte venitatud ega kiirustatud. |
@@ -68,8 +68,71 @@ Play-testide põhjal. Vormis: kuupäev, mida testiti, mis leiti.
 
 ## 4. Muudatuste logi
 
-Täidetakse SAMM 8 samm 3 käigus (eraldi plaan). Vorm:
+### 14.09.2026 — SAMM 8 samm 3: varajase rünnaku raskuse pehmendamine
 
-| Kuupäev | Parameeter | Vana -> uus | Põhjus |
-|---|---|---|---|
-| — | — | — | — |
+**Diagnoos**: `Attack.ScalePerMinute` korrutab KORRAGA nii laine
+SUURUST (`waveSize = BaseAttackers * threatScale`) kui ka iga
+ründaja TERVIST (`attackerHP = AttackerHealth * threatScale`).
+Need kaks kordajat KORRUTUVAD, mistõttu ründajate koguHP kasvab
+ligikaudu ruutvõrdeliselt, aga Defenderi DPS on fikseeritud ja
+mängija UP-sissetulek (12/min) kasvab lineaarselt. Käsitsi
+arvutatuna: minutil 15 vajaks laine (1344 HP) puhastamine 3
+Defenderit (280 UP kokku), aga majandus jõuab selleni alles
+minutil ~23 — nõue saabub 8 min enne, kui seda saab täita.
+
+**Muudatused** (`Constants.lua`):
+
+| Parameter | Vana -> uus | Põhjus |
+|---|---|---|
+| `Buildings.Defender.DefensePoints` | 25 -> 35 | +40% DPS ühe torni kohta |
+| `BuildCosts.Defender` | 45 -> 35 | 2./3. Defender taskukohane varem |
+| `Attack.AttackerHealth` | 60 -> 45 -> **30** | Esimene katse (-25%, 45) ei piisanud — simulaator kinnitas, laine 15. minutil jäi ikka puhastamatuks. Teine katse (-50%, 30) tegi minut-15 checkpointi puhastatavaks (672 HP vs 700 Defenderi kahju). |
+
+**MITTE puudutatud**: `ScalePerMinute`/`MaxScale` (kalibreeritud
+minut-60 lae jaoks, vt Constants.lua rida ~286), laine SUURUS
+(`BaseAttackers`/`AttackersPerRing`/`MaxAttackers` — nähtav
+eskaleerumine säilib), Demand/Run/Card parameetrid (simulaator ei
+tuvastanud nendega probleemi).
+
+**AUS LEID kontrollimise käigus** — miks agregeeritud DESTROYED%
+JÄI 75%-le, kuigi checkpoint-tabel selgelt paranes:
+
+1. Esimene põhjus (parandatud): simulaator ei modelleerinud hoonete
+   REGENERATSIOONI lainete vahel (`BuildingRegenPerSecond`/`Delay`),
+   nii et iga, kasvõi väike korduv kahju kuhjus lõpuks paratamatult
+   üle piiri. Lisasin `BalanceSimulator.server.lua`'sse taastumise
+   samade valemitega mis pärismängus (vt koodikommentaar
+   `REGEN_PER_CYCLE`). See on tööriista täpsuse parandus, mitte
+   mänguloogika muudatus.
+2. Teine, PÄRISEM põhjus: simulaator modelleerib iga arhetüüpi
+   TÄPSELT 1 Defenderiga kogu run'i jooksul — aga päriskoodis
+   (`AttackManager.lua`/`Defender.lua`) pole Defenderite arvule
+   MINGIT piirangut. Käsitsi läbi arvutatuna: mängija, kes investeeriks
+   IGA teenitud UP Defenderitesse pärast tuumahelat, jõuaks minutiks
+   30 ~6 Defenderini (210 DPS) ja minutiks 60 ~16-ni (560 DPS) — see
+   ületab isegi minut-60 lae (4800 HP) mugavalt, sest Defenderite arv
+   kasvab LINEAARSELT ajaga (UP-sissetulek on konstantne), samas kui
+   ründajate koguHP kasvab ainult 60-minutilise `MaxScale`-lae SEES
+   (mitte lõpmatult, sest threatScale peatub 8.0x juures).
+   TÄHENDAB: praeguste (uute) arvudega on täieliku
+   kaitse-investeeringu strateegia ("turtle") ellujäämine kogu run'i
+   vältel MATEMAATILISELT VÕIMALIK — see ei pruugi olla viga
+   (tycoon-mängus on "ehita rohkem torne" legitiimne strateegia),
+   aga väärib teadmist.
+
+**JÄRELDUS**: kolm muudatust on valideeritud, PÕHJENDATUD parandus
+varajase-keskmise mängu jaoks (minut-15 checkpoint: puhastamatust
+puhastatavaks), ilma et minut-30/60 lagi (ühe Defenderiga) muutuks
+liiga pehmeks. Agregeeritud DESTROYED% simulaatoris EI ole usaldusväärne
+lõplik mõõdik enne, kui arhetüübid modelleerivad ka mitme Defenderi
+investeeringut ajas — see on tööriista teadaolev piirang, mitte
+mänguloogika viga. TÄPSEM kalibreerimine (kas 30 on "õige" number,
+mitte lihtsalt "parem kui 60") vajab PÄRIS mängijate telemeetriat
+(vt peadokumendi punkt 16, "PÄRAST TASAKAALUSTAMIST"), mitte
+täiendavat simulaatori-arvamist.
+
+**Kontrollitud Play-režiimis**: ForceAttackAfter=5 sunnitud minut-0
+rünnak — Defenderi tuli tabas nähtavalt (tracer, "1 destroyed" 6s
+sees), hooned said kahjumärgi. Visuaal/mehaanika töötab õigesti
+uute arvudega. Mõlemad debug-lipud (RunBalanceSim, ForceAttackAfter)
+taastatud vaikeväärtusteks pärast testimist.

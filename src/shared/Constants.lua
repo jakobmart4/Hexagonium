@@ -67,7 +67,10 @@ Constants.Buildings = {
 	Defender = {
 		EnergyCostPerTick = 10,
 		EnergyCostInterval = 5,
-		DefensePoints = 25,
+		-- Tasakaalustatud SAMM 8 samm 3: 25 -> 35 (vt TASAKAALUSTAMINE.md
+		-- punkt 4). Uhe torni DPS ei pidanud sammu ruutvordelise
+		-- ohukasvuga (vt Attack.ScalePerMinute).
+		DefensePoints = 35,
 		DefenseRadius = 3,
 		FireInterval = 1,
 	},
@@ -198,7 +201,9 @@ Constants.BuildCosts = {
 	Refinery  = 35,
 	Assembler = 50,
 	PowerCore = 40,
-	Defender  = 45,
+	-- Tasakaalustatud SAMM 8 samm 3: 45 -> 35, et 2./3. Defender oleks
+	-- majanduslikult jouetav lahedal ajal, mil oht seda juba nouab.
+	Defender  = 35,
 }
 
 -- Lammutamisel tagastatav osa. Alla poole, et ehitusvead maksaksid,
@@ -266,7 +271,12 @@ Constants.Attack = {
 	AttackersPerRing = 1,    -- +1 ruundaja iga raadiuse uhiku kohta ule algse
 	MaxAttackers = 20,       -- tosteti 10 -> 20, sest run voib kesta tunni
 
-	AttackerHealth = 60,
+	-- Tasakaalustatud SAMM 8 samm 3: 60 -> 30 (-50%). threatScale
+	-- korrutab KORRAGA nii laine suurust KUI KA seda vaartust - koos
+	-- kasvavad need ruutvordeliselt. Esimene katse (-25%, 45) ei
+	-- piisanud (simulaator kinnitas: DESTROYED% ei liikunud) - vt
+	-- TASAKAALUSTAMINE.md punkt 4.
+	AttackerHealth = 30,
 	AttackerDamage = 20,     -- kahju hoonele uhe loogi kohta
 	AttackerHitInterval = 2, -- sekundit loogi vahel
 	AttackerSpeed = 6,       -- studi sekundis

@@ -116,16 +116,23 @@ local ARCHETYPES = {
 }
 
 -- OLULINE EELDUS: baashoonete "eluring" on 5 * BuildingHealth
--- (Extractor+Refinery+Assembler+PowerCore+Defender) — regeneratsioon
--- LAINETE VAHEL ja ründaja kohalejõudmise aeg on IGNOREERITUD
--- (pessimistlik: annab tegelikust natuke rohkem kaotusi). Kui see
--- muudab tulemust liiga karmiks, tuleb see esimesena üle vaadata.
+-- (Extractor+Refinery+Assembler+PowerCore+Defender) — kahju KOGUNEB
+-- lainete vahel, aga REGENEREERUB samade valemitega mis pärismängus
+-- (BuildingRegenPerSecond/Delay), sest kahe Demand-tsükli vahel
+-- (150s) on tavaliselt piisavalt aega taastuda. Esimene versioon
+-- IGNOREERIS regeneratsiooni täielikult, mis hoidis DESTROYED% kunstlikult
+-- kõrgena (iga, kasvõi väike, korduv kahju kuhjus lõpuks paratamatult
+-- üle piiri) — vt TASAKAALUSTAMINE.md punkt 4, esimene katse.
+-- Ründaja kohalejõudmise aeg on endiselt ignoreeritud (pessimistlik).
 local BASE_HP_POOL = 5 * ATK.BuildingHealth
+local REGEN_PER_CYCLE = ATK.BuildingRegenPerSecond
+	* math.max(0, (DEMAND_INTERVAL - ATTACK_DURATION) - ATK.BuildingRegenDelay)
 
 local function simulateRun(archetype, rng)
 	local defenderMinute = archetype.defenderMinute(rng)
 	local minute = 0
 	local demandsFaced, demandsPaid = 0, 0
+	local accumulatedDamage = 0
 	local endReason, endMinute = "Timeout", RUN.Duration / 60
 
 	while minute < RUN.Duration / 60 do
@@ -150,7 +157,11 @@ local function simulateRun(archetype, rng)
 		local hitsPerAttacker = math.floor(ATTACK_DURATION / ATK.AttackerHitInterval)
 		local damageToBase = attackersThrough * hitsPerAttacker * attackerDPS
 
-		if damageToBase >= BASE_HP_POOL then
+		-- Taastumine eelmisest tsüklist saadik, ENNE uue kahju lisamist
+		accumulatedDamage = math.max(0, accumulatedDamage - REGEN_PER_CYCLE)
+		accumulatedDamage = accumulatedDamage + damageToBase
+
+		if accumulatedDamage >= BASE_HP_POOL then
 			endReason, endMinute = "Destroyed", minute
 			break
 		end

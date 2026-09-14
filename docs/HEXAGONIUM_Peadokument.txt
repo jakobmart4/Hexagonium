@@ -672,13 +672,26 @@ SAMM 7 — TUTORIAL                              [VALMIS]
 
 SAMM 1-7 (MVP ROADMAP) ON NÜÜD TÄIELIKULT VALMIS.
 
-SAMM 8 — TASAKAALUSTAMINE                      [POOLELI]
-  Raamistik ja mõõtmise mehhanism valmis: balance-tabel + muudatuste
-  logi `docs/TASAKAALUSTAMINE.md`'s, kiire matemaatiline simulaator
-  `src/server/BalanceSimulator.server.lua` (Constants.Debug.
-  RunBalanceSim taga, mirrors CardSystemTest.server.lua). Konkreetsed
-  Constants.lua väärtuste muudatused tulevad simulaatori ja käsitsi
-  Play-testide tulemuste põhjal — vt TASAKAALUSTAMINE.md.
+SAMM 8 — TASAKAALUSTAMINE                      [ESIMENE RING VALMIS]
+  Raamistik: balance-tabel + muudatuste logi `docs/TASAKAALUSTAMINE.md`'s,
+  kiire matemaatiline simulaator `src/server/BalanceSimulator.server.lua`
+  (Constants.Debug.RunBalanceSim taga, mirrors CardSystemTest.server.lua).
+
+  Esimene tuunimisring (varajase rünnaku raskus): simulaator leidis, et
+  `Attack.ScalePerMinute` korrutab korraga nii laine suurust kui ka iga
+  ründaja tervist, mistõttu ohtu kasvab ruutvõrdeliselt, aga majandus
+  lineaarselt — minutiks 15 ei jõudnud UP-sissetulek järele isegi
+  optimaalse kaitse-investeeringu korral. Parandatud kolme Constants.lua
+  väärtusega (Defender.DefensePoints 25->35, BuildCosts.Defender 45->35,
+  Attack.AttackerHealth 60->30) ilma ScalePerMinute/MaxScale'i puutumata,
+  et minut-60 lagi jääks kavatsuse kohaselt raskeks.
+
+  TÄHTIS PIIRANG (dokumenteeritud TASAKAALUSTAMINE.md punktis 4):
+  simulaator modelleerib iga mängija-arhetüüpi täpselt 1 Defenderiga
+  kogu run'i jooksul, aga päriskoodis saab ehitada mitu. Käsitsi
+  arvutatuna ületab täieliku kaitse-investeeringu ("turtle") strateegia
+  isegi minut-60 lae. Täpsem kalibreerimine vajab PÄRIS mängijate
+  telemeetriat, mitte täiendavat simulaatori-arvamist — vt allpool.
 
 PÄRAST TASAKAALUSTAMIST
   - Visuaalne poleerimine (mesh'id, heliefektid)
