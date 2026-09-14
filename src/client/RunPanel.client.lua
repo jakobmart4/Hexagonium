@@ -42,16 +42,18 @@ screenGui.Parent = playerGui
 -- =========================================================
 -- RUN-RIBA (ulal keskel, ressursiriba all)
 -- =========================================================
-local panel = Instance.new("Frame")
-panel.Name = "RunBar"
-panel.Size = UDim2.new(0, 600, 0, 38)
-panel.Position = UDim2.new(0.5, -300, 0, 104)
-panel.BackgroundColor3 = Theme.UI.background
-panel.BackgroundTransparency = 0.1
-panel.BorderSizePixel = 0
-panel.Parent = screenGui
+local panel = Theme.AnimatedPanel(
+	"RunBar",
+	UDim2.new(0, 600, 0, 38),
+	UDim2.new(0.5, -300, 0, 104),
+	screenGui
+)
 Theme.ClampToViewport(panel)
-Theme.Corner(panel, 8)
+-- Erinevalt CardDeck/Tutorial paneelidest on RunBar ALGUSEST PEALE
+-- nahtav (jooksva run'i riba) - fade kehtib ainult hilisemate
+-- lopp-ekraani/taaskaivituse ULEMINEKUTE kohta, mitte esmasel laadimisel.
+panel.Visible = true
+panel.GroupTransparency = 0
 
 local panelStroke = Instance.new("UIStroke")
 panelStroke.Color = Theme.UI.error
@@ -159,18 +161,14 @@ end)
 -- =========================================================
 -- RUN'I LOPU EKRAAN
 -- =========================================================
-local endScreen = Instance.new("Frame")
-endScreen.Name = "EndScreen"
-endScreen.Size = UDim2.new(0, 420, 0, 270)
-endScreen.Position = UDim2.new(0.5, -210, 0.5, -135)
-endScreen.BackgroundColor3 = Theme.UI.background
-endScreen.BackgroundTransparency = 0.02
-endScreen.BorderSizePixel = 0
-endScreen.Visible = false
+local endScreen = Theme.AnimatedPanel(
+	"EndScreen",
+	UDim2.new(0, 420, 0, 270),
+	UDim2.new(0.5, -210, 0.5, -135),
+	screenGui
+)
 endScreen.ZIndex = 20
-endScreen.Parent = screenGui
 Theme.ClampToViewport(endScreen)
-Theme.Corner(endScreen, 10)
 
 local endStroke = Instance.new("UIStroke")
 endStroke.Color = Theme.UI.accent
@@ -185,7 +183,7 @@ endTitle.Text = "RUN COMPLETE"
 endTitle.TextColor3 = Theme.UI.accent
 endTitle.TextXAlignment = Enum.TextXAlignment.Left
 endTitle.Font = FONT_BOLD
-endTitle.TextSize = 18
+endTitle.TextSize = Theme.TextSize.large
 endTitle.ZIndex = 21
 endTitle.Parent = endScreen
 
@@ -272,8 +270,8 @@ if stateRemote then
 		-- Run labi -> naita tulemust
 		if r.result and not shown then
 			shown = true
-			panel.Visible = false
-			endScreen.Visible = true
+			Theme.HidePanel(panel, Theme.TweenTime.normal)
+			Theme.ShowPanel(endScreen, Theme.TweenTime.normal)
 
 			local res = r.result
 			endTitle.Text = (res.reason == "Destroyed") and "RUN LOST" or "RUN COMPLETE"
@@ -298,8 +296,8 @@ if stateRemote then
 		-- naita jooksva run'i riba jalle.
 		if shown and not r.result then
 			shown = false
-			endScreen.Visible = false
-			panel.Visible = true
+			Theme.HidePanel(endScreen, Theme.TweenTime.normal)
+			Theme.ShowPanel(panel, Theme.TweenTime.normal)
 		end
 
 		if shown then

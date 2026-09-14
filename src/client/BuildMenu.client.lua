@@ -26,8 +26,8 @@ local camera = workspace.CurrentCamera
 local FONT = Theme.Font.regular
 local FONT_BOLD = Theme.Font.bold
 
-local HIGHLIGHT_OK = Color3.fromRGB(90, 230, 130)
-local HIGHLIGHT_BAD = Color3.fromRGB(235, 85, 75)
+local HIGHLIGHT_OK = Theme.UI.success
+local HIGHLIGHT_BAD = Theme.UI.error
 
 local function corner(parent, radius)
 	return Theme.Corner(parent, radius)
@@ -64,17 +64,21 @@ toggleButton.Parent = screenGui
 corner(toggleButton, 8)
 
 -- Menuupaneel
-local panel = Instance.new("Frame")
-panel.Name = "BuildPanel"
-panel.Size = UDim2.new(0, 320, 0, 480)
-panel.Position = UDim2.new(0, 156, 1, -546)
-panel.BackgroundColor3 = Theme.UI.background
-panel.BackgroundTransparency = 0.05
-panel.BorderSizePixel = 0
-panel.Visible = false
-panel.Parent = screenGui
+local panel = Theme.AnimatedPanel(
+	"BuildPanel",
+	UDim2.new(0, 320, 0, 480),
+	UDim2.new(0, 156, 1, -546),
+	screenGui
+)
 Theme.ClampToViewport(panel)
-corner(panel, 8)
+
+local function setPanelOpen(open)
+	if open then
+		Theme.ShowPanel(panel, Theme.TweenTime.normal)
+	else
+		Theme.HidePanel(panel, Theme.TweenTime.normal)
+	end
+end
 
 local panelTitle = Instance.new("TextLabel")
 panelTitle.Size = UDim2.new(1, -24, 0, 24)
@@ -245,7 +249,13 @@ end
 local function stopTargeting()
 	selectedBuilding = nil
 	targetingFlag.Value = false
-	banner.Visible = false
+	Theme.Tween(bannerText, {TextTransparency = 1}, Theme.TweenTime.fast):Play()
+	Theme.Tween(bannerStroke, {Transparency = 1}, Theme.TweenTime.fast):Play()
+	local tween = Theme.Tween(banner, {BackgroundTransparency = 1}, Theme.TweenTime.fast)
+	tween.Completed:Connect(function()
+		banner.Visible = false
+	end)
+	tween:Play()
 	highlight.Enabled = false
 	highlight.Adornee = nil
 end
@@ -254,7 +264,13 @@ local function startTargeting(buildingType)
 	selectedBuilding = buildingType
 	targetingFlag.Value = true
 	banner.Visible = true
-	panel.Visible = false
+	banner.BackgroundTransparency = 1
+	bannerText.TextTransparency = 1
+	bannerStroke.Transparency = 1
+	Theme.Tween(banner, {BackgroundTransparency = 0.05}, Theme.TweenTime.fast):Play()
+	Theme.Tween(bannerText, {TextTransparency = 0}, Theme.TweenTime.fast):Play()
+	Theme.Tween(bannerStroke, {Transparency = 0}, Theme.TweenTime.fast):Play()
+	setPanelOpen(false)
 end
 
 -- Iga kaader: uuenda esiletostmist ja riba teksti
@@ -392,7 +408,7 @@ toggleButton.MouseButton1Click:Connect(function()
 		stopTargeting()
 		return
 	end
-	panel.Visible = not panel.Visible
+	setPanelOpen(not panel.Visible)
 end)
 
 toggleButton.MouseEnter:Connect(function()
@@ -421,7 +437,7 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
 		if selectedBuilding then
 			stopTargeting()
 		else
-			panel.Visible = not panel.Visible
+			setPanelOpen(not panel.Visible)
 		end
 		return
 	end

@@ -312,7 +312,13 @@ local function stopLinkMode()
 	linkMode = false
 	sourceBuilding = nil
 	targetingFlag.Value = false
-	banner.Visible = false
+	Theme.Tween(bannerText, {TextTransparency = 1}, Theme.TweenTime.fast):Play()
+	Theme.Tween(bannerStroke, {Transparency = 1}, Theme.TweenTime.fast):Play()
+	local tween = Theme.Tween(banner, {BackgroundTransparency = 1}, Theme.TweenTime.fast)
+	tween.Completed:Connect(function()
+		banner.Visible = false
+	end)
+	tween:Play()
 	highlight.Enabled = false
 	highlight.Adornee = nil
 	sourceHighlight.Enabled = false
@@ -324,6 +330,12 @@ local function startLinkMode()
 	sourceBuilding = nil
 	targetingFlag.Value = true
 	banner.Visible = true
+	banner.BackgroundTransparency = 1
+	bannerText.TextTransparency = 1
+	bannerStroke.Transparency = 1
+	Theme.Tween(banner, {BackgroundTransparency = 0.05}, Theme.TweenTime.fast):Play()
+	Theme.Tween(bannerText, {TextTransparency = 0}, Theme.TweenTime.fast):Play()
+	Theme.Tween(bannerStroke, {Transparency = 0}, Theme.TweenTime.fast):Play()
 end
 
 -- Kliendipoolne eelkontroll (server valideerib uuesti).

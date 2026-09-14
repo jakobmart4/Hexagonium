@@ -217,6 +217,9 @@ end)
 -- =========================================================
 -- SERVERI SEIS
 -- =========================================================
+local demandActive = false
+local attackAlertActive = false
+
 if stateRemote then
 	stateRemote.OnClientEvent:Connect(function(payload)
 		if not payload or not payload.faction then
@@ -259,28 +262,48 @@ if stateRemote then
 			panelStroke.Transparency = 1
 		end
 
-		-- Demand: naita noue ja nupud
+		-- Demand: naita noue ja nupud. Fade AINULT olekumuutusel, mitte
+		-- iga tick'i peal (payload saadetakse iga 0.5s ka muutumatult).
 		if f.demand then
-			demandLabel.Visible = true
 			demandLabel.Text = string.format("Wants %d ore + %d crystal  (have %d / %d)",
 				f.demand.ore, f.demand.crystal,
 				f.demand.haveOre, f.demand.haveCrystal)
 			demandLabel.TextColor3 = f.demand.canAfford
 				and Theme.UI.warning or Theme.UI.error
-
-			acceptButton.Visible = true
-			refuseButton.Visible = true
 			acceptButton.TextColor3 = f.demand.canAfford
 				and Theme.UI.success or Theme.UI.blocked
-		else
-			demandLabel.Visible = false
-			acceptButton.Visible = false
-			refuseButton.Visible = false
+
+			if not demandActive then
+				demandActive = true
+				for _, label in ipairs({demandLabel, acceptButton, refuseButton}) do
+					label.Visible = true
+					if label:IsA("TextButton") then
+						label.TextTransparency = 1
+						label.BackgroundTransparency = 1
+						Theme.Tween(label, {TextTransparency = 0, BackgroundTransparency = 0}, Theme.TweenTime.fast):Play()
+					else
+						label.TextTransparency = 1
+						Theme.Tween(label, {TextTransparency = 0}, Theme.TweenTime.fast):Play()
+					end
+				end
+			end
+		elseif demandActive then
+			demandActive = false
+			for _, label in ipairs({demandLabel, acceptButton, refuseButton}) do
+				local props = label:IsA("TextButton")
+					and {TextTransparency = 1, BackgroundTransparency = 1}
+					or {TextTransparency = 1}
+				local tween = Theme.Tween(label, props, Theme.TweenTime.fast)
+				tween.Completed:Connect(function()
+					label.Visible = false
+				end)
+				tween:Play()
+			end
 		end
 
-		-- Runnaku hoiatus
+		-- Runnaku hoiatus - stroke'i pulss on eraldi task.spawn silmuses
+		-- allpool, ei puutu seda siin.
 		if f.attack and f.attack.active then
-			alert.Visible = true
 			local parts = {}
 			table.insert(parts, string.format("%d attacking", f.attack.attackers))
 			if f.attack.incoming > 0 then
@@ -293,9 +316,27 @@ if stateRemote then
 				table.insert(parts, string.format("%d buildings lost", f.attack.buildingsLost))
 			end
 			alertDetail.Text = table.concat(parts, "   -   ")
-		else
-			alert.Visible = false
+
+			if not attackAlertActive then
+				attackAlertActive = true
+				alert.Visible = true
+				alert.BackgroundTransparency = 1
+				alertTitle.TextTransparency = 1
+				alertDetail.TextTransparency = 1
+				Theme.Tween(alert, {BackgroundTransparency = 0.05}, Theme.TweenTime.fast):Play()
+				Theme.Tween(alertTitle, {TextTransparency = 0}, Theme.TweenTime.fast):Play()
+				Theme.Tween(alertDetail, {TextTransparency = 0}, Theme.TweenTime.fast):Play()
+			end
+		elseif attackAlertActive then
+			attackAlertActive = false
 			alertStroke.Transparency = 0
+			Theme.Tween(alertTitle, {TextTransparency = 1}, Theme.TweenTime.fast):Play()
+			Theme.Tween(alertDetail, {TextTransparency = 1}, Theme.TweenTime.fast):Play()
+			local tween = Theme.Tween(alert, {BackgroundTransparency = 1}, Theme.TweenTime.fast)
+			tween.Completed:Connect(function()
+				alert.Visible = false
+			end)
+			tween:Play()
 		end
 	end)
 end

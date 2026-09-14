@@ -72,16 +72,17 @@ screenGui.ResetOnSpawn = false
 screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 screenGui.Parent = playerGui
 
-local panel = Instance.new("Frame")
-panel.Name = "Minimap"
-panel.Size = UDim2.new(0, MAP_SIZE + 16, 0, MAP_SIZE + 34)
-panel.Position = UDim2.new(0, 16, 0, 16)
-panel.BackgroundColor3 = Theme.UI.background
-panel.BackgroundTransparency = 0.1
-panel.BorderSizePixel = 0
-panel.Parent = screenGui
-Theme.Corner(panel, 8)
+local panel = Theme.AnimatedPanel(
+	"Minimap",
+	UDim2.new(0, MAP_SIZE + 16, 0, MAP_SIZE + 34),
+	UDim2.new(0, 16, 0, 16),
+	screenGui
+)
 Theme.ClampToViewport(panel)
+-- Nagu RunBar: minimap on ALGUSEST PEALE nahtav, fade kehtib ainult
+-- hilisema M-klahvi togglega peitmise/naitamise kohta.
+panel.Visible = true
+panel.GroupTransparency = 0
 
 local title = Instance.new("TextLabel")
 title.Size = UDim2.new(1, -16, 0, 18)
@@ -394,24 +395,36 @@ end)
 -- =========================================================
 -- PEIDETUD OLEKU SILT
 -- Kui minimap on peidetud, peab midagi jargi jaama - muidu ei
--- tea mangija, et kaart uldse olemas on.
+-- tea mangija, et kaart uldse olemas on. SAMAS kohas/mootmetes mis
+-- "panel" ise (0,16,0,16) - naeb valja nagu kokkuvarisenud "ISLAND
+-- MAP" pealkirjariba, mitte eraldiseisev kollane tekst kuskil mujal.
 -- =========================================================
-local hiddenHint = Instance.new("TextLabel")
-hiddenHint.Name = "HiddenHint"
-hiddenHint.Size = UDim2.new(0, MAP_SIZE + 16, 0, 20)
-hiddenHint.Position = UDim2.new(0, 26, 0, 22)
-hiddenHint.BackgroundTransparency = 1
-hiddenHint.Text = "TOGGLE MAP - " .. Theme.Hotkeys.map
-hiddenHint.TextColor3 = Color3.new(0, 0, 0)
-hiddenHint.TextXAlignment = Enum.TextXAlignment.Left
-hiddenHint.Font = FONT_BOLD
-hiddenHint.TextSize = Theme.TextSize.label
-hiddenHint.Visible = false
-hiddenHint.Parent = screenGui
+local hiddenHint = Theme.AnimatedPanel(
+	"HiddenHint",
+	UDim2.new(0, MAP_SIZE + 16, 0, 36),
+	UDim2.new(0, 16, 0, 16),
+	screenGui
+)
+
+local hiddenHintText = Instance.new("TextLabel")
+hiddenHintText.Size = UDim2.new(1, -20, 1, 0)
+hiddenHintText.Position = UDim2.new(0, 10, 0, 0)
+hiddenHintText.BackgroundTransparency = 1
+hiddenHintText.Text = "ISLAND MAP   " .. Theme.Hotkeys.map
+hiddenHintText.TextColor3 = Theme.UI.accent
+hiddenHintText.TextXAlignment = Enum.TextXAlignment.Left
+hiddenHintText.Font = FONT_BOLD
+hiddenHintText.TextSize = Theme.TextSize.label
+hiddenHintText.Parent = hiddenHint
 
 local function setMapVisible(visible)
-	panel.Visible = visible
-	hiddenHint.Visible = not visible
+	if visible then
+		Theme.ShowPanel(panel, Theme.TweenTime.normal)
+		Theme.HidePanel(hiddenHint, Theme.TweenTime.normal)
+	else
+		Theme.HidePanel(panel, Theme.TweenTime.normal)
+		Theme.ShowPanel(hiddenHint, Theme.TweenTime.normal)
+	end
 end
 
 -- =========================================================
