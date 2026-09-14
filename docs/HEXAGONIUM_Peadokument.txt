@@ -1,6 +1,6 @@
 HEXAGONIUM — PEADOKUMENT
-Versioon: 4.1
-Kuupäev: 13. september 2026
+Versioon: 4.2
+Kuupäev: 14. september 2026
 Place: Hexagonium (placeId: 104026897810299)
 
 SEE FAIL ASENDAB KÕIK VARASEMAD DOKUMENDID.
@@ -37,7 +37,7 @@ Hexagonium on run-põhine tycoon, mis ühendab kolm süsteemi:
   3. Run-süsteem — lühikesed sessioonid + püsiv meta-progressioon
 
 STAATUS: MÄNGITAV. Tuumtsükkel, konflikt, run-süsteem (algus JA
-lõpp) ja püsivus on olemas.
+lõpp), tutorial ja püsivus on olemas. MVP roadmap (SAMM 1-7) VALMIS.
 
 VALMIS
   [x] Hex-saar ookeanis, müra-põhine ressursijaotus
@@ -52,9 +52,9 @@ VALMIS
   [x] Täielik mängija-UI
   [x] Hoonete hinnad (ehitus kulutab, lammutus tagastab poole)
   [x] Run-süsteem (algus, lõpp, automaatne taaskäivitus, Hex Seed)
+  [x] Tutorial (4-sammuline, püsib run'ide ja Play-sessioonide üle)
 
 PUUDUB
-  [ ] Tutorial
   [ ] Tasakaalustamine
 
 
@@ -224,6 +224,7 @@ SaveService.lua, DataStore "HexagoniumPlayer_v1"
 
 SALVESTATAKSE (kõik run'i lõpus, Bootstrap.server.lua wireRunEnd)
     metaRadius                saare püsiv suurus
+    tutorialComplete          kas mängija on tutoriali läbinud (wireTutorial)
     stats.runsPlayed          töötab
     stats.attacksSurvived     töötab (parandatud, vt punkt 15)
     stats.buildingsLost       töötab (parandatud, vt punkt 15)
@@ -295,13 +296,13 @@ PAREMKLÕPS: KLÕPS vs LOHISTAMINE
 
 
 ========================================================================
-11. FAILISTRUKTUUR (43 skripti)
+11. FAILISTRUKTUUR (45 skripti)
 ========================================================================
 
 ReplicatedStorage/
   Shared/
     Constants.lua          KÕIK balance-arvud + Debug-lipud
-    RemoteEvents.lua       8 server<->klient kanalit
+    RemoteEvents.lua       9 server<->klient kanalit
     Theme.lua              värvid, fondid, mõõdud, hotkeyd
     CardInfo.lua           kaartide kirjeldused (GENEREERITUD)
     BuildingInfo.lua       hoonete kirjeldused + ressursiühilduvus
@@ -324,6 +325,7 @@ ServerScriptService/
     StateBroadcaster.lua   mänguseis kliendile 0.5s intervalliga
     PlayerActionHandler.lua KÕIGI mängija tegevuste valideerimine
     SaveService.lua        DataStore
+    TutorialTracker.lua    4-sammuline tutoriali jälgija, püsib run'ide üle
 
   Hex/         HexGrid.lua
   Buildings/   BuildingBase, BuildingFactory, Extractor, PowerCore,
@@ -343,6 +345,7 @@ StarterPlayer/StarterPlayerScripts/
   IslandPanel.lua          saare suurus + laiendus
   FactionPanel.lua         fraktsioon + rünnaku hoiatus
   Minimap.lua              hex-ülevaade + kaamera hüpe
+  Tutorial.lua             4-sammuline vihjebänner + Skip-nupp
 
 MÄRKUS: UI-skriptid EI OLE StarterGui's. Need loovad oma ScreenGui
 koodiga ja elavad StarterPlayerScripts'is — vt punkt 13.
@@ -438,6 +441,19 @@ et neid teist korda ei avastaks.
 
 13.11 Studio instantsi id vahetub sessioonide vahel
 
+13.12 execute_luau (Assistant/plugin) ei jaga require()-vahemälu
+      päris mängu serveriga
+      Sama moodul (nt WorldManager) require'ituna execute_luau seest
+      annab UUE, tühja tabeli (worldsByPlayer = {}) — mitte päriselt
+      jooksva serveri oma. WorldManager.Get(player) tagastab seal
+      alati nil, isegi kui maailm päriselt eksisteerib. Laiendab
+      punkti 13.3 (_G ei jagune) ka mooduli-tasandile.
+      LAHENDUS: ära loe/muuda sisemist Lua seisu execute_luau kaudu.
+      Kasuta PÄRIS Instance'e (Workspace, Attributes) ja REMOTE'e
+      (FireServer/FireClient) — need on jagatud, sest nad on
+      DataModeli osad, mitte Lua moodulite upvalue'd. DataStore
+      töötab samal põhjusel otse (see on Roblox teenus, mitte moodul).
+
 
 ========================================================================
 14. OTSUSED, MIS ERINEVAD ALGSEST SPEC'IST
@@ -531,6 +547,33 @@ LAHENDATUD
       vaikimisi katkestas iga kord. Nüüd suunatud
       RunManager:RecordAttackSurvived/RecordBuildingsLost kaudu,
       mida Bootstrap juba tsentraalselt run'i lõpus salvestab.
+  [x] FractureSyndicate jäi Hostile olekusse IGAVESEKS, kui mängija
+      Demand'ile ei reageerinud (ei maksnud ega keeldunud). Põhjus:
+      geneeriline FactionStateMachine:Tick() teeb aegunud üleminekul
+      SetState(target) UHE argumendiga, mis kaotab jargmise
+      kestuse+sihtoleku — nii et Demand -> Hostile (passiivne
+      tähtaja ületus) ei jätnud alles Hostile -> Attack taimerit.
+      RefuseDemand() (aktiivne keeldumine) töötas ikka, sest see
+      kutsub EnterHostile'i otse, õige kestusega. Avastati samm 7
+      testimisel (tutorial jäi igaveseks ootama rünnakut). Parandus:
+      FractureSyndicate:Tick() taastab Hostile'i kestuse samamoodi
+      nagu juba tehti Attack/Recover jaoks (vt Tick(), rida ~209).
+      MÕJUTAB PÕHIMÄNGU, mitte ainult tutoriali — iga mängija, kes
+      Demand-bännerit ignoreerib, oleks samamoodi kinni jäänud.
+  [x] CardDeck.client.lua hex-sihtimine (getHexUnderMouse) otsis
+      workspace:FindFirstChild("Map"), mida enam ei eksisteeri —
+      saared elavad Workspace.Islands.<nimi> all (vt MapGenerator).
+      Kõik 3 hex-sihitud kaarti (BlessedHex, HexMutationWild,
+      HexMutationStable) olid katki: iga hex-klõps näitas "That is
+      not a hex." Parandus peegeldab BuildMenu.client.lua juba
+      töötavat mustrit (islandFolderName GameStateUpdate'ist).
+  [x] Tutorial-bänner kattus Island Map paneeliga — mõlemad elasid
+      vasakus ülanurgas (Tutorial.client.lua eeldas ekslikult, et
+      see nurk on alati vaba). Lisaks kattis IgnoreGuiInset=true
+      (Tutorial) vs vaikimisi false (Minimap) erinevus koordinaadi
+      nullpunkti, nii et esimene liigutus jäi ikka kattuma.
+      Parandus: Tutorial-paneel Island Map'i alla (Y=248),
+      IgnoreGuiInset eemaldatud, et koordinaadiruum ühtiks.
 
 
 ========================================================================
@@ -579,11 +622,54 @@ SAMM 6 — RUN-SÜSTEEM                           [VALMIS]
   pärast kontrollitud, et uus run algas (taimer, tasu, ohutase
   nullist, lõpuekraan peitunud).
 
-SAMM 7 — TUTORIAL                              [JÄRGMINE]
-  Extractor -> Power Core -> kaart -> rünnak
-  + energiaahel, node-ühendused, saare laiendus
-  MIKS ALLES NÜÜD JÄRGMINE: kõik süsteemid, sh run, on olemas —
-  spec'i enda eeltingimus tutoriali jaoks on täidetud.
+SAMM 7 — TUTORIAL                              [VALMIS]
+  4 sammu: ehita Extractor -> ühenda Power Core'iga -> aktiveeri
+  Reality Card -> koge Fracture Syndicate'i rünnakut.
+
+  ARHITEKTUUR: server on autoriteetne (TutorialTracker.lua jälgib
+  4 sammu läbi juba olemasolevate õnnestumispunktide — ei lisanud
+  ühtegi uut valideerimisloogikat, ainult "märgi samm tehtuks"
+  konksud PlayerActionHandler'is ja FractureSyndicate'is). Tekst
+  elab kliendis (Tutorial.client.lua), samamoodi nagu card.phase
+  enum'e tõlgendab klient, mitte server.
+
+  PÜSIVUS: world.tutorial luuakse GameManager.CreateWorld'is samamoodi
+  nagu world.islandManager — EI OLE buildWorldSystems'i osa, seega
+  RestartRun ei puuduta seda kunagi. tutorialComplete salvestub
+  DataStore'i (SaveService.SetTutorialComplete, wireTutorial
+  Bootstrap.server.lua's).
+
+  KIIRENDATUD ESIMENE DEMAND: tutoriali lõpetamata mängijale on
+  esimene Neutral -> Demand tsükkel 30s (Constants.Faction.
+  TutorialDemandInterval), mitte tavaline 150s — muidu peaks uus
+  mängija ootama rünnaku-sammu jaoks üle 2 minuti. Tutoriali
+  lõppedes taastub tavaline intervall automaatselt.
+
+  SKIP-NUPP: väike tekstlink paneeli nurgas, SkipTutorial remote,
+  märgib kõik 4 sammu korraga (TutorialTracker:Complete()).
+
+  KAKS PÄRIS VIGA LEITUD JA PARANDATUD SAMAS TÖÖS (vt punkt 15):
+  FractureSyndicate'i Hostile-lõks (mõjutab põhimängu, mitte ainult
+  tutoriali) ja CardDeck.client.lua workspace.Map viga (kõik 3
+  hex-sihitud kaarti olid katki).
+
+  TESTITUD Play-režiimis (kõik 8 kontrollpunkti):
+    1. Värske salvestus: tutorialComplete vaikimisi false, STEP 1/4
+    2. Samm 1: Extractor ehitatud -> STEP 2/4
+    3. Samm 2: negatiivne juht (kaks MITTE-PowerCore hoonet) EI
+       edenda; PowerCore-ühendus edendab -> STEP 3/4
+    4. Samm 3: hex-sihitud kaart (BlessedHex) aktiveeritud -> STEP 4/4
+    5. Samm 4: rünnaku ALGUS (mitte üleelamine) -> tutorial
+       "complete", konsool "TUTOORIUM LOPETATUD slot N"
+    6. Püsivus üle run-restardi: ExtractRun poolelioleva tutoriali
+       (STEP 3/4) ajal, 8s pärast automaatset taaskäivitust bänner
+       näitas ikka STEP 3/4, mitte lähtestunud STEP 1/4-le
+    7. Püsivus üle Play-sessiooni: Stop/Play uuesti — lõpetatud
+       tutorial ei ilmunud tagasi, Demand-intervall taastus 150s-le
+    8. Skip-nupp: päris hiireklõps nupul (mitte simuleeritud) —
+       bänner kadus koheselt, DataStore kinnitas tutorialComplete=true
+
+SAMM 1-7 (MVP ROADMAP) ON NÜÜD TÄIELIKULT VALMIS.
 
 PÄRAST MVP-d
   - Tasakaalustamine telemeetria põhjal
