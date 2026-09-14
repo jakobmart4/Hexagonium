@@ -72,17 +72,15 @@ screenGui.ResetOnSpawn = false
 screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 screenGui.Parent = playerGui
 
-local panel = Theme.AnimatedPanel(
+-- Staatiline paneel (M ei peida enam TERVET kasti, vaid ainult
+-- allpoolset mapContent'i) - vt setMapVisible.
+local panel = Theme.Panel(
 	"Minimap",
 	UDim2.new(0, MAP_SIZE + 16, 0, MAP_SIZE + 34),
 	UDim2.new(0, 16, 0, 16),
 	screenGui
 )
 Theme.ClampToViewport(panel)
--- Nagu RunBar: minimap on ALGUSEST PEALE nahtav, fade kehtib ainult
--- hilisema M-klahvi togglega peitmise/naitamise kohta.
-panel.Visible = true
-panel.GroupTransparency = 0
 
 local title = Instance.new("TextLabel")
 title.Size = UDim2.new(1, -16, 0, 18)
@@ -95,19 +93,30 @@ title.Font = FONT_BOLD
 title.TextSize = Theme.TextSize.label
 title.Parent = panel
 
--- Kaardi ala (klopsatav)
+-- Kaardi SISU (klopsatav) - CanvasGroup, et M-klahv saaks fade'ida
+-- korraga tausta+kihte+kaamerapunkti, ilma iga dot'i eraldi labi
+-- kaimata. Paneel ise (pealkiri "ISLAND MAP") jaab ALATI nahtavaks -
+-- ainult see sinine kaardiosa peitub/ilmub.
+local mapContent = Instance.new("CanvasGroup")
+mapContent.Name = "MapContent"
+mapContent.Size = UDim2.new(0, MAP_SIZE, 0, MAP_SIZE)
+mapContent.Position = UDim2.new(0, 8, 0, 26)
+mapContent.BackgroundColor3 = Color3.fromRGB(28, 62, 96)   -- ookean
+mapContent.BackgroundTransparency = 0.25
+mapContent.BorderSizePixel = 0
+mapContent.Visible = true
+mapContent.GroupTransparency = 0
+mapContent.Parent = panel
+Theme.Corner(mapContent, 6)
+
 local canvas = Instance.new("TextButton")
 canvas.Name = "Canvas"
-canvas.Size = UDim2.new(0, MAP_SIZE, 0, MAP_SIZE)
-canvas.Position = UDim2.new(0, 8, 0, 26)
-canvas.BackgroundColor3 = Color3.fromRGB(28, 62, 96)   -- ookean
-canvas.BackgroundTransparency = 0.25
-canvas.BorderSizePixel = 0
+canvas.Size = UDim2.new(1, 0, 1, 0)
+canvas.BackgroundTransparency = 1
 canvas.Text = ""
 canvas.AutoButtonColor = false
 canvas.ClipsDescendants = true
-canvas.Parent = panel
-Theme.Corner(canvas, 6)
+canvas.Parent = mapContent
 
 -- Kihid: maastik all, hooned peal, ruundajad koige peal
 local terrainLayer = Instance.new("Frame")
@@ -393,37 +402,15 @@ canvas.MouseButton1Click:Connect(function()
 end)
 
 -- =========================================================
--- PEIDETUD OLEKU SILT
--- Kui minimap on peidetud, peab midagi jargi jaama - muidu ei
--- tea mangija, et kaart uldse olemas on. SAMAS kohas/mootmetes mis
--- "panel" ise (0,16,0,16) - naeb valja nagu kokkuvarisenud "ISLAND
--- MAP" pealkirjariba, mitte eraldiseisev kollane tekst kuskil mujal.
+-- M: peida / naita AINULT kaardi sisu
+-- Paneel ("ISLAND MAP" pealkiri + kast) jaab ALATI nahtavaks - see
+-- ON juba oma "peidetud oleku silt", eraldi kasti pole vaja.
 -- =========================================================
-local hiddenHint = Theme.AnimatedPanel(
-	"HiddenHint",
-	UDim2.new(0, MAP_SIZE + 16, 0, 36),
-	UDim2.new(0, 16, 0, 16),
-	screenGui
-)
-
-local hiddenHintText = Instance.new("TextLabel")
-hiddenHintText.Size = UDim2.new(1, -20, 1, 0)
-hiddenHintText.Position = UDim2.new(0, 10, 0, 0)
-hiddenHintText.BackgroundTransparency = 1
-hiddenHintText.Text = "ISLAND MAP   " .. Theme.Hotkeys.map
-hiddenHintText.TextColor3 = Theme.UI.accent
-hiddenHintText.TextXAlignment = Enum.TextXAlignment.Left
-hiddenHintText.Font = FONT_BOLD
-hiddenHintText.TextSize = Theme.TextSize.label
-hiddenHintText.Parent = hiddenHint
-
 local function setMapVisible(visible)
 	if visible then
-		Theme.ShowPanel(panel, Theme.TweenTime.normal)
-		Theme.HidePanel(hiddenHint, Theme.TweenTime.normal)
+		Theme.ShowPanel(mapContent, Theme.TweenTime.normal)
 	else
-		Theme.HidePanel(panel, Theme.TweenTime.normal)
-		Theme.ShowPanel(hiddenHint, Theme.TweenTime.normal)
+		Theme.HidePanel(mapContent, Theme.TweenTime.normal)
 	end
 end
 
@@ -435,7 +422,7 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
 		return
 	end
 	if input.KeyCode == Enum.KeyCode.M then
-		setMapVisible(not panel.Visible)
+		setMapVisible(not mapContent.Visible)
 	end
 end)
 

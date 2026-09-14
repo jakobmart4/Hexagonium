@@ -40,12 +40,20 @@ local SOUND_IDS = {
 	defeat          = 107485186727325,
 }
 
+-- Enamik helisid kasutab MASTER_VOLUME'i - victory (Fanfare) on pikk,
+-- aga kasutaja tagasiside jargi hea vaikse taustana, mitte taies
+-- helitugevuses (Extract lopeb selle helliga, mis muidu domineeriks
+-- liiga kaua).
+local VOLUME_OVERRIDES = {
+	victory = 0.18,
+}
+
 local sounds = {}
 for name, assetId in pairs(SOUND_IDS) do
 	local sound = Instance.new("Sound")
 	sound.Name = name
 	sound.SoundId = "rbxassetid://" .. assetId
-	sound.Volume = MASTER_VOLUME
+	sound.Volume = VOLUME_OVERRIDES[name] or MASTER_VOLUME
 	sound.Parent = SoundService
 	sounds[name] = sound
 end
