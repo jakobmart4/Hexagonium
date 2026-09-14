@@ -33,6 +33,9 @@ local HEX_DOT = 7             -- uhe hexi suurus minimapil
 local BUILDING_DOT = 9
 local ATTACKER_DOT = 7
 
+local PANEL_HEIGHT_FULL = MAP_SIZE + 34
+local PANEL_HEIGHT_COLLAPSED = 34   -- ainult pealkirjariba, ilma tuhja mustata alata
+
 -- Maailma ulatus, mille minimap katab. KOHANDUV: arvutatakse
 -- avatud hexide jargi, nii et saar taidab minimapi ka siis, kui
 -- ta laieneb. Fikseeritud vaartusega jaanuks 60% pinnast tuhjaks.
@@ -76,10 +79,13 @@ screenGui.Parent = playerGui
 -- allpoolset mapContent'i) - vt setMapVisible.
 local panel = Theme.Panel(
 	"Minimap",
-	UDim2.new(0, MAP_SIZE + 16, 0, MAP_SIZE + 34),
+	UDim2.new(0, MAP_SIZE + 16, 0, PANEL_HEIGHT_FULL),
 	UDim2.new(0, 16, 0, 16),
 	screenGui
 )
+-- Kui panel kahaneb (vt setMapVisible), ei tohi mapContent oma
+-- vanast, suuremast positsioonist valja ulatuda.
+panel.ClipsDescendants = true
 Theme.ClampToViewport(panel)
 
 local title = Instance.new("TextLabel")
@@ -402,15 +408,24 @@ canvas.MouseButton1Click:Connect(function()
 end)
 
 -- =========================================================
--- M: peida / naita AINULT kaardi sisu
--- Paneel ("ISLAND MAP" pealkiri + kast) jaab ALATI nahtavaks - see
--- ON juba oma "peidetud oleku silt", eraldi kasti pole vaja.
+-- M: peida / naita kaardi sisu. Paneel ("ISLAND MAP" pealkiri) jaab
+-- ALATI nahtavaks, aga kahaneb koos sisu peitumisega, et selle asemel
+-- ei jaaks tuhja musta kasti seisma (ClipsDescendants lo`ikab
+-- mapContent'i, mis on ikka vana kohal, uuest vaiksemast servast).
 -- =========================================================
 local function setMapVisible(visible)
+	local targetHeight = visible and PANEL_HEIGHT_FULL or PANEL_HEIGHT_COLLAPSED
+	Theme.Tween(panel, {Size = UDim2.new(0, MAP_SIZE + 16, 0, targetHeight)}, Theme.TweenTime.normal):Play()
+
 	if visible then
-		Theme.ShowPanel(mapContent, Theme.TweenTime.normal)
+		mapContent.Visible = true
+		Theme.Tween(mapContent, {GroupTransparency = 0}, Theme.TweenTime.normal):Play()
 	else
-		Theme.HidePanel(mapContent, Theme.TweenTime.normal)
+		local tween = Theme.Tween(mapContent, {GroupTransparency = 1}, Theme.TweenTime.normal)
+		tween.Completed:Connect(function()
+			mapContent.Visible = false
+		end)
+		tween:Play()
 	end
 end
 

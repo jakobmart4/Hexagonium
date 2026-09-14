@@ -42,10 +42,15 @@ local SOUND_IDS = {
 
 -- Enamik helisid kasutab MASTER_VOLUME'i - victory (Fanfare) on pikk,
 -- aga kasutaja tagasiside jargi hea vaikse taustana, mitte taies
--- helitugevuses (Extract lopeb selle helliga, mis muidu domineeriks
--- liiga kaua).
+-- helitugevuses.
 local VOLUME_OVERRIDES = {
 	victory = 0.18,
+}
+
+-- "victory" ON taustamuusika (vaikne, korduv), mitte uhekordne
+-- sundmuse-heli - vt kasutaja tagasiside.
+local LOOPED = {
+	victory = true,
 }
 
 local sounds = {}
@@ -54,8 +59,16 @@ for name, assetId in pairs(SOUND_IDS) do
 	sound.Name = name
 	sound.SoundId = "rbxassetid://" .. assetId
 	sound.Volume = VOLUME_OVERRIDES[name] or MASTER_VOLUME
+	sound.Looped = LOOPED[name] or false
 	sound.Parent = SoundService
 	sounds[name] = sound
+end
+
+for name in pairs(LOOPED) do
+	local sound = sounds[name]
+	if sound then
+		sound:Play()
+	end
 end
 
 local function play(name)
@@ -118,10 +131,10 @@ if stateRemote then
 		local run = payload.run
 		if run and run.result and not hadRunResult then
 			hadRunResult = true
+			-- "victory" mangib pidevalt taustal (vt allpool) - siin ainult
+			-- kaotuse stinger, mis kihistub selle peale.
 			if run.result.reason == "Destroyed" then
 				play("defeat")
-			else
-				play("victory")
 			end
 		elseif run and not run.result then
 			-- Uus run algas (automaatne taaskaivitus) - lubame

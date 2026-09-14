@@ -642,6 +642,10 @@ function MapGenerator.GetNextLockedRing(folder)
 	return lowest
 end
 
+-- Kui palju sekundeid ronga hexide vahel viivitada, et laienemine
+-- naeks valja nagu LAINE, mitte kogu ronga korraga vee alt hupamine.
+local RING_REVEAL_STAGGER = 0.035
+
 function MapGenerator.UnlockRing(folder, ringNumber, config)
 	config = config or {}
 	local thickness = config.hexThickness or MapGenerator.Defaults.hexThickness
@@ -653,33 +657,47 @@ function MapGenerator.UnlockRing(folder, ringNumber, config)
 	end
 
 	local originY = 0
-	local unlocked = 0
 
+	local ringParts = {}
 	for _, part in ipairs(hexes:GetChildren()) do
 		if part:GetAttribute("Locked") == true and part:GetAttribute("Ring") == ringNumber then
-			local typeName = part:GetAttribute("HexType") or "Neutral"
-			local targetY = originY + MapGenerator.HEX_TOP_Y - thickness / 2
-			local pos = part.Position
-			local targetCFrame = CFrame.new(pos.X, targetY, pos.Z) * part.CFrame.Rotation
+			table.insert(ringParts, part)
+		end
+	end
 
-			part:SetAttribute("Locked", false)
+	-- Sorteeri nurga jargi umber saare keskpunkti, et laine leviks
+	-- radiaalselt (mitte GetChildren'i juhuslikus jarjekorras).
+	if animate then
+		table.sort(ringParts, function(a, b)
+			local aAngle = math.atan2(a:GetAttribute("R"), a:GetAttribute("Q"))
+			local bAngle = math.atan2(b:GetAttribute("R"), b:GetAttribute("Q"))
+			return aAngle < bAngle
+		end)
+	end
 
-			if animate then
+	for i, part in ipairs(ringParts) do
+		local typeName = part:GetAttribute("HexType") or "Neutral"
+		local targetY = originY + MapGenerator.HEX_TOP_Y - thickness / 2
+		local pos = part.Position
+		local targetCFrame = CFrame.new(pos.X, targetY, pos.Z) * part.CFrame.Rotation
+
+		part:SetAttribute("Locked", false)
+
+		if animate then
+			task.delay((i - 1) * RING_REVEAL_STAGGER, function()
 				local info = TweenInfo.new(1.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
 				TweenService:Create(part, info, {
 					CFrame = targetCFrame,
 					Color = MapGenerator.HexColors[typeName],
 				}):Play()
-			else
-				part.CFrame = targetCFrame
-				part.Color = MapGenerator.HexColors[typeName]
-			end
-
-			unlocked += 1
+			end)
+		else
+			part.CFrame = targetCFrame
+			part.Color = MapGenerator.HexColors[typeName]
 		end
 	end
 
-	return unlocked
+	return #ringParts
 end
 
 -- ============================================================
