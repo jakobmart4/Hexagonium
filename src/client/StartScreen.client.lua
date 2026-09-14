@@ -70,6 +70,8 @@ screenGui.Name = "HexagoniumStartScreen"
 screenGui.ResetOnSpawn = false
 screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 screenGui.DisplayOrder = 100 -- kindlasti koige teise UI peal
+-- Muidu jaab Robloxi enda ulariba (~36px) tumeda ala kohal katmata.
+screenGui.IgnoreGuiInset = true
 screenGui.Parent = playerGui
 
 -- Täisekraani tume taust, mis neelab klõpsud (Active=true). Maailm
@@ -89,7 +91,7 @@ backdrop.Parent = screenGui
 local title = Instance.new("TextLabel")
 title.Name = "Title"
 title.Size = UDim2.new(0, 700, 0, 64)
-title.Position = UDim2.new(0, COL_X, 0, 150)
+title.Position = UDim2.new(0, COL_X, 0, 186)
 title.BackgroundTransparency = 1
 title.Text = "HEXAGONIUM"
 title.TextColor3 = Theme.UI.accent
@@ -101,14 +103,14 @@ applyStroke(title, 0.45)
 
 local subtitle = Instance.new("TextLabel")
 subtitle.Name = "Subtitle"
-subtitle.Size = UDim2.new(0, 500, 0, 20)
-subtitle.Position = UDim2.new(0, COL_X + 2, 0, 218)
+subtitle.Size = UDim2.new(0, 500, 0, 32)
+subtitle.Position = UDim2.new(0, COL_X + 2, 0, 254)
 subtitle.BackgroundTransparency = 1
 subtitle.Text = ""
 subtitle.TextColor3 = Theme.UI.textDim
 subtitle.TextXAlignment = Enum.TextXAlignment.Left
 subtitle.Font = FONT
-subtitle.TextSize = Theme.TextSize.body
+subtitle.TextSize = Theme.TextSize.body + 12
 subtitle.Parent = backdrop
 applyStroke(subtitle, 0.65)
 
@@ -116,7 +118,7 @@ applyStroke(subtitle, 0.65)
 local startButton = Instance.new("TextButton")
 startButton.Name = "StartButton"
 startButton.Size = UDim2.new(0, COL_WIDTH, 0, 44)
-startButton.Position = UDim2.new(0, COL_X, 0, 280)
+startButton.Position = UDim2.new(0, COL_X, 0, 316)
 startButton.BackgroundTransparency = 1
 startButton.Text = "\u{203A} START"
 startButton.TextColor3 = Theme.UI.success
@@ -137,9 +139,13 @@ startButton.MouseButton1Click:Connect(function()
 	backdrop.Visible = false
 end)
 
--- Kaks rida: save-info (island/tutorial), siis KÕIK statid ühes reas.
-local infoLine1 = infoLabel(backdrop, 340, 30, INFO_TEXT_SIZE, Theme.UI.textDim)
-local infoLine2 = infoLabel(backdrop, 374, 30, INFO_TEXT_SIZE, Theme.UI.textDim)
+-- Ulevalt-alla list: save-info, siis iga stat oma real.
+local INFO_LINE_SPACING = 28
+local infoSave = infoLabel(backdrop, 402, 26, INFO_TEXT_SIZE, Theme.UI.textDim)
+local infoRuns = infoLabel(backdrop, 402 + INFO_LINE_SPACING, 26, INFO_TEXT_SIZE, Theme.UI.textDim)
+local infoAttacks = infoLabel(backdrop, 402 + INFO_LINE_SPACING * 2, 26, INFO_TEXT_SIZE, Theme.UI.textDim)
+local infoLost = infoLabel(backdrop, 402 + INFO_LINE_SPACING * 3, 26, INFO_TEXT_SIZE, Theme.UI.textDim)
+local infoPoints = infoLabel(backdrop, 402 + INFO_LINE_SPACING * 4, 26, INFO_TEXT_SIZE, Theme.UI.textDim)
 
 -- =========================================================
 -- ALUMINE-VASAK "MENU" NUPP: taasavab ülekatte igal ajal.
@@ -193,16 +199,15 @@ stateRemote.OnClientEvent:Connect(function(payload)
 		or "Welcome back."
 	startButton.Text = (isNewPlayer and "\u{203A} START" or "\u{203A} CONTINUE")
 
-	infoLine1.Text = string.format(
+	infoSave.Text = string.format(
 		"Island: permanent radius %d  \u{00B7}  Tutorial: %s",
 		profile.metaRadius or 0,
 		profile.tutorialComplete and "Complete" or "In progress"
 	)
-	infoLine2.Text = string.format(
-		"%d runs played  \u{00B7}  %d attacks survived  \u{00B7}  %d lost  \u{00B7}  %d UP earned",
-		stats.runsPlayed or 0, stats.attacksSurvived or 0, stats.buildingsLost or 0,
-		stats.totalUpgradePoints or 0
-	)
+	infoRuns.Text = string.format("Runs played: %d", stats.runsPlayed or 0)
+	infoAttacks.Text = string.format("Attacks survived: %d", stats.attacksSurvived or 0)
+	infoLost.Text = string.format("Buildings lost: %d", stats.buildingsLost or 0)
+	infoPoints.Text = string.format("Lifetime UP earned: %d", stats.totalUpgradePoints or 0)
 end)
 
 print("[Hexagonium] StartScreen laaditud")
