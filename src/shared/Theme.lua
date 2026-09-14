@@ -242,19 +242,29 @@ end
 -- (nt dokitud Studio viewport). Mirrors ContextMenu.client.lua
 -- kursori-kloppimise loogikat, aga reageerib viewporti suuruse
 -- muutusele, mitte klopsule.
+--
+-- LOEB ALATI algsest deklareeritud Position'ist (mitte
+-- frame.AbsolutePosition'ist, mis on Robloxis lazily uuendatav ja
+-- voib viewport-muutuse sundmuse ajal olla veel eelmise kaadri
+-- vaartus) - nii ei saa uks vigane/enneaegne korrektsioon kuhjuda
+-- Position'isse jaadavalt (see oli pohjus, miks Menu-nupp hupas
+-- x=436-lt x=0-le).
 function Theme.ClampToViewport(frame)
 	local camera = workspace.CurrentCamera
+	local base = frame.Position
 	local function clamp()
 		local viewport = camera.ViewportSize
-		local pos, size = frame.AbsolutePosition, frame.AbsoluteSize
-		local dx = math.clamp(pos.X, 0, math.max(0, viewport.X - size.X)) - pos.X
-		local dy = math.clamp(pos.Y, 0, math.max(0, viewport.Y - size.Y)) - pos.Y
-		if dx ~= 0 or dy ~= 0 then
-			frame.Position = frame.Position + UDim2.fromOffset(dx, dy)
-		end
+		local size = frame.AbsoluteSize
+		local baseX = base.X.Scale * viewport.X + base.X.Offset
+		local baseY = base.Y.Scale * viewport.Y + base.Y.Offset
+		local clampedX = math.clamp(baseX, 0, math.max(0, viewport.X - size.X))
+		local clampedY = math.clamp(baseY, 0, math.max(0, viewport.Y - size.Y))
+		frame.Position = UDim2.new(
+			base.X.Scale, clampedX - base.X.Scale * viewport.X,
+			base.Y.Scale, clampedY - base.Y.Scale * viewport.Y
+		)
 	end
 	camera:GetPropertyChangedSignal("ViewportSize"):Connect(clamp)
-	task.defer(clamp)
 end
 
 -- Paneeli pealkiri (suurtahtedes, aktsentvarvis)
