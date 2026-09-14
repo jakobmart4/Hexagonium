@@ -649,6 +649,8 @@ local RING_REVEAL_STAGGER = 0.035
 function MapGenerator.UnlockRing(folder, ringNumber, config)
 	config = config or {}
 	local thickness = config.hexThickness or MapGenerator.Defaults.hexThickness
+	local hexSize = config.hexSize or MapGenerator.Defaults.hexSize
+	local gap = config.hexGap or MapGenerator.Defaults.hexGap
 	local animate = config.animate ~= false
 
 	local hexes = folder and folder:FindFirstChild("Hexes")
@@ -680,20 +682,46 @@ function MapGenerator.UnlockRing(folder, ringNumber, config)
 		local targetY = originY + MapGenerator.HEX_TOP_Y - thickness / 2
 		local pos = part.Position
 		local targetCFrame = CFrame.new(pos.X, targetY, pos.Z) * part.CFrame.Rotation
+		local q, r = part:GetAttribute("Q"), part:GetAttribute("R")
 
-		part:SetAttribute("Locked", false)
+		local function reveal(target)
+			-- UUS osa OIGE tuubi mallist, mitte lukustatud-malli
+			-- osa taaskasutus - HexTemplate_Locked erineb teistest
+			-- mallidest rohkem kui ainult Color'i poolest (Material
+			-- jm), seega Color/CFrame-tween UKSI jattis tekstuuri
+			-- igaveseks "lukustatud" naoga (vt kasutaja tagasiside).
+			local fresh = MapGenerator.CreateHexPart(typeName, false, hexSize, thickness, gap)
+			fresh.Name = target.Name
+			fresh.CFrame = target.CFrame
+			fresh.Color = target.Color
+			fresh:SetAttribute("Q", q)
+			fresh:SetAttribute("R", r)
+			fresh:SetAttribute("HexType", typeName)
+			fresh:SetAttribute("Locked", false)
+			fresh:SetAttribute("Ring", ringNumber)
+			fresh.Parent = target.Parent
+			target:Destroy()
+			return fresh
+		end
 
 		if animate then
+			part:SetAttribute("Locked", false)
 			task.delay((i - 1) * RING_REVEAL_STAGGER, function()
+				if not part.Parent then
+					return -- saar hasines/taaskaivitus vahepeal
+				end
+				local fresh = reveal(part)
 				local info = TweenInfo.new(1.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
-				TweenService:Create(part, info, {
+				TweenService:Create(fresh, info, {
 					CFrame = targetCFrame,
 					Color = MapGenerator.HexColors[typeName],
 				}):Play()
 			end)
 		else
-			part.CFrame = targetCFrame
-			part.Color = MapGenerator.HexColors[typeName]
+			part:SetAttribute("Locked", false)
+			local fresh = reveal(part)
+			fresh.CFrame = targetCFrame
+			fresh.Color = MapGenerator.HexColors[typeName]
 		end
 	end
 

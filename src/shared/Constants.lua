@@ -171,7 +171,13 @@ Constants.Cards = {
 -- Naide: meta=5, run-laiendusi 2 -> aktiivne raadius 7
 -- ============================================================
 Constants.IslandExpansion = {
-	StartRadius = 4,        -- uue mangija algne saar
+	-- Tasakaalustatud kasutaja tagasiside jargi: 4 -> 2 (-2 ronga).
+	-- Algne saar oli liiga suur juba enne esimest laiendust - need 2
+	-- ronga said nuud meta-progressiooni osaks (StartRadius..MetaMaxRadius
+	-- vahe kasvas 2 sammult 4 sammule). MITTE 1 (3 ronga maha): siis
+	-- oleks vaid 7 hexi kokku, ei mahutaks MinResources'i nouet
+	-- (6 ore + 4 crystal UKSI avatud hexide seas).
+	StartRadius = 2,        -- uue mangija algne saar
 	MetaMaxRadius = 6,      -- meta-progressiooni lagi
 	MaxRadius = 8,          -- genereeritud saare koguulatus
 
