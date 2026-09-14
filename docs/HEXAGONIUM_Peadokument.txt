@@ -53,9 +53,16 @@ VALMIS
   [x] Hoonete hinnad (ehitus kulutab, lammutus tagastab poole)
   [x] Run-süsteem (algus, lõpp, automaatne taaskäivitus, Hex Seed)
   [x] Tutorial (4-sammuline, püsib run'ide ja Play-sessioonide üle)
+  [x] Tasakaalustamine, esimene ring (raamistik + varajase rünnaku
+      tuunimine — täpsem kalibreerimine vajab päris mängijate
+      telemeetriat, vt punkt 16)
+  [x] Heliefektid (11 heli, sh kasutaja tagasisidel põhinev vahetus)
 
 PUUDUB
-  [ ] Tasakaalustamine
+  [ ] Visuaalne poleerimine (osa 3+: UI responsiivsus, animatsioonid,
+      minimapi visuaalid, rünnakute efektid, tutoriali tekstid,
+      kaardipaki animatsioonid)
+  [ ] Mobiilitugi
 
 
 ========================================================================
@@ -505,10 +512,15 @@ et neid teist korda ei avastaks.
 ========================================================================
 
 ENNE AVALDAMIST
-  [ ] Constants.Debug kõik false (praegu on)
-  [ ] Studio API-ligipääs sisse, et salvestust päriselt testida
-  [ ] Run'i taaskäivituse viivitus (Constants.Run.RestartDelay, 8s)
-      on esialgne väärtus — vajab playtesti
+  [ ] Constants.Debug kõik false (pidevalt hoitud nii — iga testkäik
+      SAMM 7/8/heliefektide juures lülitas kasutatud lipu (RunTests/
+      RunBalanceSim/ForceAttackAfter) testi lõpus tagasi, aga
+      lõplik kontroll enne avaldamist siiski vajalik)
+  [x] Studio API-ligipääs sisse — kinnitatud, DataStore töötab
+      (mitu SAMM 7/8 testi salvestasid/lugesid päriselt)
+  [x] Run'i taaskäivituse viivitus (8s) playtestitud SAMM 8 juures —
+      "tundus piisav tulemuse lugemiseks, mitte liiga pikk
+      tegevusetuks jäämiseks", vt TASAKAALUSTAMINE.md punkt 3
 
 TEHNILINE
   [ ] HexTemplates sõltub ReplicatedStorage'is olevatest union'itest.
