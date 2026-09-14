@@ -57,6 +57,7 @@ VALMIS
       tuunimine — täpsem kalibreerimine vajab päris mängijate
       telemeetriat, vt punkt 16)
   [x] Heliefektid (11 heli, sh kasutaja tagasisidel põhinev vahetus)
+  [x] Peamenüü / start screen (save-ülevaade + elu-aegne statistika)
 
 PUUDUB
   [ ] Visuaalne poleerimine (osa 3+: UI responsiivsus, animatsioonid,
@@ -303,7 +304,7 @@ PAREMKLÕPS: KLÕPS vs LOHISTAMINE
 
 
 ========================================================================
-11. FAILISTRUKTUUR (47 skripti)
+11. FAILISTRUKTUUR (48 skripti)
 ========================================================================
 
 ReplicatedStorage/
@@ -355,6 +356,7 @@ StarterPlayer/StarterPlayerScripts/
   Minimap.lua              hex-ülevaade + kaamera hüpe
   Tutorial.lua             4-sammuline vihjebänner + Skip-nupp
   SoundEffects.lua         heliefektid (Notification kind/hint + GameStateUpdate diff)
+  StartScreen.lua          peamenüü / start screen (save-ülevaade + statistika)
 
 MÄRKUS: UI-skriptid EI OLE StarterGui's. Need loovad oma ScreenGui
 koodiga ja elavad StarterPlayerScripts'is — vt punkt 13.
@@ -762,6 +764,38 @@ VISUAALNE POLEERIMINE                          [POOLELI]
   Osa 3+ [PUUDUB]: UI responsiivsus, animatsioonid, minimapi
   visuaalid, rünnakute efektid, tutoriali tekstid, kaardipaki
   animatsioonid.
+
+PEAMENÜÜ / START SCREEN                        [VALMIS]
+  Uus lisand (mitte poleerimise jätk) — täisekraani ülekate, mis
+  näitab liitumisel save-faili ülevaadet (`metaRadius`,
+  `tutorialComplete`) ja elu-aegset statistikat (`stats.*`), kuni
+  mängija klõpsab Start/Continue. Uuesti avatav "MENU" nupp
+  alumises-vasakus reas (CARDS/BUILD/LINKS/MENU).
+
+  EI GATE'I `Bootstrap.server.lua` voogu — maailm laadib nagu alati
+  taustal, `src/client/StartScreen.client.lua` lihtsalt NEELAB
+  klõpsud (täisekraani `Frame`, `Active = true`, `ScreenGui.
+  DisplayOrder = 100` tagab, et see renderdub kõige teise UI peal),
+  kuni mängija dismiss'ib. Sama visuaalne efekt mängija jaoks, ilma
+  et oleks vaja ümber korraldada olemasolevat käivitusjärjekorda.
+
+  ANDMEVOOG: `world.profileSnapshot` (Bootstrap.server.lua, TAHTLIK
+  STAATILINE hetktõmmis liitumishetkest — see ONGI "save-faili
+  ülevaade", mitte live-uuenev loendur) -> `StateBroadcaster.
+  BuildPayload()`'i `profile`-väli -> olemasolev `GameStateUpdate`
+  (0.5s tsükkel). TEADLIKULT MITTE uus ühekordne remote: see oleks
+  race-altis (kui klient ei jõua `OnClientEvent:Connect` ühendada
+  enne serveri ühekordset `FireClient`'i, läheb sõnum jäädavalt
+  kaotsi — RemoteEvent'id ei puhversta hiliseid kuulajaid). Korduv
+  kanal on ISESERVEERUV: isegi hilinenud klient saab andmed
+  järgmise tsükliga.
+
+  KONTROLLITUD Play-režiimis: ülekate näitab õigeid numbreid (võrreldud
+  otse loetud salvestusega), BLOKEERIB tõestatult BUILD-nupu klõpsu
+  (`BuildPanel.Visible` jäi `false`'iks), Continue-klõps eemaldab
+  bloki (BUILD töötab kohe pärast normaalselt), MENU-nupp taasavab
+  SAMADE (mitte live) numbritega ilma serveri round-trip'ita, ja
+  uus Play-sessioon näitab ülekatet uuesti värske seisuga.
 
 MOBIILITUGI (UI responsiivsus)                 [PUUDUB]
 

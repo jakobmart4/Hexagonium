@@ -142,6 +142,15 @@ local function onPlayerJoined(player)
 		return
 	end
 
+	-- Puhas kuva-andmestruktuur peamenüü/start screen'i jaoks - TAHTLIKULT
+	-- staatiline liitumishetke hetktõmmis ("save-faili ülevaade"), mitte
+	-- live-uuenev loendur. Saadetakse kliendile StateBroadcaster'i kaudu.
+	world.profileSnapshot = {
+		metaRadius = data.metaRadius,
+		tutorialComplete = data.tutorialComplete,
+		stats = data.stats,
+	}
+
 	print(string.format(
 		"[Hexagonium] %s -> slot %d, metaRadius=%d, runid=%d%s",
 		player.Name, world.slot, data.metaRadius, data.stats.runsPlayed,
