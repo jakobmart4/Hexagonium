@@ -57,6 +57,7 @@ panel.BackgroundColor3 = COLORS.background
 panel.BackgroundTransparency = 0.1
 panel.BorderSizePixel = 0
 panel.Parent = screenGui
+Theme.ClampToViewport(panel)
 corner(panel, 8)
 
 local title = Instance.new("TextLabel")

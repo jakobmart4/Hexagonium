@@ -30,6 +30,7 @@ local STEP_TEXT = {
 			"Build an Extractor on an Ore or Crystal hex. Press [%s] to open the build menu.",
 			Theme.Hotkeys.build
 		),
+		flavor = "Tip: Ore and Crystal hexes are colored on the ground - build costs are shown right on each button.",
 	},
 	[2] = {
 		hint = string.format(
@@ -42,6 +43,10 @@ local STEP_TEXT = {
 		hint = string.format(
 			"Activate a Reality Card to bend the run's rules in your favor. Press [%s] to open your card deck.",
 			Theme.Hotkeys.cards
+		),
+		flavor = string.format(
+			"Tip: hex-targeted cards show a banner - click any hex to place, or [%s]/right-click to cancel.",
+			Theme.Hotkeys.cancel
 		),
 	},
 	[4] = {
@@ -68,13 +73,13 @@ screenGui.Parent = playerGui
 -- see on ainus koht, mida HUD/RunPanel/CardPanel/FactionPanel ei kata
 -- kunagi ja mida BuildMenu/CardDeck/NodeLinks'i AVATUD paneelid ei
 -- kata tavalisel ekraanikorgusel (need avanevad alt ulespoole).
-local panel = Theme.Panel(
+local panel = Theme.AnimatedPanel(
 	"TutorialPanel",
 	UDim2.new(0, 370, 0, 108),
 	UDim2.new(0, 16, 0, 248),
 	screenGui
 )
-panel.Visible = false
+Theme.ClampToViewport(panel)
 
 local title = Theme.Title("STEP 1 / 4", panel)
 
@@ -104,6 +109,24 @@ flavorLabel.TextWrapped = true
 flavorLabel.Font = FONT
 flavorLabel.TextSize = Theme.TextSize.small
 flavorLabel.Parent = panel
+
+-- Progressiriba: visuaalne vaste "STEP N/4" tekstile
+local progressTrack = Instance.new("Frame")
+progressTrack.Name = "ProgressTrack"
+progressTrack.Size = UDim2.new(1, -Theme.Layout.padding * 2, 0, 3)
+progressTrack.Position = UDim2.new(0, Theme.Layout.padding, 1, -7)
+progressTrack.BackgroundColor3 = Theme.UI.panelHover
+progressTrack.BorderSizePixel = 0
+progressTrack.Parent = panel
+Theme.Corner(progressTrack, 2)
+
+local progressFill = Instance.new("Frame")
+progressFill.Name = "Fill"
+progressFill.Size = UDim2.new(0, 0, 1, 0)
+progressFill.BackgroundColor3 = Theme.UI.accent
+progressFill.BorderSizePixel = 0
+progressFill.Parent = progressTrack
+Theme.Corner(progressFill, 2)
 
 -- Vaike tekstlink, mitte täisnupp - ei tohi hinttekstiga konkureerida
 local skipButton = Instance.new("TextButton")
@@ -143,25 +166,39 @@ stateRemote.OnClientEvent:Connect(function(payload)
 
 	local tutorial = payload.tutorial
 	if not tutorial or tutorial.complete then
-		panel.Visible = false
+		if panel.Visible then
+			Theme.HidePanel(panel, Theme.TweenTime.normal)
+		end
 		return
 	end
 
 	if tutorial.step == currentStep then
 		return
 	end
+	local wasVisible = panel.Visible
 	currentStep = tutorial.step
 
 	local text = STEP_TEXT[tutorial.step]
 	if not text then
-		panel.Visible = false
+		if panel.Visible then
+			Theme.HidePanel(panel, Theme.TweenTime.normal)
+		end
 		return
 	end
 
 	title.Text = string.format("STEP %d / %d", tutorial.step, tutorial.total)
 	hintLabel.Text = text.hint
 	flavorLabel.Text = text.flavor or ""
-	panel.Visible = true
+	Theme.Tween(progressFill, {Size = UDim2.new(tutorial.step / tutorial.total, 0, 1, 0)}, Theme.TweenTime.normal):Play()
+
+	if wasVisible then
+		-- Paneel oli juba nahtav - vilgatus tombab tahelepanu uuele sammule
+		title.TextColor3 = Theme.UI.warning
+		local flash = Theme.Tween(title, {TextColor3 = Theme.UI.accent}, Theme.TweenTime.slow)
+		flash:Play()
+	else
+		Theme.ShowPanel(panel, Theme.TweenTime.normal)
+	end
 end)
 
 print("[Hexagonium] Tutorial laaditud")

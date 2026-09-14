@@ -83,16 +83,22 @@ toggleButton.Parent = screenGui
 corner(toggleButton, 8)
 
 -- ---------- Kaardipaneel ----------
-local panel = Instance.new("Frame")
-panel.Name = "DeckPanel"
-panel.Size = UDim2.new(0, 330, 0, 470)
-panel.Position = UDim2.new(0, 16, 1, -536)
-panel.BackgroundColor3 = COLORS.background
-panel.BackgroundTransparency = 0.05
-panel.BorderSizePixel = 0
-panel.Visible = false
-panel.Parent = screenGui
-corner(panel, 8)
+-- AnimatedPanel (CanvasGroup): sujuv fade sisse/valja, vt Theme.ShowPanel/HidePanel
+local panel = Theme.AnimatedPanel(
+	"DeckPanel",
+	UDim2.new(0, 330, 0, 470),
+	UDim2.new(0, 16, 1, -536),
+	screenGui
+)
+Theme.ClampToViewport(panel)
+
+local function setPanelOpen(open)
+	if open then
+		Theme.ShowPanel(panel, Theme.TweenTime.normal)
+	else
+		Theme.HidePanel(panel, Theme.TweenTime.normal)
+	end
+end
 
 local panelTitle = Instance.new("TextLabel")
 panelTitle.Size = UDim2.new(1, -24, 0, 26)
@@ -194,10 +200,19 @@ local function showToast(message, kind)
 	toast.Text = message
 	toast.TextColor3 = color
 	toast.Visible = true
+	toast.BackgroundTransparency = 1
+	toast.TextTransparency = 1
+	Theme.Tween(toast, {BackgroundTransparency = 0.05, TextTransparency = 0}, Theme.TweenTime.fast):Play()
 
 	task.delay(3, function()
 		if toastToken == myToken then
-			toast.Visible = false
+			local tween = Theme.Tween(toast, {BackgroundTransparency = 1, TextTransparency = 1}, Theme.TweenTime.fast)
+			tween.Completed:Connect(function()
+				if toastToken == myToken then
+					toast.Visible = false
+				end
+			end)
+			tween:Play()
 		end
 	end)
 end
@@ -246,7 +261,13 @@ local HEX_SCOPE_CARDS = {
 local function stopTargeting()
 	targetingCard = nil
 	targetingFlag.Value = false
-	targetBanner.Visible = false
+	Theme.Tween(targetText, {TextTransparency = 1}, Theme.TweenTime.fast):Play()
+	Theme.Tween(targetStroke, {Transparency = 1}, Theme.TweenTime.fast):Play()
+	local tween = Theme.Tween(targetBanner, {BackgroundTransparency = 1}, Theme.TweenTime.fast)
+	tween.Completed:Connect(function()
+		targetBanner.Visible = false
+	end)
+	tween:Play()
 end
 
 local function startTargeting(cardName)
@@ -258,7 +279,13 @@ local function startTargeting(cardName)
 		Theme.Hotkeys.cancel
 	)
 	targetBanner.Visible = true
-	panel.Visible = false
+	targetBanner.BackgroundTransparency = 1
+	targetText.TextTransparency = 1
+	targetStroke.Transparency = 1
+	Theme.Tween(targetBanner, {BackgroundTransparency = 0.05}, Theme.TweenTime.fast):Play()
+	Theme.Tween(targetText, {TextTransparency = 0}, Theme.TweenTime.fast):Play()
+	Theme.Tween(targetStroke, {Transparency = 0}, Theme.TweenTime.fast):Play()
+	setPanelOpen(false)
 end
 
 -- Leiab hexi hiirekursori alt
@@ -410,7 +437,7 @@ toggleButton.MouseButton1Click:Connect(function()
 		stopTargeting()
 		return
 	end
-	panel.Visible = not panel.Visible
+	setPanelOpen(not panel.Visible)
 end)
 
 toggleButton.MouseEnter:Connect(function()
@@ -447,7 +474,7 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
 		if targetingCard then
 			stopTargeting()
 		else
-			panel.Visible = not panel.Visible
+			setPanelOpen(not panel.Visible)
 		end
 		return
 	end

@@ -81,6 +81,7 @@ panel.BackgroundTransparency = 0.1
 panel.BorderSizePixel = 0
 panel.Parent = screenGui
 Theme.Corner(panel, 8)
+Theme.ClampToViewport(panel)
 
 local title = Instance.new("TextLabel")
 title.Size = UDim2.new(1, -16, 0, 18)
@@ -228,7 +229,10 @@ end
 -- =========================================================
 local buildingDots = {}
 
-local function drawBuildings(buildings)
+-- attackedKeys: {[q..":"..r] = true} praegu runnatavate hoonete jaoks
+-- (vt drawAttackers'i kutsuja) - pulseeriv aair, ERISTUB allpoolsest
+-- staatilisest tervise-aairest ("kahjustatud MINEVIKUS" vs "runnatakse PRAEGU").
+local function drawBuildings(buildings, attackedKeys)
 	buildingLayer:ClearAllChildren()
 	buildingDots = {}
 
@@ -249,8 +253,17 @@ local function drawBuildings(buildings)
 				local dot = makeDot(buildingLayer, BUILDING_DOT, color, 2)
 				dot.Position = UDim2.new(0, px - BUILDING_DOT / 2, 0, py - BUILDING_DOT / 2)
 
-				-- Kahjustatud hoone: punane aair
-				if b.health and b.health < 0.99 then
+				local key = b.q .. ":" .. b.r
+				if attackedKeys and attackedKeys[key] then
+					-- Runnatakse PRAEGU: pulseeriv paks aair
+					local stroke = Instance.new("UIStroke")
+					stroke.Color = Theme.UI.error
+					stroke.Thickness = 3
+					stroke.Transparency = 0.1
+					stroke.Parent = dot
+					Theme.Tween(stroke, {Transparency = 0.7}, 0.4, Enum.EasingStyle.Sine):Play()
+				elseif b.health and b.health < 0.99 then
+					-- Kahjustatud (aga hetkel mitte runnatav): staatiline aair
 					local stroke = Instance.new("UIStroke")
 					stroke.Color = (b.health > 0.5) and Theme.UI.warning or Theme.UI.error
 					stroke.Thickness = 2
@@ -272,26 +285,57 @@ end
 -- =========================================================
 -- RUUNDAJAD
 -- =========================================================
-local function drawAttackers(attack)
-	attackerLayer:ClearAllChildren()
+-- Sama intervall mis StateBroadcaster.BROADCAST_INTERVAL (server) -
+-- tween joudab tapselt jargmise uuenduseni, mitte ei jaa poolele teele.
+local ATTACKER_TWEEN_TIME = 0.5
 
+-- id-pohine jalgimine (mitte ClearAllChildren+taasloomine iga uuendus):
+-- ilma selleta hupib tapp iga 0.5s uue asukohta, sest server saadab
+-- taisseisu, mitte deltasid. TweenService liigutab olemasolevat
+-- tappi sujuvalt jargmise positsioonini samas ajas, mis mooduks
+-- jargmise saatetsuklini.
+local attackerDots = {}
+
+local function drawAttackers(attack)
 	if not attack or not attack.active or not attack.positions then
+		for _, dot in pairs(attackerDots) do
+			dot:Destroy()
+		end
+		attackerDots = {}
 		return
 	end
 
+	local seen = {}
 	for _, a in ipairs(attack.positions) do
+		seen[a.id] = true
 		local px, py = worldToMap(a.x, a.z)
-		local dot = makeDot(attackerLayer, ATTACKER_DOT, Theme.UI.error, 3)
-		dot.Position = UDim2.new(0, px - ATTACKER_DOT / 2, 0, py - ATTACKER_DOT / 2)
+		local targetPos = UDim2.new(0, px - ATTACKER_DOT / 2, 0, py - ATTACKER_DOT / 2)
+
+		local dot = attackerDots[a.id]
+		if not dot then
+			dot = makeDot(attackerLayer, ATTACKER_DOT, Theme.UI.error, 3)
+			dot.Position = targetPos
+
+			local stroke = Instance.new("UIStroke")
+			stroke.Color = Color3.new(1, 1, 1)
+			stroke.Thickness = 1
+			stroke.Transparency = 0.5
+			stroke.Parent = dot
+
+			attackerDots[a.id] = dot
+		else
+			Theme.Tween(dot, {Position = targetPos}, ATTACKER_TWEEN_TIME, Enum.EasingStyle.Linear):Play()
+		end
 
 		-- Kahjustatud ruundaja on tuhmim
 		dot.BackgroundTransparency = 0.6 * (1 - (a.health or 1))
+	end
 
-		local stroke = Instance.new("UIStroke")
-		stroke.Color = Color3.new(1, 1, 1)
-		stroke.Thickness = 1
-		stroke.Transparency = 0.5
-		stroke.Parent = dot
+	for id, dot in pairs(attackerDots) do
+		if not seen[id] then
+			dot:Destroy()
+			attackerDots[id] = nil
+		end
 	end
 end
 
@@ -401,11 +445,21 @@ if stateRemote then
 
 		drawTerrain()
 
-		if payload.buildings then
-			drawBuildings(payload.buildings)
+		local attack = payload.faction and payload.faction.attack
+		local attackedKeys = {}
+		if attack and attack.active and attack.positions then
+			for _, a in ipairs(attack.positions) do
+				if a.targetQ ~= nil and a.targetR ~= nil then
+					attackedKeys[a.targetQ .. ":" .. a.targetR] = true
+				end
+			end
 		end
 
-		drawAttackers(payload.faction and payload.faction.attack)
+		if payload.buildings then
+			drawBuildings(payload.buildings, attackedKeys)
+		end
+
+		drawAttackers(attack)
 	end)
 end
 

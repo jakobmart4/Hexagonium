@@ -58,12 +58,13 @@ VALMIS
       telemeetriat, vt punkt 16)
   [x] Heliefektid (11 heli, sh kasutaja tagasisidel põhinev vahetus)
   [x] Peamenüü / start screen (save-ülevaade + elu-aegne statistika)
+  [x] Visuaalne poleerimine, osa 3 (animatsiooni-infrastruktuur,
+      kaardipaki/tutoriali fade'id, rünnakute efektid, minimapi
+      sujuvus+pulss, UI viewport-klamber)
 
 PUUDUB
-  [ ] Visuaalne poleerimine (osa 3+: UI responsiivsus, animatsioonid,
-      minimapi visuaalid, rünnakute efektid, tutoriali tekstid,
-      kaardipaki animatsioonid)
-  [ ] Mobiilitugi
+  [ ] Mobiilitugi (UI responsiivsus - täielik skaleeruv/puutetundlik
+      ümberkorraldus, vt punkt 16)
 
 
 ========================================================================
@@ -708,7 +709,7 @@ SAMM 8 — TASAKAALUSTAMINE                      [ESIMENE RING VALMIS]
   isegi minut-60 lae. Täpsem kalibreerimine vajab PÄRIS mängijate
   telemeetriat, mitte täiendavat simulaatori-arvamist — vt allpool.
 
-VISUAALNE POLEERIMINE                          [POOLELI]
+VISUAALNE POLEERIMINE                          [VALMIS]
   Osa 1 — hoonete kuju [VALMIS]: kõik 5 hoonet olid identsed värvilised
   kuubikud (Body Part + nimesilt), ainult värv/mõõt eristasid. Nüüd
   igaühel 2-osaline silhuett (PrimaryPart-alus + Enum.Material.Neon'iga
@@ -761,9 +762,55 @@ VISUAALNE POLEERIMINE                          [POOLELI]
     sees (eemaldatud enne commit'i) andis usaldusväärse,
     ajastusest sõltumatu kinnituse.
 
-  Osa 3+ [PUUDUB]: UI responsiivsus, animatsioonid, minimapi
-  visuaalid, rünnakute efektid, tutoriali tekstid, kaardipaki
-  animatsioonid.
+  Osa 3 [VALMIS]: animatsiooni-infrastruktuur, rünnakute efektid,
+  minimapi sujuvus/pulss, tutoriali tekstid, kaardipaki animatsioonid,
+  UI viewport-klamber. TweenService'i ei kasutatud varem KUSKIL
+  kliendipoolses koodis — kõik paneelide avanemine/sulgumine oli
+  hetkeline `.Visible` lüliti.
+
+  Uus `Theme.lua` animatsiooni-kiht (`Theme.Tween`, `Theme.
+  AnimatedPanel`/`ShowPanel`/`HidePanel`, `Theme.ClampToViewport`) —
+  üks koht kogu tunnetuse jaoks, mitte iga paneeli jaoks eraldi
+  loogika. `AnimatedPanel` kasutab `CanvasGroup`'i (mitte `Frame`'i),
+  sest `GroupTransparency` mõjutab kõiki järglasi korraga ilma et
+  peaks iga `TextLabel`'it eraldi läbi käima — kasutusel
+  `CardDeck.client.lua` ja `Tutorial.client.lua` paneelidel.
+
+  Rünnakuefektid (`AttackManager.lua`, kõik samas stiilis mis
+  olemasolev `_showTracer`): ründaja tekke-pop (väiksest/läbipaistvast
+  tais suurusesse), tabamuse värvivilgatus hoonel (käib läbi kõik
+  2-osalise silhueti osad), surma- ja hävimise-pahvakad (laienev
+  hajuv `Ball`, erinev värv/suurus eristab ründaja surma hoone
+  hävimisest). `_getBuildingPosition`/`_removeBuildingVisual` kolme-
+  kordne duplikatsioon konsolideeritud `_getBuildingVisual`-iks.
+
+  Minimap (`Minimap.client.lua` + `AttackManager:GetClientState()`):
+  ründajad said stabiilse `id`, klient jälgib neid id-põhiselt ja
+  `Theme.Tween`'ib olemasolevat täppi uude positsiooni (varem
+  `ClearAllChildren()` + täisümberjoonistus iga 0.5s - hüplik).
+  Rünnatava hoone dot saab pulseeriva punase äärise (eristub
+  olemasolevast staatilisest tervise-äärisest), lugedes ründaja
+  `targetQ`/`targetR`-i, mis nüüd samuti payload'is käib.
+
+  Tutorial: sammuvahetusel pealkirja lühike värvivilgatus (kui
+  paneel oli juba nähtav), uus progressiriba, varem puuduvad
+  flavor-tekstid sammudele 1 ja 3.
+
+  UI responsiivsus (TAHTLIKULT PIIRATUD ulatus - vt allpool
+  "Mobiilitugi"): `Theme.ClampToViewport` üldistab
+  `ContextMenu.client.lua` juba olemasoleva kursori-kloppimise
+  klambri-matemaatika viewporti suuruse muutuse peale - hoiab
+  fikseeritud-offset paneelid ekraani SEES ka väiksemal Studio/
+  mängu-aknal. EI ole täielik skaleeruv/puutetundlik ümberkorraldus
+  (see jääb "Mobiilitugi" alla).
+
+  KONTROLLITUD Play-režiimis: kaardipakk/tutorial fade'ivad sujuvalt
+  (CanvasGroup, veatult), `Constants.Debug.ForceAttackAfter` kaudu
+  käivitatud päris lahingus (1 hoone hävis) said kinnitust ründaja
+  tekke-pop, hoone tabamuse vilgatus, minimapi pulseeriv "UNDER
+  ATTACK" äärine ja sujuv ründaja-liikumine - kõik `get_console_
+  output` veatult. BuildMenu/CardDeck regressioonitest pärast
+  `ClampToViewport` lisamist näitas paneele endiselt õiges kohas.
 
 PEAMENÜÜ / START SCREEN                        [VALMIS]
   Uus lisand (mitte poleerimise jätk) — täisekraani ülekate, mis

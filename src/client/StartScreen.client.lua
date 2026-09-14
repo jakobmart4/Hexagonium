@@ -61,6 +61,7 @@ local panel = Theme.Panel(
 	UDim2.new(0.5, -210, 0.5, -170),
 	backdrop
 )
+Theme.ClampToViewport(panel)
 
 local title = Theme.Title("HEXAGONIUM", panel)
 title.TextSize = Theme.TextSize.large
@@ -159,6 +160,7 @@ menuButton.TextSize = Theme.TextSize.body
 menuButton.AutoButtonColor = false
 menuButton.Parent = screenGui
 Theme.Corner(menuButton, Theme.Layout.cornerSmall)
+Theme.ClampToViewport(menuButton)
 
 menuButton.MouseEnter:Connect(function()
 	menuButton.BackgroundColor3 = Theme.UI.panelHover

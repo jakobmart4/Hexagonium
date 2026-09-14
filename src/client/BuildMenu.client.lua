@@ -73,6 +73,7 @@ panel.BackgroundTransparency = 0.05
 panel.BorderSizePixel = 0
 panel.Visible = false
 panel.Parent = screenGui
+Theme.ClampToViewport(panel)
 corner(panel, 8)
 
 local panelTitle = Instance.new("TextLabel")
@@ -122,6 +123,7 @@ banner.BackgroundTransparency = 0.05
 banner.BorderSizePixel = 0
 banner.Visible = false
 banner.Parent = screenGui
+Theme.ClampToViewport(banner)
 corner(banner, 8)
 
 local bannerStroke = Instance.new("UIStroke")

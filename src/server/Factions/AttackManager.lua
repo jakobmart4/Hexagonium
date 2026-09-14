@@ -62,8 +62,8 @@ end
 -- SIHTMARGID
 -- ============================================================
 
--- Hoone visuaali maailmapositsioon
-function AttackManager:_getBuildingPosition(building)
+-- Hoone visuaali Model (Q/R atribuudi jargi) - jagatud mitme funktsiooni vahel
+function AttackManager:_getBuildingVisual(building)
 	local buildings = self.gameState.folder
 		and self.gameState.folder:FindFirstChild("Buildings")
 	if not buildings then
@@ -73,12 +73,17 @@ function AttackManager:_getBuildingPosition(building)
 	for _, visual in ipairs(buildings:GetChildren()) do
 		if visual:GetAttribute("Q") == building.q
 			and visual:GetAttribute("R") == building.r
-			and visual.PrimaryPart
 		then
-			return visual.PrimaryPart.Position
+			return visual
 		end
 	end
 	return nil
+end
+
+-- Hoone visuaali maailmapositsioon
+function AttackManager:_getBuildingPosition(building)
+	local visual = self:_getBuildingVisual(building)
+	return visual and visual.PrimaryPart and visual.PrimaryPart.Position or nil
 end
 
 -- Koik elus hooned koos positsioonidega
@@ -196,19 +201,32 @@ function AttackManager:_spawnAttacker()
 		return nil
 	end
 
+	local fullSize = Vector3.new(2.2, 2.2, 2.2)
+
 	local model = Instance.new("Part")
 	model.Name = "Attacker"
 	model.Shape = Enum.PartType.Ball
-	model.Size = Vector3.new(2.2, 2.2, 2.2)
+	model.Size = fullSize * 0.3
 	model.Color = Theme.UI.error
 	model.Material = Enum.Material.Neon
 	model.Anchored = true
 	model.CanCollide = false
 	model.CanQuery = false
+	model.Transparency = 0.6
 	model.Position = spawnPos
 	model.Parent = folder
 
+	-- Tekke-pop: vaiksest labipaistvast tais suurusesse/nahtavaks
+	TweenService:Create(
+		model,
+		TweenInfo.new(0.2, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
+		{Size = fullSize, Transparency = 0}
+	):Play()
+
+	self.nextAttackerId = (self.nextAttackerId or 0) + 1
+
 	local attacker = {
+		id = self.nextAttackerId,
 		model = model,
 		health = CFG.AttackerHealth * (self.threatScale or 1),
 		maxHealth = CFG.AttackerHealth * (self.threatScale or 1),
@@ -245,7 +263,12 @@ function AttackManager:Tick()
 		local a = self.attackers[i]
 
 		if a.health <= 0 or not a.model or not a.model.Parent then
-			if a.model then a.model:Destroy() end
+			if a.model then
+				if a.health <= 0 then
+					self:_showBurst(a.model.Position, Theme.UI.error, 4.5)
+				end
+				a.model:Destroy()
+			end
 			table.remove(self.attackers, i)
 			continue
 		end
@@ -289,6 +312,7 @@ function AttackManager:Tick()
 			-- Kohal - loo hoonet
 			if (now - a.lastHitTime) >= CFG.AttackerHitInterval then
 				a.lastHitTime = now
+				self:_flashBuilding(a.target)
 				local destroyed = a.target:TakeDamage(CFG.AttackerDamage)
 				if destroyed then
 					self.buildingsLost = self.buildingsLost + 1
@@ -393,21 +417,65 @@ function AttackManager:_showTracer(fromPos, toPos)
 	end)
 end
 
--- Havinud hoone visuaali eemaldamine
-function AttackManager:_removeBuildingVisual(building)
-	local buildings = self.gameState.folder
-		and self.gameState.folder:FindFirstChild("Buildings")
-	if not buildings then
+-- Laienev, hajuv sfaar - kasutatakse nii runndaja surma kui hoone
+-- havimise juures (erinev varv/suurus eristab neid).
+function AttackManager:_showBurst(position, color, maxSize)
+	local folder = self:_getFolder()
+	if not folder then
 		return
 	end
 
-	for _, visual in ipairs(buildings:GetChildren()) do
-		if visual:GetAttribute("Q") == building.q
-			and visual:GetAttribute("R") == building.r
-		then
-			visual:Destroy()
-			break
+	local burst = Instance.new("Part")
+	burst.Name = "Burst"
+	burst.Shape = Enum.PartType.Ball
+	burst.Size = Vector3.new(1, 1, 1)
+	burst.Position = position
+	burst.Color = color
+	burst.Material = Enum.Material.Neon
+	burst.Anchored = true
+	burst.CanCollide = false
+	burst.CanQuery = false
+	burst.Transparency = 0.2
+	burst.Parent = folder
+
+	TweenService:Create(
+		burst,
+		TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+		{Size = Vector3.new(maxSize, maxSize, maxSize), Transparency = 1}
+	):Play()
+
+	task.delay(0.3, function()
+		if burst and burst.Parent then
+			burst:Destroy()
 		end
+	end)
+end
+
+-- Luhike varvivilgatus hoonel, kui ta saab tabamuse - kaib labi koik
+-- osad (alus + aktsent), et sobida 2-osalise silhuetiga (vt MapGenerator).
+function AttackManager:_flashBuilding(building)
+	local visual = self:_getBuildingVisual(building)
+	if not visual then
+		return
+	end
+
+	for _, part in ipairs(visual:GetDescendants()) do
+		if part:IsA("BasePart") then
+			local original = part.Color
+			part.Color = Theme.UI.error
+			TweenService:Create(part, TweenInfo.new(0.3), {Color = original}):Play()
+		end
+	end
+end
+
+-- Havinud hoone visuaali eemaldamine
+function AttackManager:_removeBuildingVisual(building)
+	local visual = self:_getBuildingVisual(building)
+	if visual then
+		if visual.PrimaryPart then
+			self:_showBurst(visual.PrimaryPart.Position, Theme.UI.warning, 7)
+		end
+		visual:Destroy()
 	end
 
 	-- Eemalda registrist ja tick-susteemist
@@ -430,14 +498,19 @@ function AttackManager:GetClientState()
 	end
 
 	-- Ruundajate positsioonid minimapi jaoks.
-	-- Ainult X ja Z - minimap on tasapinnaline.
+	-- Ainult X ja Z - minimap on tasapinnaline. `id` laseb kliendil
+	-- tapikuid sujuvalt liigutada (mitte iga uuendus umber joonistada),
+	-- targetQ/R laseb minimapil esile tosta runnatavat hoonet.
 	local positions = {}
 	for _, a in ipairs(self.attackers) do
 		if a.model and a.model.Parent then
 			table.insert(positions, {
+				id = a.id,
 				x = a.model.Position.X,
 				z = a.model.Position.Z,
 				health = a.health / a.maxHealth,
+				targetQ = a.target and a.target.q or nil,
+				targetR = a.target and a.target.r or nil,
 			})
 		end
 	end

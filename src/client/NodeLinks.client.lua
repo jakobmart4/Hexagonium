@@ -85,6 +85,7 @@ banner.BackgroundTransparency = 0.05
 banner.BorderSizePixel = 0
 banner.Visible = false
 banner.Parent = screenGui
+Theme.ClampToViewport(banner)
 Theme.Corner(banner, 8)
 
 local bannerStroke = Instance.new("UIStroke")

@@ -16,6 +16,8 @@
 	Sinine jaab ookeanile ja UI aktsentidele.
 ]]
 
+local TweenService = game:GetService("TweenService")
+
 local Theme = {}
 
 -- ============================================================
@@ -182,6 +184,77 @@ function Theme.Panel(name, size, position, parent)
 	frame.Parent = parent
 	Theme.Corner(frame, Theme.Layout.cornerRadius)
 	return frame
+end
+
+-- ============================================================
+-- ANIMATSIOON
+-- Uhes kohas, et koik paneelid liiguksid sama "tunnetusega".
+-- MIKS CanvasGroup, mitte Frame: GroupTransparency mojutab KOIKI
+-- jareltulijaid korraga (ei pea iga TextLabel'it eraldi tween'ima).
+-- ============================================================
+
+Theme.TweenTime = {
+	fast = 0.15,
+	normal = 0.25,
+	slow = 0.4,
+}
+
+function Theme.Tween(instance, props, duration, style)
+	return TweenService:Create(instance, TweenInfo.new(
+		duration or Theme.TweenTime.normal,
+		style or Enum.EasingStyle.Quad,
+		Enum.EasingDirection.Out
+	), props)
+end
+
+-- Loob animeeritava paneeli (nagu Theme.Panel, aga CanvasGroup).
+-- Algselt peidetud (Visible=false, GroupTransparency=1) - naita
+-- Theme.ShowPanel'iga.
+function Theme.AnimatedPanel(name, size, position, parent)
+	local group = Instance.new("CanvasGroup")
+	group.Name = name
+	group.Size = size
+	group.Position = position
+	group.BackgroundColor3 = Theme.UI.background
+	group.BackgroundTransparency = Theme.Layout.panelAlpha
+	group.BorderSizePixel = 0
+	group.GroupTransparency = 1
+	group.Visible = false
+	group.Parent = parent
+	Theme.Corner(group, Theme.Layout.cornerRadius)
+	return group
+end
+
+function Theme.ShowPanel(group, duration)
+	group.Visible = true
+	Theme.Tween(group, {GroupTransparency = 0}, duration):Play()
+end
+
+function Theme.HidePanel(group, duration)
+	local tween = Theme.Tween(group, {GroupTransparency = 1}, duration)
+	tween.Completed:Connect(function()
+		group.Visible = false
+	end)
+	tween:Play()
+end
+
+-- Hoiab fikseeritud-offset paneeli ekraani SEES ka vaiksemal aknal
+-- (nt dokitud Studio viewport). Mirrors ContextMenu.client.lua
+-- kursori-kloppimise loogikat, aga reageerib viewporti suuruse
+-- muutusele, mitte klopsule.
+function Theme.ClampToViewport(frame)
+	local camera = workspace.CurrentCamera
+	local function clamp()
+		local viewport = camera.ViewportSize
+		local pos, size = frame.AbsolutePosition, frame.AbsoluteSize
+		local dx = math.clamp(pos.X, 0, math.max(0, viewport.X - size.X)) - pos.X
+		local dy = math.clamp(pos.Y, 0, math.max(0, viewport.Y - size.Y)) - pos.Y
+		if dx ~= 0 or dy ~= 0 then
+			frame.Position = frame.Position + UDim2.fromOffset(dx, dy)
+		end
+	end
+	camera:GetPropertyChangedSignal("ViewportSize"):Connect(clamp)
+	task.defer(clamp)
 end
 
 -- Paneeli pealkiri (suurtahtedes, aktsentvarvis)

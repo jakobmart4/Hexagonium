@@ -56,6 +56,7 @@ panel.BackgroundColor3 = Theme.UI.background
 panel.BackgroundTransparency = 0.1
 panel.BorderSizePixel = 0
 panel.Parent = screenGui
+Theme.ClampToViewport(panel)
 Theme.Corner(panel, 8)
 
 local panelStroke = Instance.new("UIStroke")
@@ -171,6 +172,7 @@ alert.BackgroundTransparency = 0.05
 alert.BorderSizePixel = 0
 alert.Visible = false
 alert.Parent = screenGui
+Theme.ClampToViewport(alert)
 Theme.Corner(alert, 8)
 
 local alertStroke = Instance.new("UIStroke")

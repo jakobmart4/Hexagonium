@@ -87,6 +87,7 @@ topBar.BackgroundTransparency = 0.1
 topBar.BorderSizePixel = 0
 topBar.Parent = screenGui
 corner(topBar, 8)
+Theme.ClampToViewport(topBar)
 
 local topLayout = Instance.new("UIListLayout")
 topLayout.FillDirection = Enum.FillDirection.Horizontal
@@ -158,6 +159,7 @@ energyBar.BackgroundTransparency = 0.1
 energyBar.BorderSizePixel = 0
 energyBar.Parent = screenGui
 corner(energyBar, 8)
+Theme.ClampToViewport(energyBar)
 
 local energyLabel = Instance.new("TextLabel")
 energyLabel.Size = UDim2.new(0, 70, 1, 0)
@@ -212,6 +214,7 @@ cardPanel.BackgroundTransparency = 0.1
 cardPanel.BorderSizePixel = 0
 cardPanel.Parent = screenGui
 corner(cardPanel, 8)
+Theme.ClampToViewport(cardPanel)
 
 local cardTitle = Instance.new("TextLabel")
 cardTitle.Size = UDim2.new(1, -20, 0, 28)
