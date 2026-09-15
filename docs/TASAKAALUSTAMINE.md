@@ -30,7 +30,7 @@ vt punkt 3.
 | Hostile -> Attack viivitus | 30s | `Faction.AttackDelayAfterHostile` |
 | Hoonete hinnad | Extractor 20, Refinery 35, Assembler 50, PowerCore 40, Defender ~~45~~ **35** | `BuildCosts` |
 | Lammutuse tagastus | 50% | `DemolishRefund` |
-| Saare laienduse kulu (run) | 40 -> 120 -> 360 -> 1080 -> 3240 -> 9720 UP (x3; x2 proovitud ja tagasi võetud) | `IslandExpansion.RunExpansionBaseCost` / `CostMultiplier` |
+| Saare laienduse kulu (run) | 40 -> 70 -> 122 -> 214 -> 375 -> 656 UP (x1.75; x2 ja x3 proovitud) | `IslandExpansion.RunExpansionBaseCost` / `CostMultiplier` |
 | Laienduse run'i tasu | ~~40~~ **0** (laiendus ei anna tasu) | `Run.RewardPerExpansion` |
 | Lisalaienduskoht (meta) | saar alustab alati raadiusega 3; N-s ostetud lisakoht = N Hex Seed'i (kuni 4, run'is 2 + ostetud laiendust); 1 seeme / 600 run'i tasu | `IslandExpansion.MetaExpansionsMax` / `Meta.SeedsPerPayout`, `Meta.IslandUpgradeCostPerStep` |
 | Run'i Timeout | 3600s (60 min, ülempiir) | `Run.Duration` |
@@ -48,8 +48,8 @@ vt punkt 3.
 | Defender taskukohane | 35 UP / 12 UP/min | ~3. minutil |
 | 1. saare laiendus taskukohane | 40 UP / 12 UP/min | ~4. minutil |
 | Tutoriali samm 4 (rünnaku algus) | 30+30+30s | ~90s (worst case) |
-| Kõik 6 run-laiendust kokku | 40 * (3^6 - 1) / 2 | 14560 UP |
-| 4. laiendus vs tootmisahel | 1080 UP / 105 UP (Extractor+Refinery+Assembler) | ~10 ahelat (+12 UP/min igaüks) |
+| Kõik 6 run-laiendust kokku | floor(40 * 1.75^(n-1)), n=1..6 | 1477 UP |
+| 4. laiendus vs tootmisahel | 214 UP / 105 UP (Extractor+Refinery+Assembler) | ~2 ahelat (+12 UP/min igaüks) |
 
 ---
 
@@ -68,8 +68,46 @@ Play-testide põhjal. Vormis: kuupäev, mida testiti, mis leiti.
 | 14.09.2026 | 7. Run'i pikkus | Keskmine simuleeritud lõpp minut 25/60 — enamik run'e lõpeb tunduvalt enne Timeout'it (baas hävib enne 60 min täitumist). Duration=3600s ülempiir tundub harva reaalselt mõjutav tegur — enamik run'e lõpeb DESTROYED/EXTRACT kaudu enne. | — |
 | 14.09.2026 | 8. RestartDelay | (arv ei kohaldu) | Vaadeldud SAMM 6/7 Play-testimisel (Extract-nupp -> "RUN COMPLETE" ekraan 5 reaga tulemusi -> 8-9s -> uus run algas automaatselt): 8s tundus piisav tulemuse lugemiseks, mitte liiga pikk tegevusetuks jäämiseks. |
 | 14.09.2026 | (lisaks) Demand-bänneri hoiatusaeg | — | Vaadeldud SAMM 7 testimisel: "Decide within Ns" pöördloendus koos "Wants X ore + Y crystal (have A/B)" progressiga oli selgelt loetav; 30s tundus piisav teadliku Pay/Refuse otsuse jaoks. |
+| 15.09.2026 | 9. Laienduse kordaja (kokkuhoidev mängija) | Kordajad 1.5-3, mängija ostab 1 Defenderi ja kogub ülejäänu. x3: 60-min run'is 3 laiendust -> kõik 4 ostetud lisakohta kasutamata. x1.75: 5 laiendust, 6. haruldane. Täielik tabel punktis 4. | Kasutaja: 1. laiendus sobiv, järgmised liiga suur kulu. |
 
 ## 4. Muudatuste logi
+
+### 15.09.2026 (õhtul) — Laienduse kordaja x3 -> x1.75 (kokkuhoidva mängija uuring)
+
+**Kasutaja tagasiside**: 1. laiendus (40 UP) sobib, järgmised muutuvad
+liiga suureks kuluks. Uurida kordajaid 1.5-3, eeldada kokkuhoidvat
+mängijat.
+
+**Mudel** (sama sissetulek mis `BalanceSimulator`'is): algbaas tasuta,
+algkapital 150, mängija ostab 1 Defenderi (35) ja kogub ÜLEJÄÄNU
+laienduste jaoks. Hind = `floor(40 * m^(n-1))` nagu
+`IslandManager:GetNextCost`'is. Tabelis: mitmendal minutil on laiendus
+1..6 taskukohane.
+
+| Kordaja | Hinnad | 1 ahel (12 UP/min) | 2 ahelat (24 UP/min) | 25 / 60 min sisse (1 ahel) |
+|---|---|---|---|---|
+| x1.5 | 40 60 90 135 202 303 | 0 0 6 18 34 60 | 1 4 8 13 22 34 | 4 / 6 |
+| **x1.75** | 40 70 122 214 375 656 | 0 0 10 28 59 114 | 1 4 9 18 34 61 | 3 / 5 |
+| x2 | 40 80 160 320 640 1280 | 0 0 14 40 94 200 | 1 5 11 25 51 105 | 3 / 4 |
+| x2.5 | 40 100 250 625 1562 3906 | 0 2 23 75 205 531 | 1 5 16 42 107 270 | 3 / 3 |
+| x3 | 40 120 360 1080 3240 9720 | 0 4 34 124 394 1204 | 1 6 21 66 201 606 | 2 / 3 |
+
+**Otsus (kasutaja)**: x1.75. Pika run'iga jõuab kokkuhoidev mängija 5
+laienduseni (4. ~28. minutil, 5. ~59. minutil), 6. jääb haruldaseks
+saavutuseks. x1.5 oleks lubanud kõik 6 (60. minutil).
+
+| Parameter | Vana -> uus |
+|---|---|
+| `IslandExpansion.RunExpansionCostMultiplier` | 3 -> 1.75 |
+
+**Mudeli piirangud** (reaalne mängija jõuab hiljem, v.a kaardid):
+kaardid (nt Overclock x2.5) kiirendavad; hoonete taasehitus rünnakute
+järel, 1 Defender ei pea alates ~15. minutist (punkt 3, küsimus 6) ja
++1 ründaja rõnga kohta aeglustavad.
+
+**Kontroll**: väärtust loeb ainult `IslandManager:GetNextCost`
+(`math.floor`), valem on Play-režiimis kontrollitud. Eraldi Play-testi
+x1.75 jaoks ei tehtud.
 
 ### 15.09.2026 (hiljem) — x2 tagasi x3-le, RewardPerExpansion 40 -> 0
 

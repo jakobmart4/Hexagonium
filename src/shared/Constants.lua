@@ -205,11 +205,12 @@ Constants.IslandExpansion = {
 	-- Esimene run-laiendus maksab BaseCost, iga jargmine korrutatakse
 	-- CostMultiplier'iga. Nii ei saa mangija lopmatult laieneda.
 	RunExpansionBaseCost = 40,      -- upgradePoints
-	-- x3: laiendus on TAHTLIKULT kallis - valik "saar VÕI kasum"
-	-- (kasutaja otsus 15.09.2026, koos RewardPerExpansion = 0). Kohad
-	-- 3-6 maksavad 360-9720 UP: ostetud lisakohad on pikk eesmärk, mitte
-	-- iga run'i asi. x2 proovitud ja tagasi võetud, vt TASAKAALUSTAMINE.md.
-	RunExpansionCostMultiplier = 3, -- 40 -> 120 -> 360 -> 1080 ...
+	-- x1.75: kokkuhoidva mängija mudelis (1 ahel = 12 UP/min, 1 Defender)
+	-- jõuab 60-min run'is 5 laienduseni, 6. jääb haruldaseks saavutuseks.
+	-- x3 juures jäid kõik 4 ostetud lisakohta kasutamata. Laiendus ei anna
+	-- tasu (RewardPerExpansion = 0), seega valik "saar VÕI kasum" jääb.
+	-- Uuring 1.5-3: vt TASAKAALUSTAMINE.md 15.09.2026.
+	RunExpansionCostMultiplier = 1.75, -- 40 -> 70 -> 122 -> 214 -> 375 -> 656
 }
 
 -- Genereeritud saare koguulatus = koige kaugem voimalik rong. TULETATUD,
