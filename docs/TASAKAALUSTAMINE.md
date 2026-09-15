@@ -12,7 +12,7 @@ vt punkt 3.
 
 ---
 
-## 1. Praegused väärtused (seisuga 14. september 2026, pärast SAMM 8 samm 3)
+## 1. Praegused väärtused (seisuga 15. september 2026)
 
 | Parameter | Praegune väärtus | Koht Constants.lua's |
 |---|---|---|
@@ -30,7 +30,7 @@ vt punkt 3.
 | Hostile -> Attack viivitus | 30s | `Faction.AttackDelayAfterHostile` |
 | Hoonete hinnad | Extractor 20, Refinery 35, Assembler 50, PowerCore 40, Defender ~~45~~ **35** | `BuildCosts` |
 | Lammutuse tagastus | 50% | `DemolishRefund` |
-| Saare laienduse kulu (run) | 40 -> 120 -> 360 UP | `IslandExpansion.RunExpansionBaseCost` / `CostMultiplier` |
+| Saare laienduse kulu (run) | ~~40 -> 120 -> 360~~ **40 -> 80 -> 160 -> 320 -> 640 -> 1280** UP (x2) | `IslandExpansion.RunExpansionBaseCost` / `CostMultiplier` |
 | Lisalaienduskoht (meta) | saar alustab alati raadiusega 3; N-s ostetud lisakoht = N Hex Seed'i (kuni 4, run'is 2 + ostetud laiendust); 1 seeme / 600 run'i tasu | `IslandExpansion.MetaExpansionsMax` / `Meta.SeedsPerPayout`, `Meta.IslandUpgradeCostPerStep` |
 | Run'i Timeout | 3600s (60 min, ülempiir) | `Run.Duration` |
 | RestartDelay | 8s | `Run.RestartDelay` |
@@ -47,6 +47,8 @@ vt punkt 3.
 | Defender taskukohane | 35 UP / 12 UP/min | ~3. minutil |
 | 1. saare laiendus taskukohane | 40 UP / 12 UP/min | ~4. minutil |
 | Tutoriali samm 4 (rünnaku algus) | 30+30+30s | ~90s (worst case) |
+| Kõik 6 run-laiendust kokku | 40 * (2^6 - 1) | 2520 UP |
+| 4. laiendus vs tootmisahel | 320 UP / 105 UP (Extractor+Refinery+Assembler) | ~3 ahelat (+12 UP/min igaüks) |
 
 ---
 
@@ -67,6 +69,35 @@ Play-testide põhjal. Vormis: kuupäev, mida testiti, mis leiti.
 | 14.09.2026 | (lisaks) Demand-bänneri hoiatusaeg | — | Vaadeldud SAMM 7 testimisel: "Decide within Ns" pöördloendus koos "Wants X ore + Y crystal (have A/B)" progressiga oli selgelt loetav; 30s tundus piisav teadliku Pay/Refuse otsuse jaoks. |
 
 ## 4. Muudatuste logi
+
+### 15.09.2026 — Saare laienduse kordaja x3 -> x2
+
+**Põhjus**: algsaar on nüüd alati raadius 3 ja run'is on 2 + kuni 4
+ostetud (Hex Seeds) laienduskohta. x3 kordajaga maksid kohad 3-6
+360, 1080, 3240 ja 9720 UP — ostetud kohad olid praktiliselt
+kasutamatud.
+
+**Muudatus** (`Constants.lua`):
+
+| Parameter | Vana -> uus | Põhjus |
+|---|---|---|
+| `IslandExpansion.RunExpansionCostMultiplier` | 3 -> 2 | 40 -> 80 -> 160 -> 320 -> 640 -> 1280, kokku 2520 UP |
+
+**Disainipõhimõte (kasutaja)**: laiendus peab olema valik "saar VÕI
+kasum". Iga laienduse UP läheb tootmisest ära (4. laiendus = ~3
+tootmisahelat) ja iga rõngas lisab rünnakutele +1 ründaja
+(`Attack.AttackersPerRing`).
+
+**TEADAOLEV LAHJENDUS, muutmata**: kulutamine ei vähenda run'i tasu
+(tasu loeb TOODETUD UP-d, `RunManager:_currentPoints`) ja iga laiendus
+annab ise +40 tasu (`Run.RewardPerExpansion`). 1. laiendus (40 UP) on
+seega tasu mõttes tasuta. Kui valik peab olema teravam, on see
+järgmine kang.
+
+**Kontroll**: väärtust loeb ainult `IslandManager:GetNextCost`, mille
+valem testiti Play-režiimis eelmise muudatuse juures (x3: pärast 2
+laiendust "Not enough: 8 / 360 UP"). Eraldi Play-testi x2 jaoks ei
+tehtud.
 
 ### 14.09.2026 — SAMM 8 samm 3: varajase rünnaku raskuse pehmendamine
 

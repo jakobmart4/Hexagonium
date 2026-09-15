@@ -205,7 +205,10 @@ Constants.IslandExpansion = {
 	-- Esimene run-laiendus maksab BaseCost, iga jargmine korrutatakse
 	-- CostMultiplier'iga. Nii ei saa mangija lopmatult laieneda.
 	RunExpansionBaseCost = 40,      -- upgradePoints
-	RunExpansionCostMultiplier = 3, -- 40 -> 120 -> 360 ...
+	-- x2, mitte x3: kuni 6 laienduskoha juures (2 + 4 ostetud) olid x3-ga
+	-- kohad 3-6 (360-9720 UP) kättesaamatud. x2 hoiab valiku "saar vs
+	-- tootmine" päris valikuna: 4. laiendus (320) = ~3 tootmisahelat.
+	RunExpansionCostMultiplier = 2, -- 40 -> 80 -> 160 -> 320 -> 640 -> 1280
 }
 
 -- Genereeritud saare koguulatus = koige kaugem voimalik rong. TULETATUD,
