@@ -20,6 +20,7 @@ local CardRegistry = require(ServerScriptService.Cards.CardRegistry)
 local MapGenerator = require(ServerScriptService.Core.MapGenerator)
 local BuildingFactory = require(ServerScriptService.Buildings.BuildingFactory)
 local SaveService = require(ServerScriptService.Core.SaveService)
+local CardInfo = require(ReplicatedStorage.Shared.CardInfo)
 
 local PlayerActionHandler = {}
 PlayerActionHandler.__index = PlayerActionHandler
@@ -60,6 +61,14 @@ function PlayerActionHandler:HandleActivateCard(player, request)
 
 	if not CardRegistry.Cards[cardName] then
 		self:Notify(player, "Unknown card.", "error")
+		return
+	end
+
+	-- Meta-lukk (Constants.Meta.StartingCards + ostetud kaardid). Klient
+	-- naitab lukku ka ise, aga ainult see kontroll siin loeb.
+	if not CardInfo.IsUnlocked(SaveService.Get(player), cardName) then
+		self:Notify(player, CardInfo.GetDisplayName(cardName) ..
+			" is locked - unlock it in MENU.", "warning")
 		return
 	end
 
@@ -431,6 +440,31 @@ function PlayerActionHandler:HandleBuyMetaUpgrade(player, request)
 		SaveService.Save(player, true)
 		self:Notify(player, string.format("Island grows to radius %d from your next run.",
 			newRadius), "success", "build")
+		return
+	end
+
+	if request.kind == "card" then
+		local cardName = request.cardName
+		if type(cardName) ~= "string" or not CardRegistry.Cards[cardName] then
+			self:Notify(player, "Unknown card.", "error")
+			return
+		end
+
+		if CardInfo.IsUnlocked(data, cardName) then
+			self:Notify(player, CardInfo.GetDisplayName(cardName) .. " is already unlocked.", "warning")
+			return
+		end
+
+		local cost = Constants.Meta.CardUnlockCost
+		if not SaveService.SpendSeeds(player, cost) then
+			self:Notify(player, string.format("Need %d Hex Seeds, you have %d.",
+				cost, data.hexSeeds), "warning")
+			return
+		end
+
+		SaveService.UnlockCard(player, cardName)
+		SaveService.Save(player, true)
+		self:Notify(player, CardInfo.GetDisplayName(cardName) .. " unlocked.", "success", "card")
 		return
 	end
 

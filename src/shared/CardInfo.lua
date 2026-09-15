@@ -157,4 +157,23 @@ function CardInfo.GetDisplayName(cardName)
 	return info and info.displayName or cardName
 end
 
+-- Kas kaart on mangijale avatud. JAGATUD: server valideerib sellega
+-- aktiveerimist ja ostu, klient naitab lukke - uks allikas molemale.
+-- profile = SaveService'i andmetabel (kliendis payload.profile), voib olla nil.
+function CardInfo.IsUnlocked(profile, cardName)
+	for _, name in ipairs(Constants.Meta.StartingCards) do
+		if name == cardName then
+			return true
+		end
+	end
+	if profile and type(profile.unlockedCards) == "table" then
+		for _, name in ipairs(profile.unlockedCards) do
+			if name == cardName then
+				return true
+			end
+		end
+	end
+	return false
+end
+
 return CardInfo

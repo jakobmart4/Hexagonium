@@ -48,6 +48,7 @@ function SaveService.GetDefaults()
 		metaRadius = Constants.IslandExpansion.StartRadius,
 		tutorialComplete = false,
 		hexSeeds = 0,
+		unlockedCards = {}, -- ostetud kaardid; algkomplekt on Constants.Meta
 		stats = {
 			runsPlayed = 0,
 			attacksSurvived = 0,
@@ -78,6 +79,10 @@ local function fillDefaults(data)
 		data.hexSeeds = defaults.hexSeeds
 	end
 	data.hexSeeds = math.max(0, math.floor(data.hexSeeds))
+
+	if type(data.unlockedCards) ~= "table" then
+		data.unlockedCards = defaults.unlockedCards
+	end
 
 	if type(data.stats) ~= "table" then
 		data.stats = defaults.stats
@@ -216,6 +221,24 @@ function SaveService.SpendSeeds(player, amount)
 	end
 
 	data.hexSeeds = data.hexSeeds - amount
+	dirty[player.UserId] = true
+	return true
+end
+
+-- Lisab ostetud kaardi. Tagastab false, kui juba olemas (duplikaate ei teki)
+function SaveService.UnlockCard(player, cardName)
+	local data = cache[player.UserId]
+	if not data or type(cardName) ~= "string" then
+		return false
+	end
+
+	for _, name in ipairs(data.unlockedCards) do
+		if name == cardName then
+			return false
+		end
+	end
+
+	table.insert(data.unlockedCards, cardName)
 	dirty[player.UserId] = true
 	return true
 end

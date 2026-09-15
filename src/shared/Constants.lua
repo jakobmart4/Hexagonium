@@ -298,6 +298,13 @@ Constants.Meta = {
 	-- laienduste arv tuleb ainult IslandExpansion.MetaMaxRadius'ist,
 	-- mitte teisest kohast, mis voiks sellest lahku minna.
 	IslandUpgradeCostPerStep = 1,
+
+	-- KAARDID: uus mangija alustab nende kaartidega, ulejaanud avatakse
+	-- seemnete eest (start screen). Algkomplekt = madala riskiga kaardid
+	-- + Overclock + uks hex-kaart, et hex-sihtimine oleks ilma ostuta
+	-- opitav. Kaardi-listi allikas on endiselt CardRegistry/CardInfo.
+	StartingCards = {"Overclock", "ResourceBloom", "BlessedHex", "HexMutationStable"},
+	CardUnlockCost = 2,
 }
 
 -- ============================================================

@@ -410,6 +410,12 @@ local function makeCardButton(cardName, order)
 	end)
 
 	button.MouseButton1Click:Connect(function()
+		-- Klient ainult hoiatab; server kontrollib lukku uuesti (HandleActivateCard)
+		if cardButtons[cardName].locked then
+			showToast(info.displayName .. " is locked - unlock it in MENU.", "warning")
+			return
+		end
+
 		if activeCardNames[cardName] then
 			showToast(info.displayName .. " is already active.", "warning")
 			return
@@ -422,7 +428,13 @@ local function makeCardButton(cardName, order)
 		end
 	end)
 
-	cardButtons[cardName] = {button = button, status = statusLabel}
+	-- locked: algväärtus ilma profiilita (ainult algkomplekt lahti);
+	-- GameStateUpdate uuendab seda payload.profile'i järgi.
+	cardButtons[cardName] = {
+		button = button,
+		status = statusLabel,
+		locked = not CardInfo.IsUnlocked(nil, cardName),
+	}
 end
 
 for i, cardName in ipairs(CardInfo.DisplayOrder) do
@@ -523,8 +535,15 @@ if stateRemote then
 		activeCardNames = nowActive
 
 		for cardName, refs in pairs(cardButtons) do
-			if nowActive[cardName] then
+			refs.locked = not CardInfo.IsUnlocked(payload.profile, cardName)
+
+			if refs.locked then
+				refs.status.Text = "LOCKED"
+				refs.status.TextColor3 = COLORS.textDim
+				refs.button.BackgroundTransparency = 0.6
+			elseif nowActive[cardName] then
 				refs.status.Text = "ACTIVE"
+				refs.status.TextColor3 = COLORS.active
 				refs.button.BackgroundColor3 = COLORS.panel
 				refs.button.BackgroundTransparency = 0.45
 			else

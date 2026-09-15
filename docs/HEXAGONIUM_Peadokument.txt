@@ -1,6 +1,6 @@
 HEXAGONIUM — PEADOKUMENT
-Versioon: 4.2
-Kuupäev: 14. september 2026
+Versioon: 4.3
+Kuupäev: 15. september 2026
 Place: Hexagonium (placeId: 104026897810299)
 
 SEE FAIL ASENDAB KÕIK VARASEMAD DOKUMENDID.
@@ -61,6 +61,9 @@ VALMIS
   [x] Visuaalne poleerimine, osa 3 (animatsiooni-infrastruktuur,
       kaardipaki/tutoriali fade'id, rünnakute efektid, minimapi
       sujuvus+pulss, UI viewport-klamber)
+  [x] Review-parandused (Defenderi re-link, vilgatuse värvinihe,
+      run'i algus-silmus, laiendusrõnga Y) + meta-progressioon osa 2
+      (Hex Seeds: saare ost ja kaardi-avamised start screen'il)
 
 PUUDUB
   [ ] Mobiilitugi (UI responsiivsus - täielik skaleeruv/puutetundlik
@@ -238,6 +241,9 @@ SALVESTATAKSE (kõik run'i lõpus, Bootstrap.server.lua wireRunEnd)
     stats.attacksSurvived     töötab (parandatud, vt punkt 15)
     stats.buildingsLost       töötab (parandatud, vt punkt 15)
     stats.totalUpgradePoints  töötab
+    hexSeeds                  püsiv valuuta (run'i tasu / Meta.SeedsPerPayout)
+    unlockedCards             ostetud kaardid; algkomplekt on Constants.Meta
+                              (ostud salvestatakse KOHE, mitte run'i lõpus)
 
 PÕHIMÕTTED
   - Mäng käivitub ALLES pärast mängija andmete laadimist
@@ -535,6 +541,16 @@ TEHNILINE
       wireRunEnd, RestartDelay järel) — mängijal pole veel valikut
       midagi teha enne järgmise run'i algust. Kui see osutub
       vajalikuks, lisada vahepealne "kinnita jätkamine" olek.
+  [ ] Co-op + meta: Hex Seeds ja kaardi-avamised on OSTJA salvestuses,
+      aga saare meta-raadius on maailma oma (islandManager). Kaaslase
+      ost kasvatab ühist saart, kuid läheb kirja ainult ostja
+      metaRadius'esse. Co-op'i pole veel; selle lisamisel tuleb
+      otsustada, kelle meta kehtib.
+  [-] UnlockRing seab Locked=false KOHE, kuigi hex tõuseb staggeritult
+      (~1.4s) — TEADLIKULT jäetud: see hoiab ära, et kaks kiiret
+      laiendusklõpsu ostaksid sama rõnga kaks korda. Kõrvalmõju
+      (hetkeks õhus hõljuv hoone) on väiksem halb. Vt kommentaar
+      MapGenerator.UnlockRing'is.
 
 LAHENDATUD
   [x] FracturePact rippuv lüli — fraktsioon on olemas
@@ -591,6 +607,24 @@ LAHENDATUD
       nullpunkti, nii et esimene liigutus jäi ikka kattuma.
       Parandus: Tutorial-paneel Island Map'i alla (Y=248),
       IgnoreGuiInset eemaldatud, et koordinaadiruum ühtiks.
+  [x] Defender jäi tummaks, kui ründajad hävitasid tema PowerCore'i —
+      AttackManager:_removeBuildingVisual oli ainus hoone eemaldamise
+      rada, mis ei kutsunud BuildingFactory.LinkDefenders'it, nii et
+      powerCoreRef osutas surnud objektile ja TryFire tagastas nil
+      kogu ülejäänud run'i. Parandus: sama kutse ka seal.
+  [x] Rünnatud hoone jäi püsivalt punaseks — _flashBuilding luges
+      "originaalvärvi" part.Color'ist, mis kattuvate tabamuste ajal
+      oli juba poolpunane vahevärv. Parandus: BaseColor-atribuut
+      kirjutatakse ÜKS kord. Päris hoone koopiatel mõõdetud värvinihe
+      1.161 -> 0.004.
+  [x] Run lõppes DESTROYED-ina esimesel tick'il, kui PlaceDemoBase ei
+      paigutanud midagi -> Bootstrap taaskäivitas iga 8s ilma ühegi
+      veateateta. Parandus: RunManager.hadBuildings — DESTROYED ainult
+      siis, kui run on kunagi elus hooneid näinud; muidu üks hoiatus.
+      Kontrollitud demo-baasi ajutise lõhkumisega.
+  [x] UnlockRing kasutas kõvakodeeritud originY = 0, samas kui
+      GenerateIsland kasutab origin.Y. Nüüd annab IslandManager
+      origin'i kaasa (kontrollitud: uue rõnga Y = olemasolevate Y).
 
 
 ========================================================================
@@ -826,9 +860,9 @@ PEAMENÜÜ / START SCREEN                        [VALMIS]
   kuni mängija dismiss'ib. Sama visuaalne efekt mängija jaoks, ilma
   et oleks vaja ümber korraldada olemasolevat käivitusjärjekorda.
 
-  ANDMEVOOG: `world.profileSnapshot` (Bootstrap.server.lua, TAHTLIK
-  STAATILINE hetktõmmis liitumishetkest — see ONGI "save-faili
-  ülevaade", mitte live-uuenev loendur) -> `StateBroadcaster.
+  ANDMEVOOG: `world.profileSnapshot` (Bootstrap.server.lua, nüüd VIIDE
+  salvestuse cache-tabelile, et Hex Seeds ostud oleks kohe näha —
+  vt META-PROGRESSIOON, OSA 2) -> `StateBroadcaster.
   BuildPayload()`'i `profile`-väli -> olemasolev `GameStateUpdate`
   (0.5s tsükkel). TEADLIKULT MITTE uus ühekordne remote: see oleks
   race-altis (kui klient ei jõua `OnClientEvent:Connect` ühendada
@@ -841,8 +875,44 @@ PEAMENÜÜ / START SCREEN                        [VALMIS]
   otse loetud salvestusega), BLOKEERIB tõestatult BUILD-nupu klõpsu
   (`BuildPanel.Visible` jäi `false`'iks), Continue-klõps eemaldab
   bloki (BUILD töötab kohe pärast normaalselt), MENU-nupp taasavab
-  SAMADE (mitte live) numbritega ilma serveri round-trip'ita, ja
+  numbritega ilma serveri round-trip'ita, ja
   uus Play-sessioon näitab ülekatet uuesti värske seisuga.
+
+META-PROGRESSIOON, OSA 2 (Hex Seeds)          [VALMIS]
+  PROBLEEM: kogu püsiv progressioon oli ammendatav ÜHE run'iga.
+  wireRunEnd andis floor(tasu / 600) saare laiendust korraga; 60-min
+  run annab ~2700 tasu = kõik 4 sammu (StartRadius 3 -> MetaMaxRadius 7).
+
+  LAHENDUS: run'i tasu -> Hex Seeds (Constants.Meta.SeedsPerPayout,
+  sama 600 määr, balanss ei nihku). Mängija kulutab need start
+  screen'il (MENU):
+    - GROW ISLAND: N-s püsiv laiendus maksab N seemet
+      (IslandUpgradeCostPerStep). Laienduste arv tuleb endiselt AINULT
+      MetaMaxRadius'ist. Rakendub järgmisest run'ist.
+    - Kaardid: uus mängija alustab 4 kaardiga (Meta.StartingCards),
+      ülejäänud 6 maksavad CardUnlockCost (2) seemet. KÕRVALMÕJU:
+      olemasolevad mängijad kaotavad ligipääsu neile 6-le, kuni ostavad.
+  Kokku 22 seemet = mitu täispikka run'i, mitte üks.
+
+  ARHITEKTUUR: uus remote BuyMetaUpgrade, valideeritakse serveris
+  (PlayerActionHandler:HandleBuyMetaUpgrade). CardInfo.IsUnlocked on
+  JAGATUD — server kontrollib sellega aktiveerimist ja ostu, klient
+  näitab sellega lukke (start screen + CardDeck LOCKED). Kaks kiiret
+  klõpsu on ohutud: kulutamine ja avamine juhtuvad sünkroonselt enne
+  DataStore'i yield'i.
+  world.profileSnapshot on nüüd VIIDE salvestuse cache-tabelile, mitte
+  liitumishetke koopia — ostud jõuavad kliendini ilma käsitsi
+  sünkroonimiseta. Bootstrap'i GrantMetaExpansion-wrapper eemaldatud.
+
+  KONTROLLITUD Play-režiimis: värske salvestus (0 seemet, lukus nupp);
+  Extract -> konsool "seemned+N", start screen uuenes kohe; saare ost
+  1 seeme -> nupp nihkus "radius 5 · 2 seeds", järgmine run genereeriti
+  raadiusega 4; salvestus püsis üle Play-sessiooni (71 seemet); kaardi
+  ost 71 -> 69, CardDeck näitas 5 LOCKED + Flux Tide aktiveeritav
+  (ACTIVE), lukus kaardi klõps andis hoiatuse.
+  TESTIMATA OTSE: serveri lukukontroll HandleActivateCard'is — klient
+  blokeerib lukus kaardi enne saatmist ja MCP plugina sandbox ei luba
+  remote'e saata. Kontroll on sama CardInfo.IsUnlocked mis kliendis.
 
 MOBIILITUGI (UI responsiivsus)                 [PUUDUB]
 

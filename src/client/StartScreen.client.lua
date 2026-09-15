@@ -21,6 +21,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RemoteEvents = require(ReplicatedStorage.Shared.RemoteEvents)
 local Theme = require(ReplicatedStorage.Shared.Theme)
 local Constants = require(ReplicatedStorage.Shared.Constants)
+local CardInfo = require(ReplicatedStorage.Shared.CardInfo)
 
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
@@ -175,6 +176,48 @@ buyIslandButton.MouseButton1Click:Connect(function()
 	end
 end)
 
+-- Lukus kaardid: 2 veergu, avatakse Hex Seeds'iga (Constants.Meta).
+-- Nupud luuakse ÜKS kord algkomplekti-välistele kaartidele; render
+-- uuendab ainult teksti ja värvi.
+local cardGrid = Instance.new("Frame")
+cardGrid.Name = "CardUnlocks"
+cardGrid.Size = UDim2.new(0, 610, 0, 96)
+cardGrid.Position = UDim2.new(0, COL_X, 0, 402 + INFO_LINE_SPACING * 6 + 62)
+cardGrid.BackgroundTransparency = 1
+cardGrid.Parent = backdrop
+
+local gridLayout = Instance.new("UIGridLayout")
+gridLayout.CellSize = UDim2.new(0, 300, 0, 28)
+gridLayout.CellPadding = UDim2.new(0, 10, 0, 6)
+gridLayout.SortOrder = Enum.SortOrder.LayoutOrder
+gridLayout.Parent = cardGrid
+
+local cardUnlockButtons = {} -- [cardName] = TextButton
+local canBuyCard = {}         -- [cardName] = bool, ainult eelvaade
+
+for order, cardName in ipairs(CardInfo.DisplayOrder) do
+	if not CardInfo.IsUnlocked(nil, cardName) then
+		local b = Instance.new("TextButton")
+		b.Name = cardName
+		b.LayoutOrder = order
+		b.BackgroundTransparency = 1
+		b.Text = ""
+		b.TextColor3 = Theme.UI.blocked
+		b.TextXAlignment = Enum.TextXAlignment.Left
+		b.Font = FONT_BOLD
+		b.TextSize = Theme.TextSize.body + 4
+		b.AutoButtonColor = false
+		b.Parent = cardGrid
+		applyStroke(b, 0.5)
+		b.MouseButton1Click:Connect(function()
+			if canBuyCard[cardName] then
+				buyRemote:FireServer({kind = "card", cardName = cardName})
+			end
+		end)
+		cardUnlockButtons[cardName] = b
+	end
+end
+
 -- =========================================================
 -- ALUMINE-VASAK "MENU" NUPP: taasavab ülekatte igal ajal.
 -- Samas reas mis CARDS (x=16) / BUILD (x=156) / LINKS (x=296),
@@ -251,6 +294,20 @@ stateRemote.OnClientEvent:Connect(function(payload)
 			"\u{203A} GROW ISLAND to radius %d  \u{00B7}  %d %s  (next run)",
 			radius + 1, cost, cost == 1 and "seed" or "seeds")
 		buyIslandButton.TextColor3 = canBuyIsland and Theme.UI.success or Theme.UI.blocked
+	end
+
+	local cardCost = Constants.Meta.CardUnlockCost
+	for cardName, b in pairs(cardUnlockButtons) do
+		local name = CardInfo.GetDisplayName(cardName)
+		if CardInfo.IsUnlocked(profile, cardName) then
+			canBuyCard[cardName] = false
+			b.Text = name .. "  \u{00B7}  unlocked"
+			b.TextColor3 = Theme.UI.textDim
+		else
+			canBuyCard[cardName] = seeds >= cardCost
+			b.Text = string.format("\u{203A} %s  \u{00B7}  %d seeds", name, cardCost)
+			b.TextColor3 = canBuyCard[cardName] and Theme.UI.success or Theme.UI.blocked
+		end
 	end
 end)
 
