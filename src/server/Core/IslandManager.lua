@@ -123,7 +123,12 @@ function IslandManager:TryExpand()
 	end
 
 	local nextRing = MapGenerator.GetNextLockedRing(self.gameState.folder)
-	local unlocked = MapGenerator.UnlockRing(self.gameState.folder, nextRing, {animate = true})
+	local unlocked = MapGenerator.UnlockRing(self.gameState.folder, nextRing, {
+		animate = true,
+		-- Saare nihe: ilma selleta kerkiks rong maailma Y=0 peale,
+		-- mitte selle saare enda tasapinnale (vt UnlockRing).
+		origin = self.gameState.origin,
+	})
 
 	self.runExpansions = self.runExpansions + 1
 

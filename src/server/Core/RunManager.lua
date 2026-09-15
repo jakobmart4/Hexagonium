@@ -56,6 +56,10 @@ function RunManager.new(gameState)
 	self.expansionsMade = 0
 	self.buildingsLost = 0
 
+	-- Kas run on KUNAGI elus hooneid nainud (vt Tick, armuaeg)
+	self.hadBuildings = false
+	self.warnedNoBuildings = false
+
 	-- Kuulajad run'i lopule
 	self.onEnd = {}
 
@@ -153,13 +157,29 @@ function RunManager:Tick()
 	end
 
 	-- 3) Kas baas on havinud?
+	--
+	-- ARMUAEG: "hooneid pole" ja "hooned havisid" on kaks ERI asja.
+	-- Esimene tick jookseb kohe parast buildWorldSystems'i, enne kui
+	-- miski kinnitab, et PlaceDemoBase uldse midagi paigutas. Ilma
+	-- hadBuildings-liputa loppeks run sellisel juhul kohe DESTROYED-ina,
+	-- Bootstrap taaskaivitaks 8s parast ja mang jaaks vaikselt igavesse
+	-- silmusesse. Nuud tuleb selle asemel uks nahtav hoiatus.
 	local alive = 0
 	for _, b in pairs(self.gameState.buildings) do
 		if not b.isDestroyed then
 			alive = alive + 1
 		end
 	end
-	if alive == 0 then
+
+	if alive > 0 then
+		self.hadBuildings = true
+	elseif not self.hadBuildings then
+		if not self.warnedNoBuildings then
+			self.warnedNoBuildings = true
+			warn("[RunManager] Run algas ILMA hooneteta - PlaceDemoBase ei " ..
+				"paigutanud midagi. Run ei lopetata, aga midagi on katki.")
+		end
+	else
 		self:EndRun(RunManager.EndReasons.DESTROYED)
 		return
 	end

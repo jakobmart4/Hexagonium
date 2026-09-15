@@ -18,10 +18,12 @@
 
 local Workspace = game:GetService("Workspace")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local ServerScriptService = game:GetService("ServerScriptService")
 local TweenService = game:GetService("TweenService")
 
 local Constants = require(ReplicatedStorage.Shared.Constants)
 local Theme = require(ReplicatedStorage.Shared.Theme)
+local BuildingFactory = require(ServerScriptService.Buildings.BuildingFactory)
 
 local CFG = Constants.Attack
 
@@ -461,7 +463,17 @@ function AttackManager:_flashBuilding(building)
 
 	for _, part in ipairs(visual:GetDescendants()) do
 		if part:IsA("BasePart") then
-			local original = part.Color
+			-- Pariset varvi EI tohi lugeda part.Color'ist: kui eelmine
+			-- vilgatus veel tween'ib (mitu ruundajat sama hoone kallal,
+			-- AttackerHitInterval on RUUNDAJA kohta, mitte hoone kohta),
+			-- oleks see poolpunane vahevarv ja hoone nihkuks iga
+			-- tabamusega pusivalt punasemaks. Kirjutame UKS kord.
+			local original = part:GetAttribute("BaseColor")
+			if not original then
+				original = part.Color
+				part:SetAttribute("BaseColor", original)
+			end
+
 			part.Color = Theme.UI.error
 			TweenService:Create(part, TweenInfo.new(0.3), {Color = original}):Play()
 		end
@@ -486,6 +498,12 @@ function AttackManager:_removeBuildingVisual(building)
 		end
 	end
 	self.gameState.tickService:UnregisterBuilding(building)
+
+	-- KOLMAS hoone-eemaldamise rada (teised kaks on PlayerActionHandler'i
+	-- Build ja Demolish). Ilma selleta jaab iga Defender, kelle PowerCore
+	-- siin havis, powerCoreRef'iga surnud objekti kulge - TryFire tagastab
+	-- siis nil KOGU ulejaanud run'i, ka siis kui terve core on korval.
+	BuildingFactory.LinkDefenders(self.gameState.buildings, self.gameState.hexGrid)
 end
 
 -- ============================================================

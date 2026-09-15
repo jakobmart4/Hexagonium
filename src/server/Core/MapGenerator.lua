@@ -658,7 +658,10 @@ function MapGenerator.UnlockRing(folder, ringNumber, config)
 		return 0
 	end
 
-	local originY = 0
+	-- PEAB tulema kutsujalt, mitte olema 0: GenerateIsland paigutab hexid
+	-- origin.Y jargi, seega kovakodeeritud 0 kerkitaks laiendusrongad
+	-- valele korgusele niipea, kui mone sloti origin saab Y-nihke.
+	local originY = config.origin and config.origin.Y or 0
 
 	local ringParts = {}
 	for _, part in ipairs(hexes:GetChildren()) do
@@ -677,6 +680,13 @@ function MapGenerator.UnlockRing(folder, ringNumber, config)
 		end)
 	end
 
+	-- ARA "PARANDA" Locked=false seadmist reveal'i sisse. See on
+	-- TAHTLIKULT kohe, mitte task.delay'ga hajutatud paljastuse sees:
+	-- GetNextLockedRing loeb sama atribuuti, nii et kaks kiiret
+	-- laiendusklosi tabaksid muidu SAMA ronga (mangija maksaks kaks
+	-- korda, avaneks uks rong). Korvalmoju - hex loeb ~1.4s jooksul
+	-- ehitatavaks enne kui ta veest valja jouab, mis tahendab lyhikest
+	-- ohus holjuvat hoonet - on teadlikult valitud vaiksem halbadest.
 	for i, part in ipairs(ringParts) do
 		local typeName = part:GetAttribute("HexType") or "Neutral"
 		local targetY = originY + MapGenerator.HEX_TOP_Y - thickness / 2

@@ -30,6 +30,7 @@ Theme.World = {
 	hexCrystal   = Color3.fromRGB(146, 96, 202),   -- violetne (EI ole sinine)
 	hexNeutral   = Color3.fromRGB(124, 114, 96),   -- tume soe kivi
 	hexLocked    = Color3.fromRGB(42, 48, 58),     -- tume, vee all
+	mapOcean     = Color3.fromRGB(28, 62, 96),     -- minimapi tume meri (EI ole UI.ocean aktsent)
 
 	-- Hoonete varvid. Igauks peab eristuma nii omavahel kui hexidest.
 	-- Refinery on teadlikult SININE, mitte roosa: roosa oli crystal-hexi
