@@ -10,6 +10,7 @@
 	  ConnectNodes     klient -> server   (mangija loob node-uhenduse)
 	  FactionDecision  klient -> server   (Fracture Pact jah/ei)
 	  SkipTutorial     klient -> server   (mängija jätab tutoriali vahele)
+	  BuyMetaUpgrade   klient -> server   (Hex Seeds kulutamine start screen'il)
 	  Notification     server -> klient   (teated: runnak, kaardi efekt)
 ]]
 
@@ -27,6 +28,7 @@ local EVENT_NAMES = {
 	"ExpandIsland",
 	"ExtractRun",
 	"SkipTutorial",
+	"BuyMetaUpgrade",
 	"Notification",
 }
 

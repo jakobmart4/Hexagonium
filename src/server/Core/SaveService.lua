@@ -47,6 +47,7 @@ function SaveService.GetDefaults()
 	return {
 		metaRadius = Constants.IslandExpansion.StartRadius,
 		tutorialComplete = false,
+		hexSeeds = 0,
 		stats = {
 			runsPlayed = 0,
 			attacksSurvived = 0,
@@ -72,6 +73,11 @@ local function fillDefaults(data)
 	if type(data.tutorialComplete) ~= "boolean" then
 		data.tutorialComplete = defaults.tutorialComplete
 	end
+
+	if type(data.hexSeeds) ~= "number" then
+		data.hexSeeds = defaults.hexSeeds
+	end
+	data.hexSeeds = math.max(0, math.floor(data.hexSeeds))
 
 	if type(data.stats) ~= "table" then
 		data.stats = defaults.stats
@@ -187,6 +193,29 @@ function SaveService.AddStat(player, key, amount)
 	end
 
 	data.stats[key] = data.stats[key] + (amount or 1)
+	dirty[player.UserId] = true
+	return true
+end
+
+function SaveService.AddSeeds(player, amount)
+	local data = cache[player.UserId]
+	if not data or type(amount) ~= "number" or amount <= 0 then
+		return false
+	end
+
+	data.hexSeeds = data.hexSeeds + math.floor(amount)
+	dirty[player.UserId] = true
+	return true
+end
+
+-- Tagastab true ainult siis, kui seemneid oli piisavalt JA need kulutati
+function SaveService.SpendSeeds(player, amount)
+	local data = cache[player.UserId]
+	if not data or type(amount) ~= "number" or amount < 0 or data.hexSeeds < amount then
+		return false
+	end
+
+	data.hexSeeds = data.hexSeeds - amount
 	dirty[player.UserId] = true
 	return true
 end

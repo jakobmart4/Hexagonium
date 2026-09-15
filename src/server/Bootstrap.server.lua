@@ -62,23 +62,17 @@ local function wireRunEnd(world)
 	end
 
 	run:OnEnd(function(result)
-		local perRadius = Constants.Run.RewardPerMetaRadius
+		-- Tasu -> Hex Seeds. Mangija kulutab need ise run'ide vahel
+		-- (PlayerActionHandler:HandleBuyMetaUpgrade). Varem anti saare
+		-- laiendused siin OTSE ja korraga - vt Constants.Meta.
+		local seeds = math.floor(result.payout / Constants.Meta.SeedsPerPayout)
 
 		for _, owner in ipairs(world.owners) do
 			SaveService.AddStat(owner, "runsPlayed", 1)
 			SaveService.AddStat(owner, "totalUpgradePoints", result.pointsProduced)
 			SaveService.AddStat(owner, "attacksSurvived", result.attacksSurvived)
 			SaveService.AddStat(owner, "buildingsLost", result.buildingsLost)
-		end
-
-		local gained = 0
-		if world.islandManager then
-			local steps = math.floor(result.payout / perRadius)
-			for _ = 1, steps do
-				local ok = world.islandManager:GrantMetaExpansion()
-				if not ok then break end
-				gained = gained + 1
-			end
+			SaveService.AddSeeds(owner, seeds)
 		end
 
 		for _, owner in ipairs(world.owners) do
@@ -87,9 +81,9 @@ local function wireRunEnd(world)
 
 		print(string.format(
 			"[Hexagonium] RUN LOPPES slot %d (%s): tasu=%d (%.0f%% %d-st), " ..
-			"kestus=%.0fs, runnakuid=%d, meta+%d",
+			"kestus=%.0fs, runnakuid=%d, seemned+%d",
 			world.slot, result.reason, result.payout, result.payoutRate * 100,
-			result.banked, result.duration, result.attacksSurvived, gained))
+			result.banked, result.duration, result.attacksSurvived, seeds))
 
 		-- Jargmine run algab automaatselt samas maailmas: uus seeme,
 		-- meta-raadius sailib, run-laiendused nullitakse. Viivitus
@@ -148,36 +142,17 @@ local function onPlayerJoined(player)
 		return
 	end
 
-	-- Puhas kuva-andmestruktuur peamenüü/start screen'i jaoks - TAHTLIKULT
-	-- staatiline liitumishetke hetktõmmis ("save-faili ülevaade"), mitte
-	-- live-uuenev loendur. Saadetakse kliendile StateBroadcaster'i kaudu.
-	world.profileSnapshot = {
-		metaRadius = data.metaRadius,
-		tutorialComplete = data.tutorialComplete,
-		stats = data.stats,
-	}
+	-- Start screen'i andmed = VIIDE salvestuse cache-tabelile, mitte koopia.
+	-- Varem oli see "tahtlikult staatiline" tõmmis, aga stats oli niikuinii
+	-- viide ja Hex Seeds ostud (BuyMetaUpgrade) PEAVAD kohe nähtavaks
+	-- saama - viide teeb selle ilma käsitsi sünkroonimiseta. Saadetakse
+	-- kliendile StateBroadcaster'i "profile"-väljana.
+	world.profileSnapshot = data
 
 	print(string.format(
 		"[Hexagonium] %s -> slot %d, metaRadius=%d, runid=%d%s",
 		player.Name, world.slot, data.metaRadius, data.stats.runsPlayed,
 		SaveService.IsAvailable() and "" or "  (SALVESTAMINE VALJAS)"))
-
-	-- Meta-laiendus salvestub selle maailma omanikele. UKS KORD:
-	-- islandManager pusib run'ide ule, RestartRun ei loo seda uuesti.
-	local island = world.islandManager
-	if island then
-		local originalGrant = island.GrantMetaExpansion
-		island.GrantMetaExpansion = function(self, ...)
-			local ok, newRadius = originalGrant(self, ...)
-			if ok then
-				for _, owner in ipairs(world.owners) do
-					SaveService.SetMetaRadius(owner, newRadius)
-					SaveService.Save(owner)
-				end
-			end
-			return ok, newRadius
-		end
-	end
 
 	wireRunEnd(world)
 	wireTutorial(world)

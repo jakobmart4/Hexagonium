@@ -31,7 +31,7 @@ vt punkt 3.
 | Hoonete hinnad | Extractor 20, Refinery 35, Assembler 50, PowerCore 40, Defender ~~45~~ **35** | `BuildCosts` |
 | Lammutuse tagastus | 50% | `DemolishRefund` |
 | Saare laienduse kulu (run) | 40 -> 120 -> 360 UP | `IslandExpansion.RunExpansionBaseCost` / `CostMultiplier` |
-| Saare laienduse kulu (meta) | tasuta, Hex Seed (+600 UP tasu run'i lõpus) | `IslandExpansion` / `Run.RewardPerMetaRadius` |
+| Saare laienduse kulu (meta) | N-s laiendus = N Hex Seed'i; 1 seeme / 600 run'i tasu, mängija ostab start screen'il | `IslandExpansion` / `Meta.SeedsPerPayout`, `Meta.IslandUpgradeCostPerStep` |
 | Run'i Timeout | 3600s (60 min, ülempiir) | `Run.Duration` |
 | RestartDelay | 8s | `Run.RestartDelay` |
 | Ohu kasv | +12%/min, lagi 8.0x (~60. minutil) | `Attack.ScalePerMinute` / `MaxScale` |

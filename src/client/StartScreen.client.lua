@@ -20,6 +20,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local RemoteEvents = require(ReplicatedStorage.Shared.RemoteEvents)
 local Theme = require(ReplicatedStorage.Shared.Theme)
+local Constants = require(ReplicatedStorage.Shared.Constants)
 
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
@@ -147,6 +148,33 @@ local infoAttacks = infoLabel(backdrop, 402 + INFO_LINE_SPACING * 2, 26, INFO_TE
 local infoLost = infoLabel(backdrop, 402 + INFO_LINE_SPACING * 3, 26, INFO_TEXT_SIZE, Theme.UI.textDim)
 local infoPoints = infoLabel(backdrop, 402 + INFO_LINE_SPACING * 4, 26, INFO_TEXT_SIZE, Theme.UI.textDim)
 
+-- ---------- Hex Seeds: püsiv valuuta + ost (vt Constants.Meta) ----------
+-- Klient kontrollib ainult tagasiside jaoks; server valideerib ostu uuesti.
+local buyRemote = RemoteEvents.Get("BuyMetaUpgrade")
+
+local infoSeeds = infoLabel(backdrop, 402 + INFO_LINE_SPACING * 5 + 12, 26, INFO_TEXT_SIZE, Theme.UI.accent)
+
+local buyIslandButton = Instance.new("TextButton")
+buyIslandButton.Name = "BuyIslandButton"
+buyIslandButton.Size = UDim2.new(0, COL_WIDTH, 0, 36)
+buyIslandButton.Position = UDim2.new(0, COL_X, 0, 402 + INFO_LINE_SPACING * 6 + 18)
+buyIslandButton.BackgroundTransparency = 1
+buyIslandButton.Text = ""
+buyIslandButton.TextColor3 = Theme.UI.blocked
+buyIslandButton.TextXAlignment = Enum.TextXAlignment.Left
+buyIslandButton.Font = FONT_BOLD
+buyIslandButton.TextSize = Theme.TextSize.body + 8
+buyIslandButton.AutoButtonColor = false
+buyIslandButton.Parent = backdrop
+applyStroke(buyIslandButton, 0.5)
+
+local canBuyIsland = false
+buyIslandButton.MouseButton1Click:Connect(function()
+	if canBuyIsland then
+		buyRemote:FireServer({kind = "island"})
+	end
+end)
+
 -- =========================================================
 -- ALUMINE-VASAK "MENU" NUPP: taasavab ülekatte igal ajal.
 -- Samas reas mis CARDS (x=16) / BUILD (x=156) / LINKS (x=296),
@@ -179,16 +207,13 @@ menuButton.MouseButton1Click:Connect(function()
 end)
 
 -- =========================================================
--- ANDMETE TÄITMINE (üks kord, esimesel profiili saabumisel)
+-- ANDMETE TÄITMINE (iga GameStateUpdate'iga - Hex Seeds ostud peavad kohe näha olema)
 -- =========================================================
-local receivedProfile = false
-
 local stateRemote = RemoteEvents.Get("GameStateUpdate")
 stateRemote.OnClientEvent:Connect(function(payload)
-	if not payload or not payload.profile or receivedProfile then
+	if not payload or not payload.profile then
 		return
 	end
-	receivedProfile = true
 
 	local profile = payload.profile
 	local stats = profile.stats or {}
@@ -208,6 +233,25 @@ stateRemote.OnClientEvent:Connect(function(payload)
 	infoAttacks.Text = string.format("Attacks survived: %d", stats.attacksSurvived or 0)
 	infoLost.Text = string.format("Buildings lost: %d", stats.buildingsLost or 0)
 	infoPoints.Text = string.format("Lifetime UP earned: %d", stats.totalUpgradePoints or 0)
+
+	local seeds = profile.hexSeeds or 0
+	infoSeeds.Text = string.format("Hex Seeds: %d", seeds)
+
+	-- Sama valem mis HandleBuyMetaUpgrade'is - ainult eelvaade, server otsustab
+	local isl = Constants.IslandExpansion
+	local radius = profile.metaRadius or isl.StartRadius
+	if radius >= isl.MetaMaxRadius then
+		canBuyIsland = false
+		buyIslandButton.Text = "\u{203A} ISLAND  \u{00B7}  permanent maximum reached"
+		buyIslandButton.TextColor3 = Theme.UI.blocked
+	else
+		local cost = (radius - isl.StartRadius + 1) * Constants.Meta.IslandUpgradeCostPerStep
+		canBuyIsland = seeds >= cost
+		buyIslandButton.Text = string.format(
+			"\u{203A} GROW ISLAND to radius %d  \u{00B7}  %d %s  (next run)",
+			radius + 1, cost, cost == 1 and "seed" or "seeds")
+		buyIslandButton.TextColor3 = canBuyIsland and Theme.UI.success or Theme.UI.blocked
+	end
 end)
 
 print("[Hexagonium] StartScreen laaditud")

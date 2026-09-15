@@ -19,6 +19,7 @@ local Constants = require(ReplicatedStorage.Shared.Constants)
 local CardRegistry = require(ServerScriptService.Cards.CardRegistry)
 local MapGenerator = require(ServerScriptService.Core.MapGenerator)
 local BuildingFactory = require(ServerScriptService.Buildings.BuildingFactory)
+local SaveService = require(ServerScriptService.Core.SaveService)
 
 local PlayerActionHandler = {}
 PlayerActionHandler.__index = PlayerActionHandler
@@ -381,6 +382,62 @@ function PlayerActionHandler:HandleExpandIsland(player)
 end
 
 -- ============================================================
+-- META-OST (Hex Seeds, start screen)
+-- ============================================================
+
+function PlayerActionHandler:HandleBuyMetaUpgrade(player, request)
+	local world = self:GetWorld(player)
+	if not world then return end
+	if type(request) ~= "table" then return end
+
+	local data = SaveService.Get(player)
+	if not data then
+		self:Notify(player, "Save data is not loaded yet.", "error")
+		return
+	end
+
+	if request.kind == "island" then
+		local island = world.islandManager
+		if not island then
+			self:Notify(player, "Island system unavailable.", "error")
+			return
+		end
+
+		local isl = Constants.IslandExpansion
+		if island.metaRadius >= isl.MetaMaxRadius then
+			self:Notify(player, "Your island is already at its permanent maximum.", "warning")
+			return
+		end
+
+		local step = island.metaRadius - isl.StartRadius + 1
+		local cost = step * Constants.Meta.IslandUpgradeCostPerStep
+		if not SaveService.SpendSeeds(player, cost) then
+			self:Notify(player, string.format("Need %d Hex Seeds, you have %d.",
+				cost, data.hexSeeds), "warning")
+			return
+		end
+
+		local ok, newRadius = island:GrantMetaExpansion()
+		if not ok then
+			-- Ei tohiks juhtuda (lagi kontrolliti ules), aga raha tagasi
+			SaveService.AddSeeds(player, cost)
+			self:Notify(player, "Could not grow the island.", "error")
+			return
+		end
+
+		-- Rakendub JARGMISES run'is: praeguse saare hexid on juba
+		-- genereeritud, islandManager pusib ja ResetForNewRun teeb ulejaanu.
+		SaveService.SetMetaRadius(player, newRadius)
+		SaveService.Save(player, true)
+		self:Notify(player, string.format("Island grows to radius %d from your next run.",
+			newRadius), "success", "build")
+		return
+	end
+
+	self:Notify(player, "Unknown upgrade.", "error")
+end
+
+-- ============================================================
 -- UHENDAMINE
 -- ============================================================
 
@@ -405,6 +462,7 @@ function PlayerActionHandler:Connect()
 	bind("ExpandIsland", PlayerActionHandler.HandleExpandIsland)
 	bind("ExtractRun", PlayerActionHandler.HandleExtract)
 	bind("SkipTutorial", PlayerActionHandler.HandleSkipTutorial)
+	bind("BuyMetaUpgrade", PlayerActionHandler.HandleBuyMetaUpgrade)
 end
 
 return PlayerActionHandler

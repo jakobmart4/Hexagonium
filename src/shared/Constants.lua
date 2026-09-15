@@ -269,9 +269,6 @@ Constants.Run = {
 	PayoutTimeout = 1.0,     -- pead loppuni vastu: koik alles
 	PayoutDestroyed = 0.10,  -- baas havib: kaotad 90%
 
-	-- META-PROGRESSIOON
-	RewardPerMetaRadius = 600,
-
 	-- ALGKAPITAL
 	-- Ilma selleta ei saaks run'i alguses midagi ehitada:
 	-- punkte toodab Assembler, aga Assembler ise maksab punkte.
@@ -282,6 +279,25 @@ Constants.Run = {
 	-- mangija jouaks tulemust lugeda, aga mitte nii pikk, et istuks
 	-- tegevuseta.
 	RestartDelay = 8,
+}
+
+-- ============================================================
+-- META-PROGRESSIOON (Hex Seeds)
+--
+-- Run'i tasu muutub SEEMNETEKS, mida mangija kulutab ise run'ide
+-- vahel (start screen). Varem andis run'i lopp saare laiendused
+-- OTSE ja KORRAGA (floor(tasu / 600)) - uks 60-minutiline run
+-- (~2700 tasu) ammendas kogu 4-sammulise meta-progressiooni.
+-- ============================================================
+Constants.Meta = {
+	-- Sama maar mis vana Run.RewardPerMetaRadius, et balanss ei
+	-- nihkuks: 1 seeme = endine 1 tasuta laiendus.
+	SeedsPerPayout = 600,
+
+	-- N-s pusiv laiendus maksab N * see. Tabelit TAHTLIKULT pole:
+	-- laienduste arv tuleb ainult IslandExpansion.MetaMaxRadius'ist,
+	-- mitte teisest kohast, mis voiks sellest lahku minna.
+	IslandUpgradeCostPerStep = 1,
 }
 
 -- ============================================================
