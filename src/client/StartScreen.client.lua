@@ -268,8 +268,8 @@ stateRemote.OnClientEvent:Connect(function(payload)
 	startButton.Text = (isNewPlayer and "\u{203A} START" or "\u{203A} CONTINUE")
 
 	infoSave.Text = string.format(
-		"Island: permanent radius %d  \u{00B7}  Tutorial: %s",
-		profile.metaRadius or 0,
+		"Island expansions per run: %d  \u{00B7}  Tutorial: %s",
+		Constants.IslandExpansion.RunExpansionsMax + (profile.bonusExpansions or 0),
 		profile.tutorialComplete and "Complete" or "In progress"
 	)
 	infoRuns.Text = string.format("Runs played: %d", stats.runsPlayed or 0)
@@ -282,17 +282,17 @@ stateRemote.OnClientEvent:Connect(function(payload)
 
 	-- Sama valem mis HandleBuyMetaUpgrade'is - ainult eelvaade, server otsustab
 	local isl = Constants.IslandExpansion
-	local radius = profile.metaRadius or isl.StartRadius
-	if radius >= isl.MetaMaxRadius then
+	local bonus = profile.bonusExpansions or 0
+	if bonus >= isl.MetaExpansionsMax then
 		canBuyIsland = false
-		buyIslandButton.Text = "\u{203A} ISLAND  \u{00B7}  permanent maximum reached"
+		buyIslandButton.Text = "\u{203A} ISLAND  \u{00B7}  all expansion slots unlocked"
 		buyIslandButton.TextColor3 = Theme.UI.blocked
 	else
-		local cost = (radius - isl.StartRadius + 1) * Constants.Meta.IslandUpgradeCostPerStep
+		local cost = (bonus + 1) * Constants.Meta.IslandUpgradeCostPerStep
 		canBuyIsland = seeds >= cost
 		buyIslandButton.Text = string.format(
-			"\u{203A} GROW ISLAND to radius %d  \u{00B7}  %d %s  (next run)",
-			radius + 1, cost, cost == 1 and "seed" or "seeds")
+			"\u{203A} +1 ISLAND EXPANSION per run  \u{00B7}  %d %s",
+			cost, cost == 1 and "seed" or "seeds")
 		buyIslandButton.TextColor3 = canBuyIsland and Theme.UI.success or Theme.UI.blocked
 	end
 

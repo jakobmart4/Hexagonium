@@ -39,11 +39,11 @@ local GameManager = {}
 --
 -- UHINE nii esimese loomise (CreateWorld) kui run'i taaskaivituse
 -- (RestartRun) vahel. Vahe on ainult selles, KES kutsub ja mis
--- metaRadius/seed kaasa antakse - islandManager (pusiv, sailib
+-- seed kaasa antakse - islandManager (pusiv, sailib
 -- run'ide vahel) ja world.owners (mangijad ei vaheta) JAAVAD ALLES,
 -- koik ulejaanu (saar, hooned, kaardid, pank, run) tehakse uuesti.
 -- ============================================================
-local function buildWorldSystems(world, metaRadius, seed)
+local function buildWorldSystems(world, seed)
 	local islandConfig = Constants.IslandExpansion
 	local folder = world.folder
 	local origin = world.origin
@@ -52,7 +52,7 @@ local function buildWorldSystems(world, metaRadius, seed)
 	local gridStats = MapGenerator.GenerateIsland({
 		folder = folder,
 		origin = origin,
-		radius = metaRadius,
+		radius = islandConfig.StartRadius, -- ALATI sama algsaar, vt IslandManager
 		maxRadius = islandConfig.MaxRadius,
 		seed = seed,
 	})
@@ -125,10 +125,8 @@ local function buildWorldSystems(world, metaRadius, seed)
 	tickService:Start()
 end
 
--- config: {slot, origin, folder, metaRadius, seed}
+-- config: {slot, origin, folder, bonusExpansions, seed, tutorialComplete}
 function GameManager.CreateWorld(config)
-	local islandConfig = Constants.IslandExpansion
-	local metaRadius = config.metaRadius or islandConfig.StartRadius
 
 	local world = {
 		slot = config.slot,
@@ -138,16 +136,16 @@ function GameManager.CreateWorld(config)
 	}
 
 	-- Pusivad run'ide ule - EI looda RestartRun'is uuesti
-	world.islandManager = IslandManager.new(world, metaRadius)
+	world.islandManager = IslandManager.new(world, config.bonusExpansions)
 	world.tutorial = TutorialTracker.new(config.tutorialComplete)
 
-	buildWorldSystems(world, metaRadius, config.seed)
+	buildWorldSystems(world, config.seed)
 
 	return world
 end
 
 -- Alustab UUE run'i SAMAS maailmas: saar taasgenereeritakse uue
--- juhusliku seemnega, meta-raadius sailib (islandManager pusib),
+-- juhusliku seemnega, ostetud lisalaiendused sailivad (islandManager pusib),
 -- run-laiendused kaovad (ResetForNewRun). Kutsutakse pärast
 -- RunManager:EndRun'i, vt Bootstrap.server.lua.
 function GameManager.RestartRun(world)
@@ -158,8 +156,8 @@ function GameManager.RestartRun(world)
 		world.faction.attackManager:EndWave()
 	end
 
-	local metaRadius = world.islandManager:ResetForNewRun()
-	buildWorldSystems(world, metaRadius, nil)
+	world.islandManager:ResetForNewRun()
+	buildWorldSystems(world, nil)
 
 	return world
 end

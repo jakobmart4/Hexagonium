@@ -1,5 +1,5 @@
 HEXAGONIUM — PEADOKUMENT
-Versioon: 4.3
+Versioon: 4.4
 Kuupäev: 15. september 2026
 Place: Hexagonium (placeId: 104026897810299)
 
@@ -64,6 +64,8 @@ VALMIS
   [x] Review-parandused (Defenderi re-link, vilgatuse värvinihe,
       run'i algus-silmus, laiendusrõnga Y) + meta-progressioon osa 2
       (Hex Seeds: saare ost ja kaardi-avamised start screen'il)
+  [x] Algbaasi paigutuse parandus (ore-ahel Defenderi lähedale) +
+      fikseeritud algsaar (raadius 3), püsivad ostud = lisalaienduskohad
 
 PUUDUB
   [ ] Mobiilitugi (UI responsiivsus - täielik skaleeruv/puutetundlik
@@ -216,15 +218,21 @@ TÄHTIS: kirjeldused mängijale GENEREERITAKSE Constants'ist
     GARANTII: vähemalt 6 ore + 4 crystal igal saarel.
     Seeme: juhuslik iga run, sama seeme = sama saar.
 
-7.3 LAIENDUS — KAHEASTMELINE
-    aktiivne raadius = metaRadius + runExpansions
+7.3 LAIENDUS
+    Saar alustab IGA run'i raadiusega 3 (StartRadius, sama mis Studio
+    Edit-vaade) - ka siis, kui mängijal on ostetud lisad.
+    aktiivne raadius = StartRadius + runExpansions
 
-    RUN-TASAND: kuni 2 laiendust, kulu 40 -> 120 -> 360 upgradePoints
-    META-TASAND: metaRadius 4 -> 6, tasuta (Hex Seed tasu), SALVESTUB
-    Maksimum kokku: raadius 8
+    RUN-TASAND: 2 + ostetud lisakohta laiendust run'is,
+      kulu 40 -> 120 -> 360 -> 1080 ... upgradePoints (x3)
+    META-TASAND: bonusExpansions 0 -> 4, ostetakse Hex Seeds'iga
+      (N-s = N seemet), SALVESTUB, kehtib kohe
+    Maksimum kokku: raadius 9 (TULETATUD: 3 + 2 + 4)
+    BALANSS: x3 kordaja juures on lisakohad 3-6 (360+ UP) praktiliselt
+      kättesaamatud - vt TASAKAALUSTAMINE.md, otsus veel tegemata.
 
 7.4 LUKUSTATUD HEXID
-    Kogu saar (217 hexi) genereeritakse korraga. Lukustatud on vee
+    Kogu saar (271 hexi, raadius 9) genereeritakse korraga. Lukustatud on vee
     all ja tumedad — mängija näeb kogu aeg, kui palju on avamata.
 
 
@@ -235,7 +243,7 @@ TÄHTIS: kirjeldused mängijale GENEREERITAKSE Constants'ist
 SaveService.lua, DataStore "HexagoniumPlayer_v1"
 
 SALVESTATAKSE (kõik run'i lõpus, Bootstrap.server.lua wireRunEnd)
-    metaRadius                saare püsiv suurus
+    bonusExpansions           ostetud lisalaienduskohad run'i kohta (0-4)
     tutorialComplete          kas mängija on tutoriali läbinud (wireTutorial)
     stats.runsPlayed          töötab
     stats.attacksSurvived     töötab (parandatud, vt punkt 15)
@@ -251,7 +259,9 @@ PÕHIMÕTTED
     peata mängu, ainult logib hoiatuse
   - Puuduvad väljad täidetakse vaikeväärtustest -> vanad
     salvestused ei lagune, kui lisame uue välja
-  - metaRadius clamp'itakse [StartRadius, MetaMaxRadius]
+  - bonusExpansions clamp'itakse [0, MetaExpansionsMax]
+  - MIGRATSIOON: vana metaRadius -> bonusExpansions = metaRadius - 3
+    (juba makstud seemned ei lähe kaotsi; metaRadius kustutatakse)
   - Autosave 120 sek, pluss PlayerRemoving ja BindToClose
   - Versioon nimes: kui struktuur muutub ühilduvusetult, tõsta number
 
@@ -542,9 +552,9 @@ TEHNILINE
       midagi teha enne järgmise run'i algust. Kui see osutub
       vajalikuks, lisada vahepealne "kinnita jätkamine" olek.
   [ ] Co-op + meta: Hex Seeds ja kaardi-avamised on OSTJA salvestuses,
-      aga saare meta-raadius on maailma oma (islandManager). Kaaslase
-      ost kasvatab ühist saart, kuid läheb kirja ainult ostja
-      metaRadius'esse. Co-op'i pole veel; selle lisamisel tuleb
+      aga lisalaienduskohad on maailma omad (islandManager). Kaaslase
+      ost annab kõigile rohkem laienduskohti, kuid läheb kirja ainult
+      ostja bonusExpansions'isse. Co-op'i pole veel; selle lisamisel tuleb
       otsustada, kelle meta kehtib.
   [-] UnlockRing seab Locked=false KOHE, kuigi hex tõuseb staggeritult
       (~1.4s) — TEADLIKULT jäetud: see hoiab ära, et kaks kiiret
@@ -625,6 +635,19 @@ LAHENDATUD
   [x] UnlockRing kasutas kõvakodeeritud originY = 0, samas kui
       GenerateIsland kasutab origin.Y. Nüüd annab IslandManager
       origin'i kaasa (kontrollitud: uue rõnga Y = olemasolevate Y).
+  [x] Algbaas jäi Defenderist kaugele (~40% run'idest katki, kasutaja
+      raport) - PlaceDemoBase pani ore-ahela (ExtractorOre, Refinery,
+      Assembler) ESIMESELE vabale Ore hexile GetChildren'i järjekorras,
+      sõltumata kaugusest. Simulatsioon (300 seemet, sama loogika mis
+      koodis) andis "mõni hoone Defenderi ulatusest väljas": raadius 3
+      37%, raadius 4 45%, raadius 7 53%. Saare suurus EI olnud põhjus
+      (ainult võimendas). Parandus: ore-ahel valib Defenderile lähimad
+      vabad hexid -> 0-0.7% igal raadiusel. Kontrollitud: harness
+      ennustas elavas mängus kõigi 6 hoone asukoha täpselt.
+      Kasutaja soovil lisaks: algsaar on nüüd ALATI raadius 3; püsivad
+      ostud annavad lisalaienduskohti, mitte suuremat algsaart
+      (kontrollitud: 4 lisaga run algas raadiusega 3, lubas 2/6
+      laiendust ja pidas kinni alles UP puudusel, mitte limiidil).
 
 
 ========================================================================
@@ -848,7 +871,7 @@ VISUAALNE POLEERIMINE                          [VALMIS]
 
 PEAMENÜÜ / START SCREEN                        [VALMIS]
   Uus lisand (mitte poleerimise jätk) — täisekraani ülekate, mis
-  näitab liitumisel save-faili ülevaadet (`metaRadius`,
+  näitab liitumisel save-faili ülevaadet (`bonusExpansions`,
   `tutorialComplete`) ja elu-aegset statistikat (`stats.*`), kuni
   mängija klõpsab Start/Continue. Uuesti avatav "MENU" nupp
   alumises-vasakus reas (CARDS/BUILD/LINKS/MENU).
@@ -886,9 +909,10 @@ META-PROGRESSIOON, OSA 2 (Hex Seeds)          [VALMIS]
   LAHENDUS: run'i tasu -> Hex Seeds (Constants.Meta.SeedsPerPayout,
   sama 600 määr, balanss ei nihku). Mängija kulutab need start
   screen'il (MENU):
-    - GROW ISLAND: N-s püsiv laiendus maksab N seemet
-      (IslandUpgradeCostPerStep). Laienduste arv tuleb endiselt AINULT
-      MetaMaxRadius'ist. Rakendub järgmisest run'ist.
+    - +1 ISLAND EXPANSION: N-s ostetud lisalaienduskoht maksab N seemet
+      (IslandUpgradeCostPerStep), kuni MetaExpansionsMax (4). Kehtib
+      KOHE. (Algselt kasvatas see püsivalt algsaart - muudetud, vt
+      punkt 15 "Algbaas jäi Defenderist kaugele".)
     - Kaardid: uus mängija alustab 4 kaardiga (Meta.StartingCards),
       ülejäänud 6 maksavad CardUnlockCost (2) seemet. KÕRVALMÕJU:
       olemasolevad mängijad kaotavad ligipääsu neile 6-le, kuni ostavad.

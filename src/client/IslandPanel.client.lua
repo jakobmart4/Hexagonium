@@ -77,7 +77,7 @@ sizeLabel.Name = "SizeLabel"
 sizeLabel.Size = UDim2.new(1, -24, 0, 18)
 sizeLabel.Position = UDim2.new(0, 12, 0, 28)
 sizeLabel.BackgroundTransparency = 1
-sizeLabel.Text = "Size 4  -  permanent 4"
+sizeLabel.Text = "Size 3  -  bonus +0"
 sizeLabel.TextColor3 = COLORS.text
 sizeLabel.TextXAlignment = Enum.TextXAlignment.Left
 sizeLabel.Font = FONT_BOLD
@@ -170,7 +170,7 @@ if stateRemote then
 
 		local i = payload.island
 
-		sizeLabel.Text = string.format("Size %d  -  permanent %d", i.activeRadius, i.metaRadius)
+		sizeLabel.Text = string.format("Size %d  -  bonus +%d", i.activeRadius, i.bonusExpansions or 0)
 		runLabel.Text = string.format(
 			"Expansions this run: %d / %d",
 			i.runExpansions,

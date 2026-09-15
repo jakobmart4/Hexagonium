@@ -1,14 +1,21 @@
 --[[
 	IslandManager.lua
-	Haldab saare laiendust KAHEL TASANDIL:
+	Haldab saare laiendust.
 
-	  META  - pusiv raadius, sailib run'ide vahel (Hex Seed tasu).
-	          Salvestatakse hiljem DataStore'i; praegu hoitakse malus.
+	  START - saar alustab IGA run'i IslandExpansion.StartRadius'iga
+	          (sama suurus mis Studio Edit-vaates). Varem kasvas algsaar
+	          pusivalt (metaRadius) - suurem algsaar hajutas algbaasi
+	          laiali ja jattis hooneid Defenderist kaugele.
 
-	  RUN   - ajutine laiendus run'i sees, makstakse upgradePoints'idega.
-	          Lahtestub iga run'i alguses.
+	  META  - bonusExpansions: pusivalt OSTETUD lisalaiendused (Hex Seeds,
+	          start screen). Iga ost = run'is uks laiendusrong rohkem.
+	          Salvestub DataStore'i (SaveService.SetBonusExpansions).
 
-	AKTIIVNE RAADIUS = metaRadius + runExpansions
+	  RUN   - runExpansions: selle run'i jooksul avatud rongad, makstakse
+	          upgradePoints'idega. Lahtestub iga run'i alguses.
+
+	AKTIIVNE RAADIUS      = StartRadius + runExpansions
+	RUN'I LAIENDUSTE LAGI = RunExpansionsMax + bonusExpansions
 
 	KULU KASVAB: iga jargmine run-laiendus on CostMultiplier korda
 	kallim. See on tahtlik - ilma selleta laiendaks mangija lopmatult
@@ -24,17 +31,13 @@ local MapGenerator = require(ServerScriptService.Core.MapGenerator)
 local IslandManager = {}
 IslandManager.__index = IslandManager
 
-function IslandManager.new(gameState, metaRadius)
+function IslandManager.new(gameState, bonusExpansions)
 	local self = setmetatable({}, IslandManager)
 
 	local config = Constants.IslandExpansion
 
 	self.gameState = gameState
-	self.metaRadius = math.clamp(
-		metaRadius or config.StartRadius,
-		config.StartRadius,
-		config.MetaMaxRadius
-	)
+	self.bonusExpansions = math.clamp(bonusExpansions or 0, 0, config.MetaExpansionsMax)
 	self.runExpansions = 0
 
 	return self
@@ -45,7 +48,12 @@ end
 -- ============================================================
 
 function IslandManager:GetActiveRadius()
-	return self.metaRadius + self.runExpansions
+	return Constants.IslandExpansion.StartRadius + self.runExpansions
+end
+
+-- Mitu ronga tohib selles run'is KOKKU avada
+function IslandManager:GetExpansionsMax()
+	return Constants.IslandExpansion.RunExpansionsMax + self.bonusExpansions
 end
 
 -- Mitu upgradePoints maksab jargmine run-laiendus
@@ -80,7 +88,7 @@ end
 function IslandManager:CanExpand()
 	local config = Constants.IslandExpansion
 
-	if self.runExpansions >= config.RunExpansionsMax then
+	if self.runExpansions >= self:GetExpansionsMax() then
 		return false, "Island expansion limit reached for this run."
 	end
 
@@ -142,26 +150,26 @@ function IslandManager:TryExpand()
 end
 
 -- ============================================================
--- META-LAIENDUS (run'ide vahel, Hex Seed tasu)
--- Ei maksa upgradePoints - see on meta-progressiooni tasu.
+-- META: ostetud lisalaiendus (Hex Seeds, vt PlayerActionHandler)
+-- Kehtib KOHE - lagi loetakse igal CanExpand'il, saart ei pea
+-- uuesti genereerima.
 -- ============================================================
 
-function IslandManager:GrantMetaExpansion()
+function IslandManager:GrantBonusExpansion()
 	local config = Constants.IslandExpansion
 
-	if self.metaRadius >= config.MetaMaxRadius then
-		return false, "Meta island size is already at maximum."
+	if self.bonusExpansions >= config.MetaExpansionsMax then
+		return false, "All permanent expansions are already unlocked."
 	end
 
-	self.metaRadius = self.metaRadius + 1
-	return true, self.metaRadius
+	self.bonusExpansions = self.bonusExpansions + 1
+	return true, self.bonusExpansions
 end
 
 -- Kutsutakse uue run'i alguses: run-laiendused kaovad,
--- meta-raadius jaab alles.
+-- ostetud lisalaiendused jaavad alles.
 function IslandManager:ResetForNewRun()
 	self.runExpansions = 0
-	return self.metaRadius
 end
 
 -- ============================================================
@@ -173,9 +181,9 @@ function IslandManager:GetClientState()
 	local canExpand, reason = self:CanExpand()
 
 	return {
-		metaRadius = self.metaRadius,
+		bonusExpansions = self.bonusExpansions,
 		runExpansions = self.runExpansions,
-		runExpansionsMax = config.RunExpansionsMax,
+		runExpansionsMax = self:GetExpansionsMax(),
 		activeRadius = self:GetActiveRadius(),
 		maxRadius = config.MaxRadius,
 		nextCost = self:GetNextCost(),

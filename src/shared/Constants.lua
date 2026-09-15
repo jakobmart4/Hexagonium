@@ -25,7 +25,7 @@ Constants.Debug = {
 
 	-- Kustutab mangija DataStore-salvestuse enne laadimist. Ainus viis
 	-- Studios kontrollida, mida PARIS uus mangija naeb - olemasolev
-	-- metaRadius jm CLAMPITAKSE uude vahemikku, kui Constants muutub,
+	-- bonusExpansions jm CLAMPITAKSE uude vahemikku, kui Constants muutub,
 	-- mitte ei lahtestata (vt SaveService.fillDefaults).
 	WipeSaveOnJoin = false,
 }
@@ -167,14 +167,18 @@ Constants.Cards = {
 -- ============================================================
 -- SAARE LAIENDUS (kaheastmeline)
 --
---   META-TASAND: pusiv, sailib run'ide vahel (Hex Seed)
---     StartRadius -> MetaMaxRadius
+--   START: saar alustab IGA run'i StartRadius'iga (sama mis Studio
+--     Edit-vaade). Varem kasvas algsaar pusivalt - suurem algsaar
+--     hajutas algbaasi ja jattis hooneid Defenderist kaugele.
+--
+--   META-TASAND: pusiv, ostetakse Hex Seeds'iga (start screen)
+--     kuni MetaExpansionsMax lisalaienduskohta run'i kohta
 --
 --   RUN-TASAND: ajutine, lahtestub iga run'i alguses
---     kuni RunExpansionsMax ronga meta-raadiusest kaugemale
---     maksab upgradePoints (Assembleri toodang)
+--     kuni RunExpansionsMax + ostetud lisad ronga, igauks maksab
+--     upgradePoints (Assembleri toodang)
 --
--- Naide: meta=5, run-laiendusi 2 -> aktiivne raadius 7
+-- Naide: 2 ostetud lisa -> run'is kuni 4 laiendust, raadius 3 -> 7
 -- ============================================================
 Constants.IslandExpansion = {
 	-- Tasakaalustatud kasutaja tagasiside jargi. SEE TABEL ON AINUS
@@ -185,27 +189,30 @@ Constants.IslandExpansion = {
 	-- audititeerimise selgus, et see oli lihtsalt vananenud
 	-- kasutamatta jaanud objekt, mitte usaldusvaarne vordlus.
 	--
-	-- MetaMaxRadius = StartRadius + 4, et pusiv progressioon oleks
-	-- TAPSELT 4 eraldi meta-laiendust (nt 3->4->5->6->7).
-	-- MaxRadius jaab 8 - kaugelearenenud (meta=7) mangijatel jaab
-	-- reaalselt kasutada 1 run-laiendus 2-st (7+2=9 > MaxRadius 8),
-	-- olemasoleva MaxRadius lae loomulik korvalmoju, mitte viga.
+	-- MetaExpansionsMax = 4: pusiv progressioon on TAPSELT 4 ostu, igauks
+	-- annab run'is uhe laiendusronga rohkem. Saar ise ei kasva enam
+	-- pusivalt. MaxRadius TULETATAKSE tabeli all.
 	--
 	-- TESTIMINE: olemasolev salvestus CLAMPITAKSE uude vahemikku,
 	-- mitte ei lahtestata, kui neid vaartusi muudad - kasuta
 	-- Constants.Debug.WipeSaveOnJoin = true, et naha, mida PARIS uus
 	-- mangija saab (ja lulita See uuesti valja parast testimist!).
-	StartRadius = 3,        -- uue mangija algne saar
-	MetaMaxRadius = 7,      -- meta-progressiooni lagi (StartRadius + 4)
-	MaxRadius = 8,          -- genereeritud saare koguulatus
+	StartRadius = 3,        -- saar alustab IGA run'i sellega (= Studio Edit-vaade)
+	MetaExpansionsMax = 4,  -- ostetavaid lisalaienduskohti (Hex Seeds)
 
-	RunExpansionsMax = 2,   -- mitu ronga saab uhe run'i jooksul avada
+	RunExpansionsMax = 2,   -- tasuta laienduskohti igas run'is (+ ostetud lisad)
 
 	-- Esimene run-laiendus maksab BaseCost, iga jargmine korrutatakse
 	-- CostMultiplier'iga. Nii ei saa mangija lopmatult laieneda.
 	RunExpansionBaseCost = 40,      -- upgradePoints
 	RunExpansionCostMultiplier = 3, -- 40 -> 120 -> 360 ...
 }
+
+-- Genereeritud saare koguulatus = koige kaugem voimalik rong. TULETATUD,
+-- mitte eraldi arv, et see ei saaks laienduskohtade arvust lahku minna.
+Constants.IslandExpansion.MaxRadius = Constants.IslandExpansion.StartRadius
+	+ Constants.IslandExpansion.RunExpansionsMax
+	+ Constants.IslandExpansion.MetaExpansionsMax
 
 -- ============================================================
 -- HOONETE HINNAD
@@ -294,8 +301,8 @@ Constants.Meta = {
 	-- nihkuks: 1 seeme = endine 1 tasuta laiendus.
 	SeedsPerPayout = 600,
 
-	-- N-s pusiv laiendus maksab N * see. Tabelit TAHTLIKULT pole:
-	-- laienduste arv tuleb ainult IslandExpansion.MetaMaxRadius'ist,
+	-- N-s ostetud lisalaiendus maksab N * see. Tabelit TAHTLIKULT pole:
+	-- ostude arv tuleb ainult IslandExpansion.MetaExpansionsMax'ist,
 	-- mitte teisest kohast, mis voiks sellest lahku minna.
 	IslandUpgradeCostPerStep = 1,
 

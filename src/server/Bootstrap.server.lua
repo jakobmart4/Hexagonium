@@ -86,7 +86,7 @@ local function wireRunEnd(world)
 			result.banked, result.duration, result.attacksSurvived, seeds))
 
 		-- Jargmine run algab automaatselt samas maailmas: uus seeme,
-		-- meta-raadius sailib, run-laiendused nullitakse. Viivitus
+		-- ostetud lisalaiendused sailivad, run-laiendused nullitakse. Viivitus
 		-- annab mangijale aega tulemust lugeda (RunPanel "RUN COMPLETE").
 		task.delay(Constants.Run.RestartDelay, function()
 			if #world.owners == 0 then
@@ -133,7 +133,7 @@ local function onPlayerJoined(player)
 	local data = SaveService.Load(player)
 
 	local world = WorldManager.CreateFor(player, {
-		metaRadius = data.metaRadius,
+		bonusExpansions = data.bonusExpansions,
 		tutorialComplete = data.tutorialComplete,
 	})
 
@@ -150,8 +150,8 @@ local function onPlayerJoined(player)
 	world.profileSnapshot = data
 
 	print(string.format(
-		"[Hexagonium] %s -> slot %d, metaRadius=%d, runid=%d%s",
-		player.Name, world.slot, data.metaRadius, data.stats.runsPlayed,
+		"[Hexagonium] %s -> slot %d, lisalaiendusi=%d, runid=%d%s",
+		player.Name, world.slot, data.bonusExpansions, data.stats.runsPlayed,
 		SaveService.IsAvailable() and "" or "  (SALVESTAMINE VALJAS)"))
 
 	wireRunEnd(world)

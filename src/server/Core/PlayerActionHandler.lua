@@ -413,33 +413,32 @@ function PlayerActionHandler:HandleBuyMetaUpgrade(player, request)
 		end
 
 		local isl = Constants.IslandExpansion
-		if island.metaRadius >= isl.MetaMaxRadius then
-			self:Notify(player, "Your island is already at its permanent maximum.", "warning")
+		if island.bonusExpansions >= isl.MetaExpansionsMax then
+			self:Notify(player, "All permanent expansions are already unlocked.", "warning")
 			return
 		end
 
-		local step = island.metaRadius - isl.StartRadius + 1
-		local cost = step * Constants.Meta.IslandUpgradeCostPerStep
+		local cost = (island.bonusExpansions + 1) * Constants.Meta.IslandUpgradeCostPerStep
 		if not SaveService.SpendSeeds(player, cost) then
 			self:Notify(player, string.format("Need %d Hex Seeds, you have %d.",
 				cost, data.hexSeeds), "warning")
 			return
 		end
 
-		local ok, newRadius = island:GrantMetaExpansion()
+		local ok, bonus = island:GrantBonusExpansion()
 		if not ok then
 			-- Ei tohiks juhtuda (lagi kontrolliti ules), aga raha tagasi
 			SaveService.AddSeeds(player, cost)
-			self:Notify(player, "Could not grow the island.", "error")
+			self:Notify(player, "Could not unlock the expansion.", "error")
 			return
 		end
 
-		-- Rakendub JARGMISES run'is: praeguse saare hexid on juba
-		-- genereeritud, islandManager pusib ja ResetForNewRun teeb ulejaanu.
-		SaveService.SetMetaRadius(player, newRadius)
+		-- Kehtib KOHE: laienduste lagi loetakse igal CanExpand'il,
+		-- saart ei pea uuesti genereerima.
+		SaveService.SetBonusExpansions(player, bonus)
 		SaveService.Save(player, true)
-		self:Notify(player, string.format("Island grows to radius %d from your next run.",
-			newRadius), "success", "build")
+		self:Notify(player, string.format("Island expansions per run: %d.",
+			island:GetExpansionsMax()), "success", "build")
 		return
 	end
 

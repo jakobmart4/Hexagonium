@@ -3,7 +3,7 @@
 	Mangija puusiva edenemise salvestamine DataStore'i.
 
 	MIDA SALVESTATAKSE:
-	  metaRadius       - saare pusiv suurus (Hex Seed tasu)
+	  bonusExpansions  - ostetud lisalaiendused run'i kohta (Hex Seeds)
 	  tutorialComplete - kas mangija on esmase tutoriali labinud
 	  stats            - mangustatistika (runid, runnakud, punktid)
 
@@ -45,7 +45,7 @@ local dirty = {}
 
 function SaveService.GetDefaults()
 	return {
-		metaRadius = Constants.IslandExpansion.StartRadius,
+		bonusExpansions = 0,
 		tutorialComplete = false,
 		hexSeeds = 0,
 		unlockedCards = {}, -- ostetud kaardid; algkomplekt on Constants.Meta
@@ -67,9 +67,14 @@ local function fillDefaults(data)
 		return defaults
 	end
 
-	if type(data.metaRadius) ~= "number" then
-		data.metaRadius = defaults.metaRadius
+	-- MIGRATSIOON: vana metaRadius (pusiv algsaare raadius) -> sama arv
+	-- ostetud lisalaiendusi. Seemned on juba makstud, mangija ei kaota midagi.
+	if type(data.bonusExpansions) ~= "number" then
+		data.bonusExpansions = type(data.metaRadius) == "number"
+			and data.metaRadius - Constants.IslandExpansion.StartRadius
+			or defaults.bonusExpansions
 	end
+	data.metaRadius = nil
 
 	if type(data.tutorialComplete) ~= "boolean" then
 		data.tutorialComplete = defaults.tutorialComplete
@@ -95,8 +100,8 @@ local function fillDefaults(data)
 	end
 
 	-- Kaitse rikutud vaartuste vastu
-	local isl = Constants.IslandExpansion
-	data.metaRadius = math.clamp(data.metaRadius, isl.StartRadius, isl.MetaMaxRadius)
+	data.bonusExpansions = math.clamp(math.floor(data.bonusExpansions), 0,
+		Constants.IslandExpansion.MetaExpansionsMax)
 
 	return data
 end
@@ -168,14 +173,13 @@ end
 -- MUUTMINE
 -- ============================================================
 
-function SaveService.SetMetaRadius(player, radius)
+function SaveService.SetBonusExpansions(player, amount)
 	local data = cache[player.UserId]
 	if not data then
 		return false
 	end
 
-	local isl = Constants.IslandExpansion
-	data.metaRadius = math.clamp(radius, isl.StartRadius, isl.MetaMaxRadius)
+	data.bonusExpansions = math.clamp(amount, 0, Constants.IslandExpansion.MetaExpansionsMax)
 	dirty[player.UserId] = true
 	return true
 end
@@ -288,7 +292,7 @@ end
 
 -- Kustutab mangija salvestuse TAIELIKULT enne laadimist - ilma
 -- selleta ei saa Studios kunagi kontrollida, mida PARIS uus mangija
--- naeb: olemasolev metaRadius jm ainult CLAMPITAKSE uude vahemikku
+-- naeb: olemasolev bonusExpansions jm ainult CLAMPITAKSE uude vahemikku
 -- (vt fillDefaults), mitte ei lahtestata, kui Constants.lua muutub.
 function SaveService.WipeForTesting(player)
 	local userId = player.UserId

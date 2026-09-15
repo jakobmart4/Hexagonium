@@ -59,7 +59,7 @@ function WorldManager.CreateFor(player, options)
 		slot = slot,
 		origin = origin,
 		folder = folder,
-		metaRadius = options.metaRadius,
+		bonusExpansions = options.bonusExpansions,
 		seed = options.seed,
 		tutorialComplete = options.tutorialComplete,
 	})
