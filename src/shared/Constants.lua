@@ -205,10 +205,11 @@ Constants.IslandExpansion = {
 	-- Esimene run-laiendus maksab BaseCost, iga jargmine korrutatakse
 	-- CostMultiplier'iga. Nii ei saa mangija lopmatult laieneda.
 	RunExpansionBaseCost = 40,      -- upgradePoints
-	-- x2, mitte x3: kuni 6 laienduskoha juures (2 + 4 ostetud) olid x3-ga
-	-- kohad 3-6 (360-9720 UP) kättesaamatud. x2 hoiab valiku "saar vs
-	-- tootmine" päris valikuna: 4. laiendus (320) = ~3 tootmisahelat.
-	RunExpansionCostMultiplier = 2, -- 40 -> 80 -> 160 -> 320 -> 640 -> 1280
+	-- x3: laiendus on TAHTLIKULT kallis - valik "saar VÕI kasum"
+	-- (kasutaja otsus 15.09.2026, koos RewardPerExpansion = 0). Kohad
+	-- 3-6 maksavad 360-9720 UP: ostetud lisakohad on pikk eesmärk, mitte
+	-- iga run'i asi. x2 proovitud ja tagasi võetud, vt TASAKAALUSTAMINE.md.
+	RunExpansionCostMultiplier = 3, -- 40 -> 120 -> 360 -> 1080 ...
 }
 
 -- Genereeritud saare koguulatus = koige kaugem voimalik rong. TULETATUD,
@@ -265,7 +266,10 @@ Constants.Run = {
 	-- TASU KOGUNEMINE
 	RewardPerUpgradePoint = 1,
 	RewardPerAttackSurvived = 25,
-	RewardPerExpansion = 40,
+	-- 0: laiendus EI anna tasu. Kulutamine ei vähenda run'i tasu (tasu
+	-- loeb TOODETUD UP-d), nii et +40 tegi 1. laienduse tasuta. Nüüd
+	-- maksab laiendus ainult tootmisvõimsuses - valik "saar VÕI kasum".
+	RewardPerExpansion = 0,
 
 	-- Ajaboonus: iga minut vaartuslikum kui eelmine.
 	-- MARKUS: 6% liitkasv, MITTE 15%. Tunnipikkuse run'i puhul

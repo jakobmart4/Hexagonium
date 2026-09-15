@@ -224,13 +224,14 @@ TÄHTIS: kirjeldused mängijale GENEREERITAKSE Constants'ist
     aktiivne raadius = StartRadius + runExpansions
 
     RUN-TASAND: 2 + ostetud lisakohta laiendust run'is,
-      kulu 40 -> 80 -> 160 -> 320 -> 640 -> 1280 upgradePoints (x2)
+      kulu 40 -> 120 -> 360 -> 1080 -> 3240 -> 9720 upgradePoints (x3)
     META-TASAND: bonusExpansions 0 -> 4, ostetakse Hex Seeds'iga
       (N-s = N seemet), SALVESTUB, kehtib kohe
     Maksimum kokku: raadius 9 (TULETATUD: 3 + 2 + 4)
-    VALIK: laiendus = saar VÕI kasum (UP läheb tootmisest ära, iga
-      rõngas +1 ründaja). Kordaja x3 -> x2, sest x3 juures olid
-      lisakohad 3-6 kättesaamatud - vt TASAKAALUSTAMINE.md 15.09.2026.
+    VALIK: laiendus = saar VÕI kasum. Laiendus EI anna run'i tasu
+      (RewardPerExpansion = 0), UP läheb tootmisest ära ja iga rõngas
+      lisab +1 ründaja. Kordaja x3 on tahtlik: lisakohad 3-6 (360+ UP)
+      on pikk eesmärk. x2 proovitud ja tagasi võetud (TASAKAALUSTAMINE.md).
 
 7.4 LUKUSTATUD HEXID
     Kogu saar (271 hexi, raadius 9) genereeritakse korraga. Lukustatud on vee

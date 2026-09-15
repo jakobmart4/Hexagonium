@@ -30,7 +30,8 @@ vt punkt 3.
 | Hostile -> Attack viivitus | 30s | `Faction.AttackDelayAfterHostile` |
 | Hoonete hinnad | Extractor 20, Refinery 35, Assembler 50, PowerCore 40, Defender ~~45~~ **35** | `BuildCosts` |
 | Lammutuse tagastus | 50% | `DemolishRefund` |
-| Saare laienduse kulu (run) | ~~40 -> 120 -> 360~~ **40 -> 80 -> 160 -> 320 -> 640 -> 1280** UP (x2) | `IslandExpansion.RunExpansionBaseCost` / `CostMultiplier` |
+| Saare laienduse kulu (run) | 40 -> 120 -> 360 -> 1080 -> 3240 -> 9720 UP (x3; x2 proovitud ja tagasi võetud) | `IslandExpansion.RunExpansionBaseCost` / `CostMultiplier` |
+| Laienduse run'i tasu | ~~40~~ **0** (laiendus ei anna tasu) | `Run.RewardPerExpansion` |
 | Lisalaienduskoht (meta) | saar alustab alati raadiusega 3; N-s ostetud lisakoht = N Hex Seed'i (kuni 4, run'is 2 + ostetud laiendust); 1 seeme / 600 run'i tasu | `IslandExpansion.MetaExpansionsMax` / `Meta.SeedsPerPayout`, `Meta.IslandUpgradeCostPerStep` |
 | Run'i Timeout | 3600s (60 min, ülempiir) | `Run.Duration` |
 | RestartDelay | 8s | `Run.RestartDelay` |
@@ -47,8 +48,8 @@ vt punkt 3.
 | Defender taskukohane | 35 UP / 12 UP/min | ~3. minutil |
 | 1. saare laiendus taskukohane | 40 UP / 12 UP/min | ~4. minutil |
 | Tutoriali samm 4 (rünnaku algus) | 30+30+30s | ~90s (worst case) |
-| Kõik 6 run-laiendust kokku | 40 * (2^6 - 1) | 2520 UP |
-| 4. laiendus vs tootmisahel | 320 UP / 105 UP (Extractor+Refinery+Assembler) | ~3 ahelat (+12 UP/min igaüks) |
+| Kõik 6 run-laiendust kokku | 40 * (3^6 - 1) / 2 | 14560 UP |
+| 4. laiendus vs tootmisahel | 1080 UP / 105 UP (Extractor+Refinery+Assembler) | ~10 ahelat (+12 UP/min igaüks) |
 
 ---
 
@@ -69,6 +70,29 @@ Play-testide põhjal. Vormis: kuupäev, mida testiti, mis leiti.
 | 14.09.2026 | (lisaks) Demand-bänneri hoiatusaeg | — | Vaadeldud SAMM 7 testimisel: "Decide within Ns" pöördloendus koos "Wants X ore + Y crystal (have A/B)" progressiga oli selgelt loetav; 30s tundus piisav teadliku Pay/Refuse otsuse jaoks. |
 
 ## 4. Muudatuste logi
+
+### 15.09.2026 (hiljem) — x2 tagasi x3-le, RewardPerExpansion 40 -> 0
+
+**Kasutaja otsus**: laiendus peab olema terav valik "saar VÕI kasum".
+Allpool olev x2 kirje jättis kaks lahjendust: kulutamine ei vähenda
+run'i tasu ja iga laiendus andis +40 tasu, nii et 1. laiendus oli tasu
+mõttes tasuta.
+
+**Muudatused** (`Constants.lua`):
+
+| Parameter | Vana -> uus | Põhjus |
+|---|---|---|
+| `Run.RewardPerExpansion` | 40 -> 0 | laiendus maksab ainult tootmisvõimsuses, ei anna tasu tagasi |
+| `IslandExpansion.RunExpansionCostMultiplier` | 2 -> 3 | laiendus jääb tahtlikult kalliks |
+
+**Teadlik tagajärg**: lisakohad 3-6 maksavad 360, 1080, 3240 ja 9720 UP
+(kõik 6 kokku 14560 UP). Ostetud lisakohad on pikk eesmärk (tugev
+majandus pikas run'is), mitte iga run'i asi.
+
+**Kontroll**: kumbagi väärtust loetakse ühes kohas
+(`RunManager:RecordExpansion`, `IslandManager:GetNextCost`). x3 valem on
+Play-režiimis kontrollitud (pärast 2 laiendust "Not enough: 8 / 360 UP").
+Eraldi Play-testi ei tehtud.
 
 ### 15.09.2026 — Saare laienduse kordaja x3 -> x2
 
