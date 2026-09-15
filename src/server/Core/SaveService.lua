@@ -280,6 +280,30 @@ function SaveService.Save(player, force)
 	return false, tostring(err)
 end
 
+-- Koondab lähestikku tehtud muudatused (nt mitu Hex Seeds ostu järjest)
+-- ÜHEKS kirjutuseks. DataStore lubab sama võtit kirjutada ~1x 6 s jooksul;
+-- sunnitud SetAsync iga ostu järel ummistaks kirjutusjärjekorra. Pelgalt
+-- autosave'ile (120 s) jätmine kaotaks aga ostud Studios, kus BindToClose
+-- jäetakse vahele.
+local SAVE_SOON_DELAY = 7
+local pendingSave = {}
+
+function SaveService.SaveSoon(player)
+	local userId = player.UserId
+	if pendingSave[userId] then
+		return
+	end
+	pendingSave[userId] = true
+
+	task.delay(SAVE_SOON_DELAY, function()
+		pendingSave[userId] = nil
+		-- Lahkunud mängija salvestas juba Release (PlayerRemoving)
+		if player.Parent then
+			SaveService.Save(player)
+		end
+	end)
+end
+
 function SaveService.Release(player)
 	SaveService.Save(player, true)
 	cache[player.UserId] = nil

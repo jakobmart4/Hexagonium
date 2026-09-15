@@ -12,6 +12,8 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RemoteEvents = require(ReplicatedStorage.Shared.RemoteEvents)
 local Theme = require(ReplicatedStorage.Shared.Theme)
+local CardInfo = require(ReplicatedStorage.Shared.CardInfo)
+local BuildingInfo = require(ReplicatedStorage.Shared.BuildingInfo)
 
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
@@ -289,16 +291,25 @@ local function updateCards(cards)
 		nameLabel.Size = UDim2.new(1, -16, 0, 18)
 		nameLabel.Position = UDim2.new(0, 8, 0, 5)
 		nameLabel.BackgroundTransparency = 1
-		nameLabel.Text = card.name
+		nameLabel.Text = CardInfo.GetDisplayName(card.name)
 		nameLabel.TextColor3 = COLORS.text
 		nameLabel.TextXAlignment = Enum.TextXAlignment.Left
 		nameLabel.Font = FONT_BOLD
 		nameLabel.TextSize = Theme.TextSize.body
 		nameLabel.Parent = entry
 
-		local detail = card.scope
-		if card.scope == "hex" and card.targetQ then
-			detail = string.format("hex (%d, %d)", card.targetQ, card.targetR)
+		-- Mängijale loetav scope - mitte sisemine "global"/"buildingType"
+		local detail = "All buildings"
+		if card.scope == "hex" then
+			detail = card.targetQ
+				and string.format("Hex (%d, %d)", card.targetQ, card.targetR)
+				or "One hex"
+		elseif card.scope == "buildingType" then
+			local names = {}
+			for _, buildingType in ipairs(card.affects or {}) do
+				table.insert(names, BuildingInfo.GetDisplayName(buildingType))
+			end
+			detail = #names > 0 and table.concat(names, ", ") or "Some buildings"
 		end
 		if card.phase and card.phase ~= "idle" and card.phase ~= "normal" then
 			detail = detail .. "  -  " .. string.upper(card.phase)

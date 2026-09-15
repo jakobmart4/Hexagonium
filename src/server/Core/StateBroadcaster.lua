@@ -91,12 +91,24 @@ function StateBroadcaster:CollectCards()
 	end
 
 	for _, card in ipairs(cm.activeCards) do
+		-- buildingType-scope kaartide sihthooned (server on ainus allikas),
+		-- et HUD saaks näidata "Power Core", mitte toorest "buildingType"
+		local affects = nil
+		if card.affectedBuildingTypes then
+			affects = {}
+			for buildingType in pairs(card.affectedBuildingTypes) do
+				table.insert(affects, buildingType)
+			end
+			table.sort(affects)
+		end
+
 		table.insert(cards, {
 			name = card.cardName,
 			scope = card.scope,
 			phase = card.phase,
 			targetQ = card.targetQ,
 			targetR = card.targetR,
+			affects = affects,
 		})
 	end
 

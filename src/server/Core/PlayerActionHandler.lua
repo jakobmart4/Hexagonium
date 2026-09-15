@@ -436,7 +436,7 @@ function PlayerActionHandler:HandleBuyMetaUpgrade(player, request)
 		-- Kehtib KOHE: laienduste lagi loetakse igal CanExpand'il,
 		-- saart ei pea uuesti genereerima.
 		SaveService.SetBonusExpansions(player, bonus)
-		SaveService.Save(player, true)
+		SaveService.SaveSoon(player)
 		self:Notify(player, string.format("Island expansions per run: %d.",
 			island:GetExpansionsMax()), "success", "build")
 		return
@@ -462,7 +462,7 @@ function PlayerActionHandler:HandleBuyMetaUpgrade(player, request)
 		end
 
 		SaveService.UnlockCard(player, cardName)
-		SaveService.Save(player, true)
+		SaveService.SaveSoon(player)
 		self:Notify(player, CardInfo.GetDisplayName(cardName) .. " unlocked.", "success", "card")
 		return
 	end

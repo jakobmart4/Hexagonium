@@ -1,5 +1,5 @@
 HEXAGONIUM — PEADOKUMENT
-Versioon: 4.5
+Versioon: 4.6
 Kuupäev: 15. september 2026
 Place: Hexagonium (placeId: 104026897810299)
 
@@ -71,8 +71,8 @@ VALMIS
 
 PUUDUB (vt punkt 16, järjekorras)
   [ ] SAMM 9  - uue majanduse Play-test
-  [ ] SAMM 10 - avaldamise ettevalmistus + telemeetria
-  [ ] SAMM 11 - mobiilitugi (UI responsiivsus)
+  [ ] SAMM 10 - piiratud beta + telemeetria
+  Mobiilitugi: arutatakse pärast avaldamist (vt punkt 16)
 
 
 ========================================================================
@@ -275,6 +275,9 @@ PÕHIMÕTTED
   - MIGRATSIOON: vana metaRadius -> bonusExpansions = metaRadius - 3
     (juba makstud seemned ei lähe kaotsi; metaRadius kustutatakse)
   - Autosave 120 sek, pluss PlayerRemoving ja BindToClose
+  - Ostud: SaveService.SaveSoon koondab lähestikku ostud ÜHEKS kirjutuseks
+    ~7 s pärast (DataStore lubab ~1 kirjutuse / 6 s võtme kohta). Pelgalt
+    autosave'ile jätmine kaotaks ostud Studios (BindToClose jätab Studio vahele).
   - Versioon nimes: kui struktuur muutub ühilduvusetult, tõsta number
 
 STUDIOS VAJALIK
@@ -608,7 +611,7 @@ TEHNILINE
       Kui need kaovad, viskab MapGenerator nüüd vea (varem langes
       vaikselt silinditele — vali viga on parem kui vale mäng)
   [ ] UI kasutab fikseeritud pikslipositsioone — mobiilil võivad
-      paneelid kokku joosta
+      paneelid kokku joosta (teadlikult pärast avaldamist, vt punkt 16)
   [ ] Run'i taaskäivitus on AUTOMAATNE (Bootstrap.server.lua
       wireRunEnd, RestartDelay järel) — mängijal pole veel valikut
       midagi teha enne järgmise run'i algust. Kui see osutub
@@ -618,11 +621,7 @@ TEHNILINE
       ost annab kõigile rohkem laienduskohti, kuid läheb kirja ainult
       ostja bonusExpansions'isse. Co-op'i pole veel; selle lisamisel tuleb
       otsustada, kelle meta kehtib.
-  [ ] Serveri kaardiluku kontroll (HandleActivateCard) pole otse
-      testitud — klient blokeerib enne ja plugina sandbox ei luba
-      remote'e (13.13). Kontroll = sama CardInfo.IsUnlocked mis kliendis.
-  [ ] Active Cards paneel (HUD.client.lua ~rida 299) näitab toorest
-      scope väärtust ("buildingType") — eraldi ülesanne loodud.
+
   [ ] Laienduse hinnauuringu mudel on optimistlik: ei arvesta hoonete
       taasehitust ega mitme Defenderi vajadust (TASAKAALUSTAMINE.md).
   [ ] Algbaasi paigutus: simulatsioonis jääb 0-0.7% run'e, kus mõni
@@ -721,6 +720,16 @@ LAHENDATUD
       laiendust ja pidas kinni alles UP puudusel, mitte limiidil).
   [x] Demand'i "+1 tasuta kaart" oli surnud loendur (pendingRewardCards
       suurenes, keegi ei lugenud) -> eemaldatud, vt 14.15.
+  [x] Serveri kaardiluku kontroll oli otse testimata -> kliendi kontroll
+      ajutiselt Studios välja, server keeldus ("Null Surge is locked"),
+      kaart jäi lukku.
+  [x] Active Cards paneel näitas toorest teksti ("FluxTide", "buildingType")
+      -> kuvanimi + loetav scope ("All buildings", "Assembler, Extractor,
+      Refinery", "Hex (q, r)"); sihthooned tulevad serverist
+      (StateBroadcaster "affects"), mitte kliendi koopiast.
+  [x] Iga Hex Seeds ost tegi sunnitud DataStore-kirjutuse (kiired ostud
+      ummistaks järjekorra) -> SaveService.SaveSoon. Kontrollitud: 6 ostu
+      ~2 s jooksul ilma queue-hoiatuseta, ostud püsisid üle Stop/Play.
 
 
 ========================================================================
@@ -1031,20 +1040,30 @@ SAMM 9 — UUE MAJANDUSE PLAY-TEST                [PUUDUB]
   algsaar, laienduse kordaja x1.75, laiendus ilma tasuta. Numbrid on
   mudelist — vaja päris mängutunnetust: kas laiendamine tasub end ära,
   kas seemneid tuleb piisavalt, kas lukus kaardid motiveerivad.
-  Tulemused TASAKAALUSTAMINE.md punkti 3.
+  Tulemused TASAKAALUSTAMINE.md punkti 3. Kasutaja mängib Studios.
+  Eeldab telemeetriat (SAMM 10, tasks/todo.md ülesanded 5-6), mis
+  Studios kirjutab sündmused konsooli — see on Play-testi logi.
 
-SAMM 10 — AVALDAMISE ETTEVALMISTUS + TELEMEETRIA [PUUDUB]
-  Punkt 15 "ENNE AVALDAMIST" + lihtne telemeetria (run'i pikkus, lõpu
-  põhjus, laiendused, seemnete ostud). Täpsem tasakaalustamine vajab
-  päris mängijaid (SAMM 8 piirang).
+SAMM 10 — PIIRATUD BETA + TELEMEETRIA            [PUUDUB]
+  Esimene avaldamine = PIIRATUD BETA (privaatne / sõbrad lingiga).
+  Telemeetria Roblox'i AnalyticsService'iga (tutoriali lehter, run'i
+  lõpud, laiendused, Hex Seeds majandus); Studios peegeldub konsooli.
+  Punkt 15 "ENNE AVALDAMIST" + tagasivõtuplaan. Täpsem tasakaalustamine
+  vajab päris mängijaid (SAMM 8 piirang).
 
-SAMM 11 — MOBIILITUGI (UI responsiivsus)         [PUUDUB]
-  Täielik skaleeruv/puutetundlik ümberkorraldus. UI kasutab fikseeritud
-  pikslipositsioone; Theme.ClampToViewport on ainult piiratud abi.
+Üksikasjalik ülesannete nimekiri (vastuvõtukriteeriumid, kontrollpunktid):
+tasks/plan.md ja tasks/todo.md.
 
-HILJEM (otsustamata)
+------------------------------------------------------------------------
+PÄRAST AVALDAMIST (arutada, mitte järjekorras)
+------------------------------------------------------------------------
+  - Mobiilitugi (UI responsiivsus): täielik skaleeruv/puutetundlik
+    ümberkorraldus. UI kasutab fikseeritud pikslipositsioone;
+    Theme.ClampToViewport on ainult piiratud abi. Kasutaja otsus
+    15.09.2026: arutada pärast piiratud beta avaldamist.
   - "Kinnita jätkamine" olek run'ide vahel (14.10, punkt 15)
   - Co-op: kelle meta kehtib ühises maailmas (punkt 15)
+  - Avalik (mitte piiratud) avaldamine
 
 MÄRKUS ROADMAPI MUUTUSE KOHTA
   Algses plaanis oli run-süsteem "pärast MVP-d". Sammuna 6 sai see
