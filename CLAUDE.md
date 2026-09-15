@@ -81,6 +81,15 @@ maailma, mitte uut arhitektuuri.
    selle suumimisel. Lahendus: `Players.CharacterAutoLoads = false`.
 10. **`Players.MaxPlayers` on skriptist kirjutuskaitstud** — Game
     Settings.
+11. **MCP `execute_luau` sandbox blokeerib mängu koodi.** `require()`
+    mängu moodulitele, `FireServer()` ja ServerStorage'isse parent'imine
+    ebaõnnestuvad (Capabilities). Mängija tegevused päris sisendiga
+    (`user_mouse_input`/`user_keyboard_input`, eelista `instance_path`'i),
+    loogikat kontrolli elavate Instance'ide pealt.
+12. **Rojo ei märka nimevahetusega ümber kirjutatud faili** (`sed -i`).
+    Kirjuta failid kohapeal ja kontrolli Studios sünkrooni.
+13. **Testkonto salvestus püsib.** Constants'i muutus ainult clampib
+    olemasolevat salvestust — uue mängija vaade: `WipeSaveOnJoin`.
 
 ---
 
@@ -90,9 +99,11 @@ maailma, mitte uut arhitektuuri.
 
 ```lua
 RunTests         -- CardSystemTest iga Play vajutusega
+RunBalanceSim    -- BalanceSimulator iga Play vajutusega
 VerboseLogging   -- ressursivoo print
 ExposeGameState  -- _G.HexagoniumState
 ForceAttackAfter -- käivitab rünnaku N sekundi pärast (0 = väljas)
+WipeSaveOnJoin   -- kustutab salvestuse liitumisel (uue mängija vaade)
 ```
 
 `ForceAttackAfter` on ainus viis rünnakusüsteemi testida ilma

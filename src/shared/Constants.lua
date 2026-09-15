@@ -380,7 +380,6 @@ Constants.Faction = {
 		OreRequired = 50,
 		CrystalRequired = 20,
 		Deadline = 30,
-		RewardFreeCards = 1,
 	},
 
 	AttackDelayAfterHostile = 30,

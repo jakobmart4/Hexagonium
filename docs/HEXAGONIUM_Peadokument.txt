@@ -1,5 +1,5 @@
 HEXAGONIUM — PEADOKUMENT
-Versioon: 4.4
+Versioon: 4.5
 Kuupäev: 15. september 2026
 Place: Hexagonium (placeId: 104026897810299)
 
@@ -43,8 +43,8 @@ VALMIS
   [x] Hex-saar ookeanis, müra-põhine ressursijaotus
   [x] 5 hoonet täieliku tootmisloogikaga
   [x] Node-põhine ressursivoog prioriteetidega
-  [x] 10 Reality Card'i + exploit-kaitsed
-  [x] Saare laiendus kahel tasandil
+  [x] 10 Reality Card'i (4 algkomplektis, 6 avatakse Hex Seeds'iga) + exploit-kaitsed
+  [x] Saare laiendus (fikseeritud algsaar + run-laiendused + ostetud lisakohad)
   [x] Fraktsioon (olekumasin + Demand)
   [x] Rünnakusüsteem (ründajad, Defenderi tuli, hoonete hävimine)
   [x] Minimap
@@ -66,10 +66,13 @@ VALMIS
       (Hex Seeds: saare ost ja kaardi-avamised start screen'il)
   [x] Algbaasi paigutuse parandus (ore-ahel Defenderi lähedale) +
       fikseeritud algsaar (raadius 3), püsivad ostud = lisalaienduskohad
+  [x] Tasakaalustamine, teine ring (meta-majandus: laienduse hinnauuring
+      1.5-3 -> x1.75, laiendus ei anna tasu)
 
-PUUDUB
-  [ ] Mobiilitugi (UI responsiivsus - täielik skaleeruv/puutetundlik
-      ümberkorraldus, vt punkt 16)
+PUUDUB (vt punkt 16, järjekorras)
+  [ ] SAMM 9  - uue majanduse Play-test
+  [ ] SAMM 10 - avaldamise ettevalmistus + telemeetria
+  [ ] SAMM 11 - mobiilitugi (UI responsiivsus)
 
 
 ========================================================================
@@ -106,7 +109,7 @@ Maksad või valmistud rünnakuks. Rünnak hävitab hooneid päriselt.
 
 3.5 DEFENDER
     Sisend: 10 energiat / 5 sek (OTSE Power Core'ist, mitte node'i kaudu)
-    25 kahju / sek, raadius 3 hexi
+    35 kahju / sek (tasakaalustatud 25 -> 35), raadius 3 hexi
     Power Core seisab -> Defender seisab
     Seotakse automaatselt lähima Power Core'iga
 
@@ -143,6 +146,10 @@ VISUAAL: Beam liikuva tekstuuriga, värv = ressursi värv.
 KOMBINEERIMINE: multiplikaatorid KORRUTUVAD.
 SCOPE: "global" | "hex" | "buildingType".
 KESTUS: kord aktiveeritud -> aktiivne kuni run'i lõpuni.
+LUKUD: uus mängija alustab 4 kaardiga (Constants.Meta.StartingCards:
+  Overclock, Resource Bloom, Blessed Hex, Stable Hex). Ülejäänud 6
+  avatakse start screen'il Hex Seeds'iga (2 seemet tk). Server kontrollib
+  lukku aktiveerimisel ja ostul (CardInfo.IsUnlocked, jagatud kliendiga).
 
   Overclock      2.5x tootmine; iga 60s 5% shanss -> 20s seisak
   Flux Tide      iga 180s: +50% energia 30s, siis -30% energia 60s
@@ -168,7 +175,7 @@ TÄHTIS: kirjeldused mängijale GENEREERITAKSE Constants'ist
 
 6.2 DEMAND
     Nõuab 50 ore + 20 crystal, tähtaeg 30 sek
-    Täidetud     -> Friendly (60 sek) + 1 tasuta kaart
+    Täidetud     -> Friendly (60 sek), rünnakut ei tule (tasuta kaarti EI ole, vt 14.15)
     Ignoreeritud -> Hostile
     Keeldutud    -> Hostile -> Attack 30 sek hiljem
 
@@ -184,9 +191,11 @@ TÄHTIS: kirjeldused mängijale GENEREERITAKSE Constants'ist
     rünnak ebaaus, mitte pingeline.
 
 6.4 RÜNNAKUD
-    Laine suurus: 3 ründajat + 1 iga saare raadiuse ühiku kohta
-    üle algse, maksimum 10.
-    Ründaja: 60 HP, 20 kahju iga 2 sek, 6 studi/sek
+    Laine suurus: (3 + 1 iga rõnga kohta üle StartRadius'e) x ohutase,
+    maksimum 20.
+    Ründaja: 30 HP x ohutase, 20 kahju iga 2 sek, 6 studi/sek
+    Ohutase: 1 + 0.12 minutis, lagi 8.0x (~60. minutil) - pikk run muutub
+    paratamatult ohtlikuks, see annab Extract'ile mõtte.
     Ilmuvad saare servalt, valivad lähima hoone.
 
     Defenderid tulistavad lähimat ründajat raadiuses. Sihtmärgi
@@ -194,10 +203,10 @@ TÄHTIS: kirjeldused mängijale GENEREERITAKSE Constants'ist
     ründajatest midagi teadma.
 
     Tasakaal praeguste arvudega:
-      Ründaja tapmiseks: 3 lasku = 3 sekundit
+      Ründaja tapmiseks (minut 0): 1 lask = 1 sek (35 kahju vs 30 HP)
       Hoone hävitamiseks: 5 lööki = 10 sekundit
-    Üks Defender jõuab tappa ründaja enne hoone hävimist — aga
-    ainult siis, kui tal on energiat.
+    Minut 0 puhastab üks Defender laine (kui tal on energiat); alates
+    ~15. minutist enam mitte üksi (TASAKAALUSTAMINE.md punkt 3, küsimus 6).
 
 
 ========================================================================
@@ -245,7 +254,7 @@ TÄHTIS: kirjeldused mängijale GENEREERITAKSE Constants'ist
 
 SaveService.lua, DataStore "HexagoniumPlayer_v1"
 
-SALVESTATAKSE (kõik run'i lõpus, Bootstrap.server.lua wireRunEnd)
+SALVESTATAKSE (stats run'i lõpus - Bootstrap wireRunEnd; tutorial ja start screen'i ostud KOHE)
     bonusExpansions           ostetud lisalaienduskohad run'i kohta (0-4)
     tutorialComplete          kas mängija on tutoriali läbinud (wireTutorial)
     stats.runsPlayed          töötab
@@ -313,6 +322,8 @@ HIIR
   Hiireratas            Zoom
   Hiir ekraani serval   Pann
   Klõps minimapil       Kaamera liigub sinna
+  EXTRACT-nupp          KAKS klõpsu 3 s sees ("SURE?"-kinnitus)
+  MENU-nupp             Start screen (statistika + Hex Seeds ostud)
 
 MIKS MITTE ESC: Roblox võtab selle endale.
 MIKS L, MITTE E: E on inglise keeles sage täht, satub vestluses ette.
@@ -324,15 +335,15 @@ PAREMKLÕPS: KLÕPS vs LOHISTAMINE
 
 
 ========================================================================
-11. FAILISTRUKTUUR (48 skripti)
+11. FAILISTRUKTUUR (59 skripti)
 ========================================================================
 
 ReplicatedStorage/
   Shared/
     Constants.lua          KÕIK balance-arvud + Debug-lipud
-    RemoteEvents.lua       9 server<->klient kanalit
+    RemoteEvents.lua       11 server<->klient kanalit
     Theme.lua              värvid, fondid, mõõdud, hotkeyd
-    CardInfo.lua           kaartide kirjeldused (GENEREERITUD)
+    CardInfo.lua           kaartide kirjeldused (GENEREERITUD) + lukud (IsUnlocked)
     BuildingInfo.lua       hoonete kirjeldused + ressursiühilduvus
   BuildingTemplates/       5 hoonemudelit (loodud koodiga)
   HexTemplates/            4 kuusnurkset malli
@@ -347,10 +358,13 @@ ServerScriptService/
   BalanceSimulator.lua     tasakaalustamise simulaator (Debug.RunBalanceSim taga)
 
   Core/
-    GameManager.lua        seob kõik kokku
+    GameManager.lua        seob kõik kokku (CreateWorld / RestartRun)
+    WorldManager.lua       kuni 6 maailma serveris, maailm mängija järgi
+    RunManager.lua         run'i elutsükkel, tasu, 3 lõppu
+    Environment.lua        valgus ja atmosfäär
     TickService.lua        1s server-tick, FPS-sõltumatu
     MapGenerator.lua       maailma genereerimine, saare laiendus
-    IslandManager.lua      laienduse kaheastmeline loogika
+    IslandManager.lua      algsaar, run-laiendused, ostetud lisakohad
     StateBroadcaster.lua   mänguseis kliendile 0.5s intervalliga
     PlayerActionHandler.lua KÕIGI mängija tegevuste valideerimine
     SaveService.lua        DataStore
@@ -359,7 +373,7 @@ ServerScriptService/
   Hex/         HexGrid.lua
   Buildings/   BuildingBase, BuildingFactory, Extractor, PowerCore,
                Refinery, Assembler, Defender
-  Resources/   NodeSystem.lua, ResourceLedger.lua
+  Resources/   NodeSystem.lua, ResourceLedger.lua, PointBank.lua
   Factions/    FactionStateMachine, FractureSyndicate, AttackManager
   Cards/       CardBase, CardManager, CardRegistry
                CardEffects/ (10 kaardimoodulit)
@@ -376,7 +390,8 @@ StarterPlayer/StarterPlayerScripts/
   Minimap.lua              hex-ülevaade + kaamera hüpe
   Tutorial.lua             4-sammuline vihjebänner + Skip-nupp
   SoundEffects.lua         heliefektid (Notification kind/hint + GameStateUpdate diff)
-  StartScreen.lua          peamenüü / start screen (save-ülevaade + statistika)
+  StartScreen.lua          peamenüü / start screen (statistika + Hex Seeds ostud)
+  RunPanel.lua             run'i taimer, tasu, Extract, lõpuekraan
 
 MÄRKUS: UI-skriptid EI OLE StarterGui's. Need loovad oma ScreenGui
 koodiga ja elavad StarterPlayerScripts'is — vt punkt 13.
@@ -480,10 +495,32 @@ et neid teist korda ei avastaks.
       alati nil, isegi kui maailm päriselt eksisteerib. Laiendab
       punkti 13.3 (_G ei jagune) ka mooduli-tasandile.
       LAHENDUS: ära loe/muuda sisemist Lua seisu execute_luau kaudu.
-      Kasuta PÄRIS Instance'e (Workspace, Attributes) ja REMOTE'e
-      (FireServer/FireClient) — need on jagatud, sest nad on
-      DataModeli osad, mitte Lua moodulite upvalue'd. DataStore
-      töötab samal põhjusel otse (see on Roblox teenus, mitte moodul).
+      Loe PÄRIS Instance'e (Workspace, Attributes, PlayerGui) — need on
+      DataModeli osad, mitte moodulite upvalue'd. Mängija tegevused
+      tee PÄRIS sisendiga, mitte remote'idega — vt 13.13.
+
+13.13 execute_luau plugina sandbox (Capabilities) blokeerib mängu koodi
+      Nii Edit- kui Play-režiimis: require() mängu ModuleScript'ile,
+      RemoteEvent:FireServer() ja ServerStorage'isse parent'imine
+      viskavad "cannot ... additional values for the Capabilities
+      property". Loogika kontrolliks: (a) päris sisend Play-s
+      (user_mouse_input / user_keyboard_input), või (b) puhas Lua
+      harness, mis peegeldab koodi ja mille õigsus kinnitatakse
+      elava mängu tulemusega (vt punkt 15, algbaasi paigutus).
+
+13.14 Rojo ei märka faili, mis kirjutatakse ümber nimevahetusega
+      `sed -i` loob uue faili ja nimetab selle ümber — Studio jääb
+      vana sisu juurde. Kirjuta failid KOHAPEAL (Edit-tööriist,
+      PowerShell WriteAllText) ja kontrolli sünkrooni Studios.
+
+13.15 user_mouse_input x/y on GUI-ruumis, mitte ekraanipildi ruumis
+      Vahe on GUI inset (~58px). Klõpsa instance_path'iga, mitte
+      ekraanipildilt loetud koordinaatidega.
+
+13.16 Studio testkonto salvestus püsib Play-sessioonide üle
+      Constants'i muutmine ainult CLAMPIB olemasolevat salvestust —
+      uue mängija kogemust näeb ainult Constants.Debug.WipeSaveOnJoin
+      = true abil (ja lülita see pärast välja).
 
 
 ========================================================================
@@ -528,6 +565,28 @@ et neid teist korda ei avastaks.
       või hingetõmbeks rohkem kontrolli, lisada vahepealne
       "kinnita jätkamine" olek (vt punkt 15).
 
+14.11 Meta-progressioon on OSTETAV (Hex Seeds), mitte automaatne
+      Run'i tasu -> seemned, mängija ostab start screen'il. Varem andis
+      run'i lõpp laiendused korraga ja üks pikk run ammendas kõik.
+
+14.12 Kaardid on lukus (4 algkomplektis, 6 avatakse seemnetega)
+      Annab seemnetele teise kulutuskoha, mis muudab mängu ennast,
+      mitte ainult numbrit.
+
+14.13 Algsaar on ALATI raadius 3; ostud annavad laienduskohti
+      Suurem algsaar hajutas algbaasi Defenderist kaugele (koos
+      paigutusveaga, vt punkt 15).
+
+14.14 Laiendus ei anna run'i tasu, hinnakordaja x1.75
+      Laiendus on puhas valik "saar VÕI kasum" (RewardPerExpansion = 0).
+      Kordaja valiti kokkuhoidva mängija uuringuga (TASAKAALUSTAMINE.md).
+
+14.15 Demand'i maksmine EI anna tasuta kaarti
+      Varasem kirjeldus lubas "+1 tasuta kaart", aga seda ei rakendatud
+      kunagi (loendur suurenes, keegi ei lugenud). Kasutaja otsus: mitte
+      lisada — maksmise tasu on see, et rünnakut ei tule. Surnud
+      loendur (RewardFreeCards / pendingRewardCards) eemaldatud.
+
 
 ========================================================================
 15. TEADAOLEV VÕLG
@@ -559,6 +618,15 @@ TEHNILINE
       ost annab kõigile rohkem laienduskohti, kuid läheb kirja ainult
       ostja bonusExpansions'isse. Co-op'i pole veel; selle lisamisel tuleb
       otsustada, kelle meta kehtib.
+  [ ] Serveri kaardiluku kontroll (HandleActivateCard) pole otse
+      testitud — klient blokeerib enne ja plugina sandbox ei luba
+      remote'e (13.13). Kontroll = sama CardInfo.IsUnlocked mis kliendis.
+  [ ] Active Cards paneel (HUD.client.lua ~rida 299) näitab toorest
+      scope väärtust ("buildingType") — eraldi ülesanne loodud.
+  [ ] Laienduse hinnauuringu mudel on optimistlik: ei arvesta hoonete
+      taasehitust ega mitme Defenderi vajadust (TASAKAALUSTAMINE.md).
+  [ ] Algbaasi paigutus: simulatsioonis jääb 0-0.7% run'e, kus mõni
+      hoone on Defenderist liiga kaugel.
   [-] UnlockRing seab Locked=false KOHE, kuigi hex tõuseb staggeritult
       (~1.4s) — TEADLIKULT jäetud: see hoiab ära, et kaks kiiret
       laiendusklõpsu ostaksid sama rõnga kaks korda. Kõrvalmõju
@@ -651,6 +719,8 @@ LAHENDATUD
       ostud annavad lisalaienduskohti, mitte suuremat algsaart
       (kontrollitud: 4 lisaga run algas raadiusega 3, lubas 2/6
       laiendust ja pidas kinni alles UP puudusel, mitte limiidil).
+  [x] Demand'i "+1 tasuta kaart" oli surnud loendur (pendingRewardCards
+      suurenes, keegi ei lugenud) -> eemaldatud, vt 14.15.
 
 
 ========================================================================
@@ -661,6 +731,7 @@ SAMM 1 — FRAKTSIOONIDE OLEKUMASIN              [VALMIS]
 SAMM 2 — RÜNNAKUSÜSTEEM                        [VALMIS]
 SAMM 3 — MINIMAP                               [VALMIS]
 SAMM 4 — metaRadius SALVESTUS                  [VALMIS]
+  (hiljem asendatud: bonusExpansions, vt 14.13)
 
 SAMM 5 — HOONETE HINNAD                        [VALMIS]
   Constants.BuildCosts + DemolishRefund (0.5). Ehitamine kontrollib
@@ -748,7 +819,7 @@ SAMM 7 — TUTORIAL                              [VALMIS]
 
 SAMM 1-7 (MVP ROADMAP) ON NÜÜD TÄIELIKULT VALMIS.
 
-SAMM 8 — TASAKAALUSTAMINE                      [ESIMENE RING VALMIS]
+SAMM 8 — TASAKAALUSTAMINE                      [TEINE RING VALMIS]
   Raamistik: balance-tabel + muudatuste logi `docs/TASAKAALUSTAMINE.md`'s,
   kiire matemaatiline simulaator `src/server/BalanceSimulator.server.lua`
   (Constants.Debug.RunBalanceSim taga, mirrors CardSystemTest.server.lua).
@@ -768,6 +839,10 @@ SAMM 8 — TASAKAALUSTAMINE                      [ESIMENE RING VALMIS]
   arvutatuna ületab täieliku kaitse-investeeringu ("turtle") strateegia
   isegi minut-60 lae. Täpsem kalibreerimine vajab PÄRIS mängijate
   telemeetriat, mitte täiendavat simulaatori-arvamist — vt allpool.
+
+  Teine ring (15.09.2026, meta-majandus): laienduse hinnakordaja uuring
+  1.5-3 kokkuhoidva mängija mudeliga -> x1.75 (proovitud ka x2 ja x3);
+  laiendus ei anna enam run'i tasu. Tabel: TASAKAALUSTAMINE.md punkt 4.
 
 VISUAALNE POLEERIMINE                          [VALMIS]
   Osa 1 — hoonete kuju [VALMIS]: kõik 5 hoonet olid identsed värvilised
@@ -931,7 +1006,8 @@ META-PROGRESSIOON, OSA 2 (Hex Seeds)          [VALMIS]
   liitumishetke koopia — ostud jõuavad kliendini ilma käsitsi
   sünkroonimiseta. Bootstrap'i GrantMetaExpansion-wrapper eemaldatud.
 
-  KONTROLLITUD Play-režiimis: värske salvestus (0 seemet, lukus nupp);
+  KONTROLLITUD Play-režiimis (AJALOOLINE — enne fikseeritud algsaart, kui
+  saare ost veel kasvatas algsaart): värske salvestus (0 seemet, lukus nupp);
   Extract -> konsool "seemned+N", start screen uuenes kohe; saare ost
   1 seeme -> nupp nihkus "radius 5 · 2 seeds", järgmine run genereeriti
   raadiusega 4; salvestus püsis üle Play-sessiooni (71 seemet); kaardi
@@ -941,7 +1017,34 @@ META-PROGRESSIOON, OSA 2 (Hex Seeds)          [VALMIS]
   blokeerib lukus kaardi enne saatmist ja MCP plugina sandbox ei luba
   remote'e saata. Kontroll on sama CardInfo.IsUnlocked mis kliendis.
 
-MOBIILITUGI (UI responsiivsus)                 [PUUDUB]
+ALGBAASI PAIGUTUS + FIKSEERITUD ALGSAAR         [VALMIS]
+  Ore-ahel Defenderi lähedale (katki 37-53% -> 0-0.7%), algsaar alati
+  raadius 3, ostud = lisalaienduskohad (2 + kuni 4). Vt punkt 15
+  (lahendatud) ja 14.13.
+
+------------------------------------------------------------------------
+EDASI (järjekorras)
+------------------------------------------------------------------------
+
+SAMM 9 — UUE MAJANDUSE PLAY-TEST                [PUUDUB]
+  Kõik 15.09 majandusmuudatused koos: Hex Seeds, kaardilukud, fikseeritud
+  algsaar, laienduse kordaja x1.75, laiendus ilma tasuta. Numbrid on
+  mudelist — vaja päris mängutunnetust: kas laiendamine tasub end ära,
+  kas seemneid tuleb piisavalt, kas lukus kaardid motiveerivad.
+  Tulemused TASAKAALUSTAMINE.md punkti 3.
+
+SAMM 10 — AVALDAMISE ETTEVALMISTUS + TELEMEETRIA [PUUDUB]
+  Punkt 15 "ENNE AVALDAMIST" + lihtne telemeetria (run'i pikkus, lõpu
+  põhjus, laiendused, seemnete ostud). Täpsem tasakaalustamine vajab
+  päris mängijaid (SAMM 8 piirang).
+
+SAMM 11 — MOBIILITUGI (UI responsiivsus)         [PUUDUB]
+  Täielik skaleeruv/puutetundlik ümberkorraldus. UI kasutab fikseeritud
+  pikslipositsioone; Theme.ClampToViewport on ainult piiratud abi.
+
+HILJEM (otsustamata)
+  - "Kinnita jätkamine" olek run'ide vahel (14.10, punkt 15)
+  - Co-op: kelle meta kehtib ühises maailmas (punkt 15)
 
 MÄRKUS ROADMAPI MUUTUSE KOHTA
   Algses plaanis oli run-süsteem "pärast MVP-d". Sammuna 6 sai see

@@ -46,8 +46,6 @@ function FractureSyndicate.new(gameState)
 	-- Praegune noue (ainult Demand olekus)
 	self.demand = nil
 
-	-- Mitu tasuta kaarti mangija on teeninud (lunastamata)
-	self.pendingRewardCards = 0
 
 	-- Millal viimati Neutral'isse joudsime (Demand ajastuse jaoks)
 	self.lastNeutralTime = os.clock()
@@ -172,7 +170,6 @@ function FractureSyndicate:AcceptDemand()
 			math.floor(have[RT.CRYSTAL]), self.demand.crystal)
 	end
 
-	self.pendingRewardCards = self.pendingRewardCards + CFG.Demand.RewardFreeCards
 	self.machine:SetState(S.FRIENDLY, Constants.Cards.FracturePact.TradeStateDuration, S.NEUTRAL)
 
 	return true, "Demand paid. The Syndicate is friendly for now."
@@ -251,7 +248,6 @@ function FractureSyndicate:GetClientState()
 		name = "Fracture Syndicate",
 		state = state,
 		remaining = m:GetRemaining(),
-		rewardCards = self.pendingRewardCards,
 		attack = self.attackManager:GetClientState(),
 	}
 
