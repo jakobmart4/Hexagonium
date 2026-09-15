@@ -837,28 +837,52 @@ function MapGenerator.PlaceDemoBase(config)
 	local occupied = {}
 	local placed, failed = {}, {}
 
-	local function findFreeHex(hexType)
+	-- Axial hexi kaugus
+	local function distance(q1, r1, q2, r2)
+		local dq, dr = q1 - q2, r1 - r2
+		return (math.abs(dq) + math.abs(dq + dr) + math.abs(dr)) / 2
+	end
+
+	-- nearQ/nearR (valikuline): vali vaba hex, mis on sellele punktile LÄHIM,
+	-- mitte esimene GetChildren'i järjekorras. Ilma selleta sattus ore-ahel
+	-- suvalisse saare otsa: simulatsioon (300 seemet) näitas, et 37-53%
+	-- run'idest (raadius 3-7) jäi mõni hoone Defenderi ulatusest välja.
+	local function findFreeHex(hexType, nearQ, nearR)
+		local bestQ, bestR, bestD
 		for _, hex in ipairs(hexes:GetChildren()) do
 			if hex:GetAttribute("HexType") == hexType and hex:GetAttribute("Locked") ~= true then
 				local q, r = hex:GetAttribute("Q"), hex:GetAttribute("R")
 				if not occupied[q .. "," .. r] then
-					return q, r
+					if not nearQ then
+						return q, r
+					end
+					local d = distance(q, r, nearQ, nearR)
+					if not bestD or d < bestD then
+						bestQ, bestR, bestD = q, r, d
+					end
 				end
 			end
 		end
-		return nil
+		return bestQ, bestR
 	end
 
-	local function findFreeNeighbor(q, r)
+	local function findFreeNeighbor(q, r, nearQ, nearR)
 		local DIRS = {{1,0},{1,-1},{0,-1},{-1,0},{-1,1},{0,1}}
+		local bestQ, bestR, bestD
 		for _, d in ipairs(DIRS) do
 			local nq, nr = q + d[1], r + d[2]
 			local hex = hexes:FindFirstChild(string.format("Hex_%d_%d", nq, nr))
 			if not occupied[nq .. "," .. nr] and hex and hex:GetAttribute("Locked") ~= true then
-				return nq, nr
+				if not nearQ then
+					return nq, nr
+				end
+				local dist = distance(nq, nr, nearQ, nearR)
+				if not bestD or dist < bestD then
+					bestQ, bestR, bestD = nq, nr, dist
+				end
 			end
 		end
-		return nil
+		return bestQ, bestR
 	end
 
 	local function place(buildingType, q, r, name)
@@ -881,6 +905,10 @@ function MapGenerator.PlaceDemoBase(config)
 		return nil
 	end
 
+	-- Crystal-ahel + Defender ENNE, et ore-ahel saaks paigutuda Defenderi
+	-- lähedale (vt findFreeHex nearQ/nearR). Kui Defenderit ei õnnestunud
+	-- paigutada, on defQ nil ja käitumine langeb tagasi "esimene vaba".
+	local defQ, defR
 	local cq, cr = findFreeHex(Constants.HexTypes.CRYSTAL_HEX)
 	local eq, er = place("Extractor", cq, cr, "Extractor")
 	if eq then
@@ -888,17 +916,17 @@ function MapGenerator.PlaceDemoBase(config)
 		local gq, gr = place("PowerCore", pq, pr, "PowerCore")
 		if gq then
 			local dq, dr = findFreeNeighbor(gq, gr)
-			place("Defender", dq, dr, "Defender")
+			defQ, defR = place("Defender", dq, dr, "Defender")
 		end
 	end
 
-	local oq, orr = findFreeHex(Constants.HexTypes.ORE_HEX)
+	local oq, orr = findFreeHex(Constants.HexTypes.ORE_HEX, defQ, defR)
 	local xq, xr = place("Extractor", oq, orr, "ExtractorOre")
 	if xq then
-		local rq, rr = findFreeNeighbor(xq, xr)
+		local rq, rr = findFreeNeighbor(xq, xr, defQ, defR)
 		local fq, fr = place("Refinery", rq, rr, "Refinery")
 		if fq then
-			local aq, ar = findFreeNeighbor(fq, fr)
+			local aq, ar = findFreeNeighbor(fq, fr, defQ, defR)
 			place("Assembler", aq, ar, "Assembler")
 		end
 	end
