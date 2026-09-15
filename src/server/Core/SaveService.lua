@@ -299,7 +299,10 @@ function SaveService.SaveSoon(player)
 		pendingSave[userId] = nil
 		-- Lahkunud mängija salvestas juba Release (PlayerRemoving)
 		if player.Parent then
-			SaveService.Save(player)
+			-- SUNNITUD: pooleli olev teine SetAsync (nt run'i lõpp) võib
+			-- dirty-lipu vahepeal puhastada ostueelsete andmetega. Kirjutuste
+			-- arvu piirab niikuinii see viivitus, mitte dirty-lipp.
+			SaveService.Save(player, true)
 		end
 	end)
 end

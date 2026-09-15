@@ -21,6 +21,7 @@ local MapGenerator = require(ServerScriptService.Core.MapGenerator)
 local BuildingFactory = require(ServerScriptService.Buildings.BuildingFactory)
 local SaveService = require(ServerScriptService.Core.SaveService)
 local CardInfo = require(ReplicatedStorage.Shared.CardInfo)
+local Telemetry = require(ServerScriptService.Core.Telemetry)
 
 local PlayerActionHandler = {}
 PlayerActionHandler.__index = PlayerActionHandler
@@ -109,6 +110,7 @@ function PlayerActionHandler:HandleActivateCard(player, request)
 		world.tutorial:NotifyActivatedCard()
 	end
 
+	Telemetry.Event(player, "CardActivated", 1, {cardName})
 	self:Notify(player, cardName .. " activated.", "success", "card")
 end
 
@@ -373,6 +375,10 @@ function PlayerActionHandler:HandleSkipTutorial(player)
 	local world = self:GetWorld(player)
 	if not world or not world.tutorial then return end
 
+	-- Telemeetria: mitmendal sammul vahele jäeti (ainult päris vahelejätmine)
+	if not world.tutorial.complete then
+		Telemetry.Event(player, "TutorialSkipped", world.tutorial:GetClientState().step)
+	end
 	world.tutorial:Complete()
 end
 
@@ -387,6 +393,9 @@ function PlayerActionHandler:HandleExpandIsland(player)
 	end
 
 	local success, message = island:TryExpand()
+	if success then
+		Telemetry.Event(player, "IslandExpanded", island.runExpansions, {island.bonusExpansions})
+	end
 	self:Notify(player, message, success and "success" or "warning")
 end
 
@@ -435,6 +444,7 @@ function PlayerActionHandler:HandleBuyMetaUpgrade(player, request)
 
 		-- Kehtib KOHE: laienduste lagi loetakse igal CanExpand'il,
 		-- saart ei pea uuesti genereerima.
+		Telemetry.Economy(player, "Sink", "HexSeeds", cost, data.hexSeeds, "Shop", "ExpansionSlot")
 		SaveService.SetBonusExpansions(player, bonus)
 		SaveService.SaveSoon(player)
 		self:Notify(player, string.format("Island expansions per run: %d.",
@@ -461,6 +471,7 @@ function PlayerActionHandler:HandleBuyMetaUpgrade(player, request)
 			return
 		end
 
+		Telemetry.Economy(player, "Sink", "HexSeeds", cost, data.hexSeeds, "Shop", "Card_" .. cardName)
 		SaveService.UnlockCard(player, cardName)
 		SaveService.SaveSoon(player)
 		self:Notify(player, CardInfo.GetDisplayName(cardName) .. " unlocked.", "success", "card")

@@ -284,6 +284,40 @@ STUDIOS VAJALIK
     Game Settings -> Security -> Enable Studio Access to API Services
     Ilma selleta mäng töötab, aga edenemine ei salvestu.
 
+TELEMEETRIA (Telemetry.lua, Roblox AnalyticsService)
+  Iga sündmus vastab küsimusele (mitte "logi kõike"):
+    Kus uus mängija tutorialist välja kukub?  onboarding-lehter: 1 TutorialStarted
+                                              (5 s pärast liitumist), 2-5 tutoriali
+                                              sammud JÄRJEKORRAS + TutorialSkipped
+                                              (väärtus = samm, kus vahele jäeti)
+    Kuidas run'id lõpevad ja kui kaua?        RunEnded (minutid, väli: põhjus
+                                              Extract/Destroyed/Timeout/Quit),
+                                              RunPayout (väli: põhjus). "Quit" =
+                                              lahkumine pooleli run'iga (ainult
+                                              analüütika, tasu ei maksta)
+    Kas laiendusi kasutatakse?                RunExpansions (väli: ostetud lisad
+                                              0-4), IslandExpanded
+    Kas Hex Seeds majandus on tasakaalus?     majandus "HexSeeds": Source Gameplay
+                                              "RunReward"; Sink Shop "ExpansionSlot"
+                                              / "Card_<Nimi>"
+    Milliseid kaarte kasutatakse?             CardActivated (väli: kaardi nimi)
+    Kas live's on vigu?                       Creator Dashboard -> Error Report
+  LIVE: sündmused lähevad AINULT avaldatud mängu serverist; armatuurlaud
+    täitub kuni 24 h. Kutsed on pcall'is.
+  STUDIO: AnalyticsService ei võta vastu -> sama sündmus konsooli reana
+    "[Telemetry] {json}" (see on ka Play-testi logi). Enum'id lahendatakse
+    enne Studio/live hargnemist, et vale nimi viskaks vea juba Studios.
+  REEGLID: väljad väikestest fikseeritud hulkadest (max 3), mitte mängija
+    nime ega ID-d; ~6 kohandatud sündmuse nime (lagi 100); liitumisel
+    sündmusi ei saadeta ("too many events"); Skip EI loe lehtris sammude
+    läbimiseks (TutorialTracker:Complete on vaikne); lehtri samme teavitatakse
+    AINULT järjest (rünnaku samm tuleb taimerist ega tohi 1-3 vahele jätta).
+  DEBUG-KAITSE: WipeSaveOnJoin ja ForceAttackAfter töötavad AINULT Studios
+    (Bootstrap IS_STUDIO) - unustatud lipp ei kustuta live-salvestusi.
+  ÜLEVAATUS 15.09.2026: 4-mõõtmeline workflow (code-review-and-quality,
+    security-and-hardening, code-simplification, observability) + iga leiu
+    vastuväitlev kontroll -> 6 kinnitatud leidu parandatud, 2 ümber lükatud.
+
 
 ========================================================================
 9. EXPLOIT-KAITSED
@@ -338,7 +372,7 @@ PAREMKLÕPS: KLÕPS vs LOHISTAMINE
 
 
 ========================================================================
-11. FAILISTRUKTUUR (59 skripti)
+11. FAILISTRUKTUUR (60 skripti)
 ========================================================================
 
 ReplicatedStorage/
@@ -365,6 +399,7 @@ ServerScriptService/
     WorldManager.lua       kuni 6 maailma serveris, maailm mängija järgi
     RunManager.lua         run'i elutsükkel, tasu, 3 lõppu
     Environment.lua        valgus ja atmosfäär
+    Telemetry.lua          analüütika (AnalyticsService live / konsool Studios)
     TickService.lua        1s server-tick, FPS-sõltumatu
     MapGenerator.lua       maailma genereerimine, saare laiendus
     IslandManager.lua      algsaar, run-laiendused, ostetud lisakohad

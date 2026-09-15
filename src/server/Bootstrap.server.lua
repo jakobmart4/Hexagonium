@@ -13,8 +13,14 @@ local WorldManager = require(ServerScriptService.Core.WorldManager)
 local GameManager = require(ServerScriptService.Core.GameManager)
 local PlayerActionHandler = require(ServerScriptService.Core.PlayerActionHandler)
 local SaveService = require(ServerScriptService.Core.SaveService)
+local Telemetry = require(ServerScriptService.Core.Telemetry)
 
 local DEBUG = Constants.Debug
+
+-- Destruktiivsed testilipud (salvestuse kustutamine, sunnitud rünnak)
+-- töötavad AINULT Studios: unustatud lipp ei tohi avaldatud mängus
+-- mängijate salvestusi pöördumatult kustutada.
+local IS_STUDIO = game:GetService("RunService"):IsStudio()
 
 -- ============================================================
 -- KAIVITUS
@@ -72,7 +78,19 @@ local function wireRunEnd(world)
 			SaveService.AddStat(owner, "totalUpgradePoints", result.pointsProduced)
 			SaveService.AddStat(owner, "attacksSurvived", result.attacksSurvived)
 			SaveService.AddStat(owner, "buildingsLost", result.buildingsLost)
-			SaveService.AddSeeds(owner, seeds)
+			-- Telemeetria: kuidas run'id lõpevad, kas laiendusi kasutatakse,
+			-- palju seemneid teenitakse. Väljad väikestest hulkadest.
+			local reason = result.reason
+			local bonusSlots = world.islandManager and world.islandManager.bonusExpansions or 0
+			Telemetry.Event(owner, "RunEnded", math.floor(result.duration / 60), {reason})
+			Telemetry.Event(owner, "RunPayout", result.payout, {reason})
+			Telemetry.Event(owner, "RunExpansions", result.expansionsMade, {bonusSlots})
+
+			-- Source ainult siis, kui seemned PÄRISELT lisati (AddSeeds'i enda kontroll)
+			if SaveService.AddSeeds(owner, seeds) then
+				Telemetry.Economy(owner, "Source", "HexSeeds", seeds,
+					SaveService.Get(owner).hexSeeds, "Gameplay", "RunReward")
+			end
 		end
 
 		for _, owner in ipairs(world.owners) do
@@ -111,6 +129,15 @@ local function wireTutorial(world)
 		return
 	end
 
+	-- Onboarding-lehter: iga PÄRIS läbitud samm, järjekorras (Skip ei loe,
+	-- vt TutorialTracker). Lehtri samm 1 on "TutorialStarted" (onPlayerJoined),
+	-- seega tutoriali sammud 1-4 on lehtris 2-5.
+	tutorial:OnStep(function(step, stepName)
+		for _, owner in ipairs(world.owners) do
+			Telemetry.OnboardingStep(owner, step + 1, stepName)
+		end
+	end)
+
 	tutorial:OnComplete(function()
 		for _, owner in ipairs(world.owners) do
 			SaveService.SetTutorialComplete(owner, true)
@@ -126,7 +153,7 @@ end
 -- ============================================================
 
 local function onPlayerJoined(player)
-	if DEBUG.WipeSaveOnJoin then
+	if DEBUG.WipeSaveOnJoin and IS_STUDIO then
 		SaveService.WipeForTesting(player)
 	end
 
@@ -157,7 +184,18 @@ local function onPlayerJoined(player)
 	wireRunEnd(world)
 	wireTutorial(world)
 
-	if DEBUG.ForceAttackAfter and DEBUG.ForceAttackAfter > 0 then
+	-- Lehtri samm 1: uus mängija alustas tutoriali. Ilma selleta algaks lehter
+	-- esimesest TEHTUD sammust ja suurim väljalangemine (enne esimest tegevust)
+	-- oleks nähtamatu. Viivitusega, et mitte lisada liitumishetke tippu.
+	if not data.tutorialComplete then
+		task.delay(5, function()
+			if player.Parent then
+				Telemetry.OnboardingStep(player, 1, "TutorialStarted")
+			end
+		end)
+	end
+
+	if DEBUG.ForceAttackAfter and DEBUG.ForceAttackAfter > 0 and IS_STUDIO then
 		task.delay(DEBUG.ForceAttackAfter, function()
 			if world.faction then
 				print("[Hexagonium] SUNNITUD RUNNAK slot " .. world.slot)
@@ -168,6 +206,17 @@ local function onPlayerJoined(player)
 end
 
 local function onPlayerLeaving(player)
+	-- Telemeetria: pooleli jäetud run lõpeb "Quit"-iga. Ilma selleta näeks
+	-- "kuidas run'id lõpevad" ainult Extract/Destroyed/Timeout, kuigi enamik
+	-- sessioone lõpeb lahkumisega. Ainult analüütika - tasu ei maksta.
+	local world = WorldManager.Get(player)
+	local run = world and world.runManager
+	if run and run:CanExtract() then
+		Telemetry.Event(player, "RunEnded", math.floor(run:GetElapsed() / 60), {"Quit"})
+		Telemetry.Event(player, "RunExpansions", run.expansionsMade,
+			{world.islandManager and world.islandManager.bonusExpansions or 0})
+	end
+
 	WorldManager.RemovePlayer(player)
 	print(string.format("[Hexagonium] %s lahkus, maailmu alles: %d",
 		player.Name, WorldManager.Count()))

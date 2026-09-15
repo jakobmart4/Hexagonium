@@ -102,8 +102,8 @@ RunTests         -- CardSystemTest iga Play vajutusega
 RunBalanceSim    -- BalanceSimulator iga Play vajutusega
 VerboseLogging   -- ressursivoo print
 ExposeGameState  -- _G.HexagoniumState
-ForceAttackAfter -- käivitab rünnaku N sekundi pärast (0 = väljas)
-WipeSaveOnJoin   -- kustutab salvestuse liitumisel (uue mängija vaade)
+ForceAttackAfter -- käivitab rünnaku N sekundi pärast (0 = väljas, ainult Studios)
+WipeSaveOnJoin   -- kustutab salvestuse liitumisel (uue mängija vaade, ainult Studios)
 ```
 
 `ForceAttackAfter` on ainus viis rünnakusüsteemi testida ilma

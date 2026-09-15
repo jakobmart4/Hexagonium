@@ -17,12 +17,12 @@ Plaan ja põhjendused: `tasks/plan.md`. Roadmap: `docs/HEXAGONIUM_Peadokument.tx
 - [x] Play smoke, konsool puhas, commit'id (kasutaja ülevaade kokkuvõttes)
 
 ## Faas 2 — Telemeetria (SAMM 10a)
-- [ ] 5. `Telemetry.lua` + run'i lõpp + Hex Seeds majandus (M)
-- [ ] 6. Tutoriali lehter + CardActivated + IslandExpanded + TutorialSkipped (S)
+- [x] 5. `Telemetry.lua` + run'i lõpp + Hex Seeds majandus (M)
+- [x] 6. Tutoriali lehter + CardActivated + IslandExpanded + TutorialSkipped (S)
 
 ### Kontrollpunkt B
-- [ ] Kõik sündmused Studio konsoolis nähtud, peadokumendis "Telemeetria" alapunkt, commit
-- [ ] Koodiülevaatus (workflow: kvaliteet, turvalisus, lihtsustamine, jälgitavus)
+- [x] Kõik sündmused Studio konsoolis nähtud, peadokumendis "Telemeetria" alapunkt, commit
+- [x] Koodiülevaatus (workflow: kvaliteet, turvalisus, lihtsustamine, jälgitavus)
 
 ## Faas 3 — SAMM 9: Play-test (kasutaja mängib Studios)
 - [ ] 7. Stsenaariumid A (uus mängija), B (pikk kokkuhoidev run), C (meta-tsükkel); tulemused TASAKAALUSTAMINE.md p.3, kangide otsused p.4
