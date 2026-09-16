@@ -43,7 +43,7 @@ VALMIS
   [x] Hex-saar ookeanis, müra-põhine ressursijaotus
   [x] 5 hoonet täieliku tootmisloogikaga
   [x] Node-põhine ressursivoog prioriteetidega
-  [x] 10 Reality Card'i (4 algkomplektis, 6 avatakse Hex Seeds'iga) + exploit-kaitsed
+  [x] 10 Reality Card'i (3 algkomplektis, 7 avatakse Hex Seeds'iga) + exploit-kaitsed
   [x] Saare laiendus (fikseeritud algsaar + run-laiendused + ostetud lisakohad)
   [x] Fraktsioon (olekumasin + Demand)
   [x] Rünnakusüsteem (ründajad, Defenderi tuli, hoonete hävimine)
@@ -146,8 +146,9 @@ VISUAAL: Beam liikuva tekstuuriga, värv = ressursi värv.
 KOMBINEERIMINE: multiplikaatorid KORRUTUVAD.
 SCOPE: "global" | "hex" | "buildingType".
 KESTUS: kord aktiveeritud -> aktiivne kuni run'i lõpuni.
-LUKUD: uus mängija alustab 4 kaardiga (Constants.Meta.StartingCards:
-  Overclock, Resource Bloom, Blessed Hex, Stable Hex). Ülejäänud 6
+LUKUD: uus mängija alustab 3 kaardiga (Constants.Meta.StartingCards:
+  Resource Bloom, Blessed Hex, Stable Hex). Ülejäänud 7 (sh Overclock -
+  algkomplektis tegi see majanduse 0. minutist liiga lihtsaks, 16.09)
   avatakse start screen'il Hex Seeds'iga (2 seemet tk). Server kontrollib
   lukku aktiveerimisel ja ostul (CardInfo.IsUnlocked, jagatud kliendiga).
 
@@ -604,7 +605,7 @@ et neid teist korda ei avastaks.
       Run'i tasu -> seemned, mängija ostab start screen'il. Varem andis
       run'i lõpp laiendused korraga ja üks pikk run ammendas kõik.
 
-14.12 Kaardid on lukus (4 algkomplektis, 6 avatakse seemnetega)
+14.12 Kaardid on lukus (3 algkomplektis, 7 avatakse seemnetega)
       Annab seemnetele teise kulutuskoha, mis muudab mängu ennast,
       mitte ainult numbrit.
 

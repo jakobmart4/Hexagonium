@@ -14,6 +14,7 @@ local UserInputService = game:GetService("UserInputService")
 
 local RemoteEvents = require(ReplicatedStorage.Shared.RemoteEvents)
 local BuildingInfo = require(ReplicatedStorage.Shared.BuildingInfo)
+local Constants = require(ReplicatedStorage.Shared.Constants)
 local Theme = require(ReplicatedStorage.Shared.Theme)
 
 local player = Players.LocalPlayer
@@ -43,7 +44,7 @@ screenGui.Parent = playerGui
 
 local menu = Instance.new("Frame")
 menu.Name = "Menu"
-menu.Size = UDim2.new(0, 226, 0, 206)
+menu.Size = UDim2.new(0, 250, 0, 226)
 menu.BackgroundColor3 = Theme.UI.background
 menu.BackgroundTransparency = 0.02
 menu.BorderSizePixel = 0
@@ -112,17 +113,20 @@ local function makeInfoRow(yPos)
 	return key, val
 end
 
-local posKey, posVal       = makeInfoRow(62)
-local hexKey, hexVal       = makeInfoRow(82)
-local statusKey, statusVal = makeInfoRow(102)
-local healthKey, healthVal = makeInfoRow(122)
-local rateKey, rateVal     = makeInfoRow(142)
+-- Tootmisinfo, et mangija naeks, kus ahel ummistub voi nalgib
+local statusKey, statusVal = makeInfoRow(62)
+local healthKey, healthVal = makeInfoRow(82)
+local makesKey, makesVal   = makeInfoRow(102)
+local usesKey, usesVal     = makeInfoRow(122)
+local storedKey, storedVal = makeInfoRow(142)
+local hexKey, hexVal       = makeInfoRow(162)
 
-posKey.Text = "Location"
-hexKey.Text = "Terrain"
 statusKey.Text = "Status"
 healthKey.Text = "Integrity"
-rateKey.Text = "Output"
+makesKey.Text = "Makes"
+usesKey.Text = "Uses"
+storedKey.Text = "Stored"
+hexKey.Text = "Terrain"
 
 -- Nupud
 local function makeButton(text, color, yPos)
@@ -149,7 +153,7 @@ local function makeButton(text, color, yPos)
 	return btn
 end
 
-local demolishButton = makeButton("Demolish", Theme.UI.error, 168)
+local demolishButton = makeButton("Demolish", Theme.UI.error, 188)
 
 -- =========================================================
 -- OLEK
@@ -226,6 +230,98 @@ local function getHexTypeAt(q, r)
 	return "Barren"
 end
 
+local function formatFlow(flow, mult)
+	if not flow then
+		return "-"
+	end
+	local unit = flow[2] == "UP" and "UP" or flow[2]:lower()
+	local text = string.format("%g %s/min", math.floor(flow[1] * mult * 10 + 0.5) / 10, unit)
+	if math.abs(mult - 1) > 0.01 then
+		text ..= string.format(" (%.2fx)", mult)
+	end
+	return text
+end
+
+-- Kas hoone toob, nalgib voi ummistub? Jarjekord = mis on kõige
+-- olulisem parandada. "Piling up" = pakkumine uletab tarbimist rohkem
+-- kui minuti jagu -> lisa tarbija voi jaota link.
+local function describeStatus(state, flow)
+	local t = state.buildingType
+	if state.paused then
+		return "Offline", Theme.UI.error
+	end
+	if t == "Defender" and not state.hasPowerCore then
+		return "No Power Core", Theme.UI.error
+	end
+	if flow.uses and state.input ~= nil then
+		if state.linksIn == 0 then
+			return "No input link", Theme.UI.warning
+		elseif state.input < 1 then
+			return "Waiting for input", Theme.UI.warning
+		elseif state.input > flow.uses[1] then
+			return "Input piling up", Theme.UI.warning
+		end
+	end
+	if state.output ~= nil and state.linksOut == 0 then
+		return "No output link", Theme.UI.warning
+	end
+	return "Running", Theme.UI.success
+end
+
+-- Taidab inforead serveri seisust. Kutsutakse avamisel JA iga
+-- seisu-uuenduse ajal, kui menuu on lahti (numbrid elavad).
+local function refreshMenu()
+	if not currentTarget then
+		return
+	end
+	local q, r = currentTarget.q, currentTarget.r
+	local hexName = getHexTypeAt(q, r)
+	hexVal.Text = hexName
+
+	local state = buildingStates[q .. "," .. r]
+	if not state then
+		for _, val in ipairs({statusVal, healthVal, makesVal, usesVal, storedVal}) do
+			val.Text = "-"
+			val.TextColor3 = Theme.UI.textDim
+		end
+		statusVal.Text = "Unknown"
+		return
+	end
+
+	local hexType = (hexName == "Ore" and Constants.HexTypes.ORE_HEX)
+		or (hexName == "Crystal" and Constants.HexTypes.CRYSTAL_HEX) or nil
+	local flow = BuildingInfo.GetFlow(currentTarget.buildingType, hexType)
+	local mult = state.multiplier or 1
+
+	statusVal.Text, statusVal.TextColor3 = describeStatus(state, flow)
+
+	local hp = state.health or 1
+	healthVal.Text = string.format("%d%%", math.floor(hp * 100 + 0.5))
+	healthVal.TextColor3 = (hp > 0.66) and Theme.UI.success
+		or (hp > 0.33) and Theme.UI.warning
+		or Theme.UI.error
+
+	makesVal.Text = formatFlow(flow.makes, mult)
+	makesVal.TextColor3 = (mult > 1.01) and Theme.UI.success
+		or (mult < 0.99) and Theme.UI.warning
+		or Theme.UI.text
+	-- Tarbimine on alati baaskiirusel (kordaja mojutab ainult valjundit)
+	usesVal.Text = formatFlow(flow.uses, 1)
+	usesVal.TextColor3 = Theme.UI.text
+
+	if state.energy and state.maxEnergy then
+		storedVal.Text = string.format("%d / %d energy", state.energy, state.maxEnergy)
+	elseif state.input ~= nil or state.output ~= nil then
+		local parts = {}
+		if state.input ~= nil then table.insert(parts, state.input .. " in") end
+		if state.output ~= nil then table.insert(parts, state.output .. " out") end
+		storedVal.Text = table.concat(parts, "  ·  ")
+	else
+		storedVal.Text = "-"
+	end
+	storedVal.TextColor3 = Theme.UI.text
+end
+
 local function openMenu(visual)
 	local buildingType = visual:GetAttribute("BuildingType")
 	local q = visual:GetAttribute("Q")
@@ -237,38 +333,7 @@ local function openMenu(visual)
 	titleLabel.Text = info and info.displayName or buildingType
 	subLabel.Text = info and info.tagline or ""
 
-	posVal.Text = string.format("%d, %d", q, r)
-	hexVal.Text = getHexTypeAt(q, r)
-
-	local state = buildingStates[q .. "," .. r]
-	if state then
-		if state.paused then
-			statusVal.Text = "Offline"
-			statusVal.TextColor3 = Theme.UI.error
-		else
-			statusVal.Text = "Running"
-			statusVal.TextColor3 = Theme.UI.success
-		end
-
-		local mult = state.multiplier or 1
-		rateVal.Text = string.format("%.2fx", mult)
-		rateVal.TextColor3 = (mult > 1.01) and Theme.UI.success
-			or (mult < 0.99) and Theme.UI.warning
-			or Theme.UI.text
-
-		local hp = state.health or 1
-		healthVal.Text = string.format("%d%%", math.floor(hp * 100 + 0.5))
-		healthVal.TextColor3 = (hp > 0.66) and Theme.UI.success
-			or (hp > 0.33) and Theme.UI.warning
-			or Theme.UI.error
-	else
-		statusVal.Text = "Unknown"
-		statusVal.TextColor3 = Theme.UI.textDim
-		rateVal.Text = "-"
-		rateVal.TextColor3 = Theme.UI.textDim
-		healthVal.Text = "-"
-		healthVal.TextColor3 = Theme.UI.textDim
-	end
+	refreshMenu()
 
 	-- Aseta menuu kursori juurde, hoides seda ekraani sees
 	local mouse = UserInputService:GetMouseLocation()
@@ -407,10 +472,12 @@ if stateRemote then
 		end
 		buildingStates = newStates
 
-		-- Kui avatud menuu hoone on kadunud, sulge menuu
+		-- Kui avatud menuu hoone on kadunud, sulge menuu; muidu uuenda numbrid
 		if currentTarget and menu.Visible then
 			if not newStates[currentTarget.q .. "," .. currentTarget.r] then
 				closeMenu()
+			else
+				refreshMenu()
 			end
 		end
 	end)

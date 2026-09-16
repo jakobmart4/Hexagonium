@@ -129,6 +129,16 @@ function StateBroadcaster:CollectBuildings()
 				paused = building.isPaused or false,
 				multiplier = building.activeMultipliers and building.activeMultipliers.production or 1,
 				health = building.GetHealthPercent and building:GetHealthPercent() or 1,
+				-- Kontekstimenuu (ühenduste optimeerimine): puhvrid ja lingid
+				input = building.inputBuffer and math.floor(building.inputBuffer),
+				output = building.outputBuffer and math.floor(building.outputBuffer),
+				energy = building.currentEnergy and math.floor(building.currentEnergy),
+				maxEnergy = building.maxEnergyStorage,
+				linksIn = #building.inputConnections,
+				linksOut = #building.outputConnections,
+				-- Defender saab energiat otse Power Core'ist, mitte lingi kaudu
+				hasPowerCore = building.buildingType == "Defender"
+					and building.powerCoreRef ~= nil and not building.powerCoreRef.isDestroyed or nil,
 			})
 		end
 	end

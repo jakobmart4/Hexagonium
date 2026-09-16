@@ -100,6 +100,39 @@ BuildingInfo.Buildings = {
 	},
 }
 
+-- ============================================================
+-- VOOG MINUTIS (kontekstimenuu)
+-- Baaskiirused Constants'ist - kordajat EI arvestata, klient korrutab
+-- serveri saadetud kordajaga. Refinery/Assembler tarbivad alati
+-- baaskiirusel; kordaja mojutab ainult valjundit (vt nende Tick).
+-- hexType on vajalik ainult Extractorile.
+-- Tagastab {makes = {amount, resource} | nil, uses = {amount, resource} | nil}
+-- ============================================================
+local function perMinute(amount, interval)
+	return amount / interval * 60
+end
+
+function BuildingInfo.GetFlow(buildingType, hexType)
+	if buildingType == "Extractor" then
+		if hexType == Constants.HexTypes.ORE_HEX then
+			return {makes = {perMinute(B.Extractor.OreProductionRate, B.Extractor.OreProductionInterval), RT.ORE}}
+		elseif hexType == Constants.HexTypes.CRYSTAL_HEX then
+			return {makes = {perMinute(B.Extractor.CrystalProductionRate, B.Extractor.CrystalProductionInterval), RT.CRYSTAL}}
+		end
+		return {}
+	elseif buildingType == "Refinery" then
+		local rate = perMinute(B.Refinery.OreToAlloyRate, B.Refinery.OreToAlloyInterval)
+		return {uses = {rate, RT.ORE}, makes = {rate, RT.ALLOY}}
+	elseif buildingType == "Assembler" then
+		local rate = perMinute(B.Assembler.AlloyConsumptionRate, B.Assembler.AlloyConsumptionInterval)
+		return {uses = {rate, RT.ALLOY}, makes = {rate, "UP"}}
+	elseif buildingType == "Defender" then
+		return {uses = {perMinute(B.Defender.EnergyCostPerTick, B.Defender.EnergyCostInterval), "Energy"}}
+	end
+	-- Power Core muundab kristalli kohe energiaks (kiiruspiirangut pole)
+	return {}
+end
+
 -- Jarjekord ehitusmenuus: tootmisahela loogikas
 BuildingInfo.DisplayOrder = {
 	"Extractor",

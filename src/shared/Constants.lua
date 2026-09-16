@@ -316,9 +316,11 @@ Constants.Meta = {
 
 	-- KAARDID: uus mangija alustab nende kaartidega, ulejaanud avatakse
 	-- seemnete eest (start screen). Algkomplekt = madala riskiga kaardid
-	-- + Overclock + uks hex-kaart, et hex-sihtimine oleks ilma ostuta
-	-- opitav. Kaardi-listi allikas on endiselt CardRegistry/CardInfo.
-	StartingCards = {"Overclock", "ResourceBloom", "BlessedHex", "HexMutationStable"},
+	-- + uks hex-kaart, et hex-sihtimine oleks ilma ostuta opitav.
+	-- Overclock (x2.5) on OSTETAV: algkomplektis oli see 0. minutist
+	-- sees ja tegi majanduse liiga lihtsaks (Play-test B, 16.09.2026).
+	-- Kaardi-listi allikas on endiselt CardRegistry/CardInfo.
+	StartingCards = {"ResourceBloom", "BlessedHex", "HexMutationStable"},
 	CardUnlockCost = 2,
 }
 
