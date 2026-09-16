@@ -25,6 +25,15 @@ function Environment.Setup()
 	Lighting.EnvironmentDiffuseScale = 1
 	Lighting.EnvironmentSpecularScale = 1
 
+	-- Kood on ainus allikas: Studios käsitsi lisatud samad efektid
+	-- eemaldatakse. Muidu oli mängus 2 Atmosphere't (Roblox kasutab
+	-- neist suvaliselt ühte) ja 2 Bloom'i (kahekordne helendus).
+	for _, child in ipairs(Lighting:GetChildren()) do
+		if child:IsA("Atmosphere") or child:IsA("BloomEffect") or child:IsA("ColorCorrectionEffect") then
+			child:Destroy()
+		end
+	end
+
 	local atmosphere = Instance.new("Atmosphere")
 	atmosphere.Name = "HexagoniumAtmosphere"
 	atmosphere.Density = 0.3

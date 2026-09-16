@@ -383,11 +383,11 @@ ReplicatedStorage/
     CardInfo.lua           kaartide kirjeldused (GENEREERITUD) + lukud (IsUnlocked)
     BuildingInfo.lua       hoonete kirjeldused + ressursiühilduvus
   BuildingTemplates/       5 hoonemudelit (loodud koodiga)
-  HexTemplates/            4 kuusnurkset malli
+  HexTemplates/            4 kuusnurkset malli (AINULT place-failis, mitte gitis -
+                           varukoopia: Save to File -> assets/HexTemplates.rbxm)
 
 ServerStorage/
   HexOriginals/            originaalide varukoopia (ei replikeeru)
-  UnusedSkies/             vana Sky varukoopia
 
 ServerScriptService/
   Bootstrap.lua            käivitab mängu pärast andmete laadimist

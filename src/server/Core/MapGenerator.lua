@@ -253,23 +253,6 @@ function MapGenerator.EnsureOcean()
 	)
 
 	terrain:SetAttribute("HexagoniumOcean", true)
-
-	local baseplate = Workspace:FindFirstChild("Baseplate")
-	if baseplate then
-		baseplate.Transparency = 1
-		baseplate.CanCollide = false
-	end
-
-	for _, obj in ipairs(Workspace:GetChildren()) do
-		if obj:IsA("SpawnLocation") then
-			obj.Transparency = 1
-			obj.CanCollide = false
-			obj.Anchored = true
-			obj.Position = Vector3.new(0, -60, 0)
-			local decal = obj:FindFirstChildOfClass("Decal")
-			if decal then decal:Destroy() end
-		end
-	end
 end
 
 function MapGenerator.CreateBuildingTemplates()
