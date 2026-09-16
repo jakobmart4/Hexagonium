@@ -69,6 +69,7 @@ Play-testide põhjal. Vormis: kuupäev, mida testiti, mis leiti.
 | 14.09.2026 | 8. RestartDelay | (arv ei kohaldu) | Vaadeldud SAMM 6/7 Play-testimisel (Extract-nupp -> "RUN COMPLETE" ekraan 5 reaga tulemusi -> 8-9s -> uus run algas automaatselt): 8s tundus piisav tulemuse lugemiseks, mitte liiga pikk tegevusetuks jäämiseks. |
 | 14.09.2026 | (lisaks) Demand-bänneri hoiatusaeg | — | Vaadeldud SAMM 7 testimisel: "Decide within Ns" pöördloendus koos "Wants X ore + Y crystal (have A/B)" progressiga oli selgelt loetav; 30s tundus piisav teadliku Pay/Refuse otsuse jaoks. |
 | 15.09.2026 | 9. Laienduse kordaja (kokkuhoidev mängija) | Kordajad 1.5-3, mängija ostab 1 Defenderi ja kogub ülejäänu. x3: 60-min run'is 3 laiendust -> kõik 4 ostetud lisakohta kasutamata. x1.75: 5 laiendust, 6. haruldane. Täielik tabel punktis 4. | Kasutaja: 1. laiendus sobiv, järgmised liiga suur kulu. |
+| 16.09.2026 | 10. Play-test B (kokkuhoidev run, uus mängija, bonus 0) | — | Kestus **8 min** (plaan 20-30), lõpp **Extract**, tasu **558** (100%), rünnakuid üle elatud 1. Laiendused minutil **4 ja 5** -> run'i lagi (2) täis juba 5. minutil, edasi polnud saart kuhugi laiendada. Kaardid: Resource Bloom, Overclock. Tutorial Skip sammul 1. **Hex Seeds +0**: 558 < SeedsPerPayout 600 (~70 tasu/min -> 1. seeme alles ~8,6 min). Kasutaja muljed: ootel. |
 
 ## 4. Muudatuste logi
 
