@@ -405,7 +405,9 @@ function PlayerActionHandler:HandleExpandIsland(player)
 
 	local success, message = island:TryExpand()
 	if success then
-		Telemetry.Event(player, "IslandExpanded", island.runExpansions, {island.bonusExpansions})
+		-- 2. väli: run'i minut -> "aeg 1./2. laienduseni" (Play-test B, analüütika)
+		local minute = world.runManager and math.floor(world.runManager:GetElapsed() / 60) or 0
+		Telemetry.Event(player, "IslandExpanded", island.runExpansions, {island.bonusExpansions, minute})
 		if world.tutorial then
 			world.tutorial:NotifyExpandedIsland()
 		end
