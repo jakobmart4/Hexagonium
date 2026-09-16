@@ -386,9 +386,6 @@ ReplicatedStorage/
   HexTemplates/            4 kuusnurkset malli (AINULT place-failis, mitte gitis -
                            varukoopia: Save to File -> assets/HexTemplates.rbxm)
 
-ServerStorage/
-  HexOriginals/            originaalide varukoopia (ei replikeeru)
-
 ServerScriptService/
   Bootstrap.lua            käivitab mängu pärast andmete laadimist
   CardSystemTest.lua       9 testiplokki (Debug.RunTests taga)
