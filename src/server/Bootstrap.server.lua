@@ -68,6 +68,11 @@ local function wireRunEnd(world)
 	end
 
 	run:OnEnd(function(result)
+		-- Tutorial: run lõppes (Extract, Destroyed või Timeout)
+		if world.tutorial then
+			world.tutorial:NotifyRunEnded()
+		end
+
 		-- Tasu -> Hex Seeds. Mangija kulutab need ise run'ide vahel
 		-- (PlayerActionHandler:HandleBuyMetaUpgrade). Varem anti saare
 		-- laiendused siin OTSE ja korraga - vt Constants.Meta.
@@ -131,10 +136,13 @@ local function wireTutorial(world)
 
 	-- Onboarding-lehter: iga PÄRIS läbitud samm, järjekorras (Skip ei loe,
 	-- vt TutorialTracker). Lehtri samm 1 on "TutorialStarted" (onPlayerJoined),
-	-- seega tutoriali sammud 1-4 on lehtris 2-5.
+	-- seega tutoriali sammud 1-9 on lehtris 2-10. Sama sündmus salvestab
+	-- edenemise, et järgmine sessioon jätkaks samalt sammult (SaveSoon koondab).
 	tutorial:OnStep(function(step, stepName)
 		for _, owner in ipairs(world.owners) do
 			Telemetry.OnboardingStep(owner, step + 1, stepName)
+			SaveService.SetTutorialStep(owner, step)
+			SaveService.SaveSoon(owner)
 		end
 	end)
 
@@ -162,6 +170,7 @@ local function onPlayerJoined(player)
 	local world = WorldManager.CreateFor(player, {
 		bonusExpansions = data.bonusExpansions,
 		tutorialComplete = data.tutorialComplete,
+		tutorialStep = data.tutorialStep,
 	})
 
 	if not world then
@@ -184,15 +193,14 @@ local function onPlayerJoined(player)
 	wireRunEnd(world)
 	wireTutorial(world)
 
-	-- Lehtri samm 1: uus mängija alustas tutoriali. Ilma selleta algaks lehter
-	-- esimesest TEHTUD sammust ja suurim väljalangemine (enne esimest tegevust)
-	-- oleks nähtamatu. Viivitusega, et mitte lisada liitumishetke tippu.
-	if not data.tutorialComplete then
-		task.delay(5, function()
-			if player.Parent then
-				Telemetry.OnboardingStep(player, 1, "TutorialStarted")
-			end
-		end)
+	-- Lehtri samm 1: uus mängija alustas tutoriali - ainult ESIMESEL korral,
+	-- mitte igal liitumisel (tutorialStep jätkab pooleli jäänud tutoriali).
+	-- Ilma selleta algaks lehter esimesest TEHTUD sammust ja suurim
+	-- väljalangemine (enne esimest tegevust) oleks nähtamatu. Kohe, mitte
+	-- viivitusega: infosammu "Next" võib tulla sekunditega ja lehter peab
+	-- olema järjekorras. Üks sündmus liitumisel ei tekita "too many events".
+	if not data.tutorialComplete and data.tutorialStep == 0 then
+		Telemetry.OnboardingStep(player, 1, "TutorialStarted")
 	end
 
 	if DEBUG.ForceAttackAfter and DEBUG.ForceAttackAfter > 0 and IS_STUDIO then

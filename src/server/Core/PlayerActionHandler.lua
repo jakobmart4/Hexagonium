@@ -274,10 +274,11 @@ function PlayerActionHandler:HandleConnectNodes(player, request)
 
 	nodeSystem:Connect(source, target)
 
-	if world.tutorial
-		and (source.buildingType == "PowerCore" or target.buildingType == "PowerCore")
-	then
-		world.tutorial:NotifyConnectedToPowerCore()
+	-- Tutorial: Extractor ühendati sobivasse sihtmärki. CanConnect on juba
+	-- kontrollinud ressursi (Crystal -> Power Core, Ore -> Refinery). Varem
+	-- nõuti Power Core'i ja Ore-extractoriga mängija jäi sammule kinni.
+	if world.tutorial and source.buildingType == "Extractor" then
+		world.tutorial:NotifyLinkedExtractor()
 	end
 
 	self:Notify(player, string.format("Linked %s to %s (priority %d).",
@@ -382,6 +383,16 @@ function PlayerActionHandler:HandleSkipTutorial(player)
 	world.tutorial:Complete()
 end
 
+-- Infosammu "Next". TutorialTracker:AdvanceInfo lubab ainult PRAEGUST
+-- infosammu - klient ei saa sellega tegevussamme vahele jätta.
+function PlayerActionHandler:HandleAdvanceTutorial(player, request)
+	local world = self:GetWorld(player)
+	if not world or not world.tutorial then return end
+	if type(request) ~= "table" or type(request.step) ~= "number" then return end
+
+	world.tutorial:AdvanceInfo(request.step)
+end
+
 function PlayerActionHandler:HandleExpandIsland(player)
 	local world = self:GetWorld(player)
 	if not world then return end
@@ -395,6 +406,9 @@ function PlayerActionHandler:HandleExpandIsland(player)
 	local success, message = island:TryExpand()
 	if success then
 		Telemetry.Event(player, "IslandExpanded", island.runExpansions, {island.bonusExpansions})
+		if world.tutorial then
+			world.tutorial:NotifyExpandedIsland()
+		end
 	end
 	self:Notify(player, message, success and "success" or "warning")
 end
@@ -507,6 +521,7 @@ function PlayerActionHandler:Connect()
 	bind("ExtractRun", PlayerActionHandler.HandleExtract)
 	bind("SkipTutorial", PlayerActionHandler.HandleSkipTutorial)
 	bind("BuyMetaUpgrade", PlayerActionHandler.HandleBuyMetaUpgrade)
+	bind("AdvanceTutorial", PlayerActionHandler.HandleAdvanceTutorial)
 end
 
 return PlayerActionHandler

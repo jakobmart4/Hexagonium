@@ -11,6 +11,7 @@
 	  FactionDecision  klient -> server   (Fracture Pact jah/ei)
 	  SkipTutorial     klient -> server   (mängija jätab tutoriali vahele)
 	  BuyMetaUpgrade   klient -> server   (Hex Seeds kulutamine start screen'il)
+	  AdvanceTutorial  klient -> server   (tutoriali infosammu "Next")
 	  Notification     server -> klient   (teated: runnak, kaardi efekt)
 ]]
 
@@ -29,6 +30,7 @@ local EVENT_NAMES = {
 	"ExtractRun",
 	"SkipTutorial",
 	"BuyMetaUpgrade",
+	"AdvanceTutorial",
 	"Notification",
 }
 

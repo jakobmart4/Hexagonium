@@ -137,7 +137,7 @@ function GameManager.CreateWorld(config)
 
 	-- Pusivad run'ide ule - EI looda RestartRun'is uuesti
 	world.islandManager = IslandManager.new(world, config.bonusExpansions)
-	world.tutorial = TutorialTracker.new(config.tutorialComplete)
+	world.tutorial = TutorialTracker.new(config.tutorialComplete, config.tutorialStep)
 
 	buildWorldSystems(world, config.seed)
 

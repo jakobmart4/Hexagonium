@@ -62,6 +62,7 @@ function WorldManager.CreateFor(player, options)
 		bonusExpansions = options.bonusExpansions,
 		seed = options.seed,
 		tutorialComplete = options.tutorialComplete,
+		tutorialStep = options.tutorialStep,
 	})
 
 	table.insert(world.owners, player)

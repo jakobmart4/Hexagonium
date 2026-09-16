@@ -287,8 +287,8 @@ STUDIOS VAJALIK
 TELEMEETRIA (Telemetry.lua, Roblox AnalyticsService)
   Iga sündmus vastab küsimusele (mitte "logi kõike"):
     Kus uus mängija tutorialist välja kukub?  onboarding-lehter: 1 TutorialStarted
-                                              (5 s pärast liitumist), 2-5 tutoriali
-                                              sammud JÄRJEKORRAS + TutorialSkipped
+                                              (5 s pärast liitumist), 2-10 tutoriali
+                                              9 sammu JÄRJEKORRAS + TutorialSkipped
                                               (väärtus = samm, kus vahele jäeti)
     Kuidas run'id lõpevad ja kui kaua?        RunEnded (minutid, väli: põhjus
                                               Extract/Destroyed/Timeout/Quit),
@@ -311,7 +311,7 @@ TELEMEETRIA (Telemetry.lua, Roblox AnalyticsService)
     nime ega ID-d; ~6 kohandatud sündmuse nime (lagi 100); liitumisel
     sündmusi ei saadeta ("too many events"); Skip EI loe lehtris sammude
     läbimiseks (TutorialTracker:Complete on vaikne); lehtri samme teavitatakse
-    AINULT järjest (rünnaku samm tuleb taimerist ega tohi 1-3 vahele jätta).
+    AINULT järjest (tegevussamme saab teha enne, kui nad ekraanile jõuavad).
   DEBUG-KAITSE: WipeSaveOnJoin ja ForceAttackAfter töötavad AINULT Studios
     (Bootstrap IS_STUDIO) - unustatud lipp ei kustuta live-salvestusi.
   ÜLEVAATUS 15.09.2026: 4-mõõtmeline workflow (code-review-and-quality,
@@ -815,8 +815,25 @@ SAMM 6 — RUN-SÜSTEEM                           [VALMIS]
   nullist, lõpuekraan peitunud).
 
 SAMM 7 — TUTORIAL                              [VALMIS]
-  4 sammu: ehita Extractor -> ühenda Power Core'iga -> aktiveeri
-  Reality Card -> koge Fracture Syndicate'i rünnakut.
+  UUENDATUD 16.09.2026 (Play-test A leid): 9 sammu, tegevus- + infosammud.
+    1 info     algbaasi tutvustus (Crystal -> Power Core -> Defender;
+               Ore -> Refinery -> Assembler -> UP)
+    2 tegevus  ehita Extractor
+    3 tegevus  ühenda Extractor sobivasse sihtmärki (Crystal -> Power Core,
+               Ore -> Refinery). VIGA PARANDATUD: varem nõuti Power Core'i
+               ja Ore-extractoriga mängija jäi sammule kinni.
+    4 tegevus  aktiveeri Reality Card
+    5 tegevus  Demand lahenes (Pay / Refuse / tähtaeg)
+    6 info     rünnakud ja Defenderi energia
+    7 tegevus  laienda saart [L]
+    8 tegevus  run lõppes (Extract / Destroyed / Timeout)
+    9 info     Hex Seeds ja MENU
+  Infosammud ("Next") lubab server AINULT praegusel sammul
+  (TutorialTracker:AdvanceInfo, remote AdvanceTutorial). Tegevussamme saab
+  teha enne, kui nad ekraanile jõuavad - siis jäetakse need vahele.
+  Tekstides numbrid Constants'ist, kiirklahvid Theme'ist.
+  (Algne versioon: 4 sammu - ehitus, Power Core'i ühendus, kaart, rünnaku
+  algus; testitud allpool.)
 
   ARHITEKTUUR: server on autoriteetne (TutorialTracker.lua jälgib
   4 sammu läbi juba olemasolevate õnnestumispunktide — ei lisanud
@@ -829,16 +846,26 @@ SAMM 7 — TUTORIAL                              [VALMIS]
   nagu world.islandManager — EI OLE buildWorldSystems'i osa, seega
   RestartRun ei puuduta seda kunagi. tutorialComplete salvestub
   DataStore'i (SaveService.SetTutorialComplete, wireTutorial
-  Bootstrap.server.lua's).
+  Bootstrap.server.lua's). Pooleli tutorial JÄTKUB: viimane järjest
+  läbitud samm salvestub (tutorialStep, SaveSoon), TutorialStarted
+  saadetakse ainult esimesel liitumisel.
 
-  KIIRENDATUD ESIMENE DEMAND: tutoriali lõpetamata mängijale on
-  esimene Neutral -> Demand tsükkel 30s (Constants.Faction.
-  TutorialDemandInterval), mitte tavaline 150s — muidu peaks uus
-  mängija ootama rünnaku-sammu jaoks üle 2 minuti. Tutoriali
-  lõppedes taastub tavaline intervall automaatselt.
+  DEMAND'I AJASTUS TUTORIALI AJAL (16.09.2026):
+    - enne sammu 5: nõudeid EI TULE (TutorialTracker:HoldsDemands) -
+      varem tuli esimene nõue ~30 s pärast liitumist, samm 5 jäeti
+      vahele ja rünnak hävitas uue mängija hooneid enne selgitust;
+    - sammul 5: taimer algab sammu kättejõudmisel, nõue 30 s pärast
+      (Constants.Faction.TutorialDemandInterval, NeedsFastDemand);
+    - pärast: tavaline 150 s. Nõue, mis lahenes enne sammu 5, sammu
+      tehtuks ei loe. "Next demand in" loendur kasutab sama intervalli.
+  Infosamm, millest mängija tegudega mööda läks, loetakse tehtuks -
+  analüütika lehter ei jää "Next"-i vajutamata sammule kinni.
+  TESTITUD Play-s 16.09.2026: kõik 9 sammu järjest (Ore-extractor ->
+  Refinery, Overclock, Pay, [L], EXTRACT, Finish), lehter 1-10
+  järjekorras, pärast tutoriali "Next demand in" 150 s.
 
   SKIP-NUPP: väike tekstlink paneeli nurgas, SkipTutorial remote,
-  märgib kõik 4 sammu korraga (TutorialTracker:Complete()).
+  märgib kõik 9 sammu korraga (TutorialTracker:Complete()).
 
   KAKS PÄRIS VIGA LEITUD JA PARANDATUD SAMAS TÖÖS (vt punkt 15):
   FractureSyndicate'i Hostile-lõks (mõjutab põhimängu, mitte ainult

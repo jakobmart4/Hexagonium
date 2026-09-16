@@ -5,6 +5,7 @@
 	MIDA SALVESTATAKSE:
 	  bonusExpansions  - ostetud lisalaiendused run'i kohta (Hex Seeds)
 	  tutorialComplete - kas mangija on esmase tutoriali labinud
+	  tutorialStep     - pooleli tutoriali viimane järjest läbitud samm
 	  stats            - mangustatistika (runid, runnakud, punktid)
 
 	OLULINE STUDIO KOHTA:
@@ -47,6 +48,7 @@ function SaveService.GetDefaults()
 	return {
 		bonusExpansions = 0,
 		tutorialComplete = false,
+		tutorialStep = 0, -- viimane JÄRJEST läbitud tutoriali samm (jätkamiseks)
 		hexSeeds = 0,
 		unlockedCards = {}, -- ostetud kaardid; algkomplekt on Constants.Meta
 		stats = {
@@ -79,6 +81,11 @@ local function fillDefaults(data)
 	if type(data.tutorialComplete) ~= "boolean" then
 		data.tutorialComplete = defaults.tutorialComplete
 	end
+
+	if type(data.tutorialStep) ~= "number" then
+		data.tutorialStep = defaults.tutorialStep
+	end
+	data.tutorialStep = math.max(0, math.floor(data.tutorialStep))
 
 	if type(data.hexSeeds) ~= "number" then
 		data.hexSeeds = defaults.hexSeeds
@@ -191,6 +198,18 @@ function SaveService.SetTutorialComplete(player, value)
 	end
 
 	data.tutorialComplete = value and true or false
+	dirty[player.UserId] = true
+	return true
+end
+
+-- Viimane järjest läbitud samm; ainult kasvab (vana sündmus ei vii tagasi)
+function SaveService.SetTutorialStep(player, step)
+	local data = cache[player.UserId]
+	if not data or type(step) ~= "number" then
+		return false
+	end
+
+	data.tutorialStep = math.max(data.tutorialStep, math.floor(step))
 	dirty[player.UserId] = true
 	return true
 end

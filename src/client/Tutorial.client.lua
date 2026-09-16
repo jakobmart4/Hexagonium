@@ -1,11 +1,14 @@
 --[[
 	Tutorial.client.lua (LocalScript)
-	Vaike, mitteblokeeriv sammubanner uuele mangijale: ehita Extractor,
-	uhenda see Power Core'iga, aktiveeri kaart, koge runnakut.
+	Mitteblokeeriv sammubanner uuele mangijale (9 sammu): algbaas, ehitus,
+	uhendus, kaart, Demand, runnakud, laiendus, run'i lopp, Hex Seeds.
 
-	Server (TutorialTracker) otsustab, mis samm on pooleli - see fail
-	ainult kuvab vastava ingliskeelse vihje ja peidab end, kui
-	tutorial on labi voi juba varem labitud.
+	Server (TutorialTracker) otsustab, mis samm on pooleli ja kas see on
+	infosamm ("Next"-nupp) - see fail ainult kuvab vastava ingliskeelse
+	vihje ja peidab end, kui tutorial on labi voi juba varem labitud.
+
+	Numbrid tekstides tulevad Constants'ist ja kiirklahvid Theme'ist -
+	mitte kasitsi kirjutatud, et balansi muutmisel ei hakkaks tekst valetama.
 
 	KOGU MANGIJALE NAHTAV TEKST ON INGLISE KEELES.
 ]]
@@ -15,43 +18,56 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local RemoteEvents = require(ReplicatedStorage.Shared.RemoteEvents)
 local Theme = require(ReplicatedStorage.Shared.Theme)
+local Constants = require(ReplicatedStorage.Shared.Constants)
 
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
 
 local FONT = Theme.Font.regular
+local FONT_BOLD = Theme.Font.bold
+local KEYS = Theme.Hotkeys
 
 -- =========================================================
--- SAMMUDE TEKST (server teab ainult sammu numbrit, mitte teksti)
+-- SAMMUDE TEKST (server teab ainult sammu numbrit ja tüüpi)
 -- =========================================================
+local DESTROYED_PERCENT = math.floor(Constants.Run.PayoutDestroyed * 100 + 0.5)
+
 local STEP_TEXT = {
 	[1] = {
-		hint = string.format(
-			"Build an Extractor on an Ore or Crystal hex. Press [%s] to open the build menu.",
-			Theme.Hotkeys.build
-		),
-		flavor = "Tip: Ore and Crystal hexes are colored on the ground - build costs are shown right on each button.",
+		hint = "Your base already runs two chains: Crystal -> Power Core -> Defender (energy), and Ore -> Refinery -> Assembler -> UP. UP is your currency.",
+		flavor = string.format("Tip: press [%s] to see every link and what it carries.", KEYS.links),
 	},
 	[2] = {
-		hint = string.format(
-			"Connect your Extractor to a Power Core so its energy chain can flow. Press [%s] to link nodes.",
-			Theme.Hotkeys.links
-		),
-		flavor = "Tip: connection order sets priority when a building has multiple outputs.",
+		hint = string.format("Build an Extractor on an Ore or Crystal hex. Press [%s] to open the build menu.", KEYS.build),
+		flavor = "Tip: Ore and Crystal hexes are colored on the ground - build costs are shown on each button.",
 	},
 	[3] = {
-		hint = string.format(
-			"Activate a Reality Card to bend the run's rules in your favor. Press [%s] to open your card deck.",
-			Theme.Hotkeys.cards
-		),
-		flavor = string.format(
-			"Tip: hex-targeted cards show a banner - click any hex to place, or [%s]/right-click to cancel.",
-			Theme.Hotkeys.cancel
-		),
+		hint = string.format("Link your new Extractor to what uses its resource: Crystal -> Power Core, Ore -> Refinery. Press [%s] to link.", KEYS.links),
+		flavor = "Tip: link order sets priority when a building has several outputs.",
 	},
 	[4] = {
-		hint = "The Fracture Syndicate is coming. Keep your Defender powered - losing buildings is permanent this run.",
-		flavor = "Once you're steady, expand your island with UP to unlock more hexes.",
+		hint = string.format("Activate a Reality Card to bend this run's rules. Press [%s] to open your deck.", KEYS.cards),
+		flavor = "Tip: more cards unlock with Hex Seeds in MENU.",
+	},
+	[5] = {
+		hint = "The Fracture Syndicate will demand ore and crystal. Pay to keep the peace, or Refuse and get ready to fight.",
+		flavor = "Ignoring a demand counts as refusing.",
+	},
+	[6] = {
+		hint = "Attacks destroy buildings for the rest of the run. Defenders shoot attackers, but only while a Power Core feeds them energy.",
+		flavor = "Attacks grow stronger every minute - add Defenders over time.",
+	},
+	[7] = {
+		hint = string.format("Expand your island with [%s]. More land means more resources, but UP spent here is not spent on production.", KEYS.expand),
+		flavor = "Each expansion costs more than the last.",
+	},
+	[8] = {
+		hint = string.format("End the run with EXTRACT when the risk feels too high. You keep the full reward - if your base is destroyed, only %d%%.", DESTROYED_PERCENT),
+		flavor = "Your reward grows every minute you survive.",
+	},
+	[9] = {
+		hint = string.format("Every %d run reward becomes 1 Hex Seed. Spend seeds in MENU on extra expansion slots and more cards.", Constants.Meta.SeedsPerPayout),
+		flavor = "Seeds and purchases carry over between runs.",
 	},
 }
 
@@ -71,21 +87,20 @@ screenGui.Parent = playerGui
 
 -- Vasak veerg, Island Map'i (Minimap.client.lua, 16,16 - 206x224) alla:
 -- see on ainus koht, mida HUD/RunPanel/CardPanel/FactionPanel ei kata
--- kunagi ja mida BuildMenu/CardDeck/NodeLinks'i AVATUD paneelid ei
--- kata tavalisel ekraanikorgusel (need avanevad alt ulespoole).
+-- kunagi. Korgem kui varem, sest tekstid on pikemad ja all on Next-nupp.
 local panel = Theme.AnimatedPanel(
 	"TutorialPanel",
-	UDim2.new(0, 370, 0, 108),
+	UDim2.new(0, 370, 0, 170),
 	UDim2.new(0, 16, 0, 248),
 	screenGui
 )
 Theme.ClampToViewport(panel)
 
-local title = Theme.Title("STEP 1 / 4", panel)
+local title = Theme.Title("STEP 1 / 9", panel)
 
 local hintLabel = Instance.new("TextLabel")
 hintLabel.Name = "Hint"
-hintLabel.Size = UDim2.new(1, -Theme.Layout.padding * 2, 0, 48)
+hintLabel.Size = UDim2.new(1, -Theme.Layout.padding * 2, 0, 66)
 hintLabel.Position = UDim2.new(0, Theme.Layout.padding, 0, 32)
 hintLabel.BackgroundTransparency = 1
 hintLabel.Text = ""
@@ -99,8 +114,8 @@ hintLabel.Parent = panel
 
 local flavorLabel = Instance.new("TextLabel")
 flavorLabel.Name = "Flavor"
-flavorLabel.Size = UDim2.new(1, -Theme.Layout.padding * 2, 0, 16)
-flavorLabel.Position = UDim2.new(0, Theme.Layout.padding, 0, 82)
+flavorLabel.Size = UDim2.new(1, -Theme.Layout.padding * 2, 0, 32)
+flavorLabel.Position = UDim2.new(0, Theme.Layout.padding, 0, 100)
 flavorLabel.BackgroundTransparency = 1
 flavorLabel.Text = ""
 flavorLabel.TextColor3 = Theme.UI.textDim
@@ -110,7 +125,23 @@ flavorLabel.Font = FONT
 flavorLabel.TextSize = Theme.TextSize.small
 flavorLabel.Parent = panel
 
--- Progressiriba: visuaalne vaste "STEP N/4" tekstile
+-- Next/Finish: nähtav ainult infosammul (server ütleb isInfo)
+local nextButton = Instance.new("TextButton")
+nextButton.Name = "Next"
+nextButton.Size = UDim2.new(0, 72, 0, 22)
+nextButton.Position = UDim2.new(1, -84, 0, 136)
+nextButton.BackgroundColor3 = Theme.UI.panelHover
+nextButton.BorderSizePixel = 0
+nextButton.Text = "Next"
+nextButton.TextColor3 = Theme.UI.accent
+nextButton.Font = FONT_BOLD
+nextButton.TextSize = Theme.TextSize.small
+nextButton.AutoButtonColor = false
+nextButton.Visible = false
+nextButton.Parent = panel
+Theme.Corner(nextButton, Theme.Layout.cornerSmall)
+
+-- Progressiriba: visuaalne vaste "STEP N/9" tekstile
 local progressTrack = Instance.new("Frame")
 progressTrack.Name = "ProgressTrack"
 progressTrack.Size = UDim2.new(1, -Theme.Layout.padding * 2, 0, 3)
@@ -156,7 +187,15 @@ end)
 -- =========================================================
 -- UUENDAMINE
 -- =========================================================
+local advanceRemote = RemoteEvents.Get("AdvanceTutorial")
 local currentStep = nil
+
+nextButton.MouseButton1Click:Connect(function()
+	if currentStep then
+		-- Server kontrollib, et see on päriselt praegune infosamm
+		advanceRemote:FireServer({step = currentStep})
+	end
+end)
 
 local stateRemote = RemoteEvents.Get("GameStateUpdate")
 stateRemote.OnClientEvent:Connect(function(payload)
@@ -189,6 +228,8 @@ stateRemote.OnClientEvent:Connect(function(payload)
 	title.Text = string.format("STEP %d / %d", tutorial.step, tutorial.total)
 	hintLabel.Text = text.hint
 	flavorLabel.Text = text.flavor or ""
+	nextButton.Visible = tutorial.isInfo == true
+	nextButton.Text = tutorial.step == tutorial.total and "Finish" or "Next"
 	Theme.Tween(progressFill, {Size = UDim2.new(tutorial.step / tutorial.total, 0, 1, 0)}, Theme.TweenTime.normal):Play()
 
 	if wasVisible then

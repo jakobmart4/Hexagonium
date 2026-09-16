@@ -24,6 +24,9 @@ Plaan ja põhjendused: `tasks/plan.md`. Roadmap: `docs/HEXAGONIUM_Peadokument.tx
 - [x] Kõik sündmused Studio konsoolis nähtud, peadokumendis "Telemeetria" alapunkt, commit
 - [x] Koodiülevaatus (workflow: kvaliteet, turvalisus, lihtsustamine, jälgitavus)
 
+## Faas 3a — Vahepala: tutoriali ümbertegemine (Play-test A leid)
+- [x] 7a. Samm 2 viga (Ore-extractor ei saanud Power Core'i) + 9-sammuline tutorial: majandus, Demand, rünnakud, laiendus, Extract, Hex Seeds; tegevus- + infosammud ("Next"); Demand'id ootavad sammu 5; pooleli tutorial jätkub (M) — Play-s kontrollitud 16.09
+
 ## Faas 3 — SAMM 9: Play-test (kasutaja mängib Studios)
 - [ ] 7. Stsenaariumid A (uus mängija), B (pikk kokkuhoidev run), C (meta-tsükkel); tulemused TASAKAALUSTAMINE.md p.3, kangide otsused p.4
 

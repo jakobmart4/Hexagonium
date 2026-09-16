@@ -47,7 +47,7 @@ vt punkt 3.
 | Tuumaheла hind (Extractor+Refinery+Assembler+PowerCore) | 20+35+50+40 | 145 UP (algkapital 150) |
 | Defender taskukohane | 35 UP / 12 UP/min | ~3. minutil |
 | 1. saare laiendus taskukohane | 40 UP / 12 UP/min | ~4. minutil |
-| Tutoriali samm 4 (rünnaku algus) | 30+30+30s | ~90s (worst case) |
+| Esimene Demand tutoriali ajal | TutorialDemandInterval | enne sammu 5 nõudeid ei tule; sammul 5 30s; pärast 150s |
 | Kõik 6 run-laiendust kokku | floor(40 * 1.75^(n-1)), n=1..6 | 1477 UP |
 | 4. laiendus vs tootmisahel | 214 UP / 105 UP (Extractor+Refinery+Assembler) | ~2 ahelat (+12 UP/min igaüks) |
 

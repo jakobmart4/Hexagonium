@@ -72,15 +72,17 @@ function FractureSyndicate:_wireTransitions()
 
 	m:OnExit(S.DEMAND, function()
 		self.demand = nil
+
+		-- Tutorial: nõue lahenes mis tahes viisil (makstud, keeldutud,
+		-- tähtaeg möödus) - mängija on Demand'iga kokku puutunud.
+		if self.gameState.tutorial then
+			self.gameState.tutorial:NotifyDemandResolved()
+		end
 	end)
 
 	m:OnEnter(S.ATTACK, function()
 		self:_setDefendersUnderAttack(true)
 		self.attackManager:StartWave(FractureSyndicate.ATTACK_DURATION)
-
-		if self.gameState.tutorial then
-			self.gameState.tutorial:NotifyAttackStarted()
-		end
 	end)
 
 	m:OnExit(S.ATTACK, function()
@@ -192,6 +194,17 @@ end
 -- TICK
 -- ============================================================
 
+-- Mitu sekundit Neutral'ist järgmise nõudeni. ÜKS allikas nii Tick'ile kui
+-- kliendi "Next demand in" loendurile (varem näitas loendur 150 s ka siis,
+-- kui päris intervall oli tutoriali ajal 30 s).
+function FractureSyndicate:_demandInterval()
+	local tutorial = self.gameState.tutorial
+	if tutorial and tutorial:NeedsFastDemand() then
+		return CFG.TutorialDemandInterval
+	end
+	return FractureSyndicate.DEMAND_INTERVAL
+end
+
 function FractureSyndicate:Tick()
 	local m = self.machine
 
@@ -226,11 +239,12 @@ function FractureSyndicate:Tick()
 	-- mangijale on esimene tsukkel luhem, et runnaku-samm ei sunniks
 	-- ule 2 minuti ootama.
 	if m:IsState(S.NEUTRAL) then
-		local interval = (self.gameState.tutorial and not self.gameState.tutorial.complete)
-			and CFG.TutorialDemandInterval
-			or FractureSyndicate.DEMAND_INTERVAL
-
-		if os.clock() - self.lastNeutralTime >= interval then
+		local tutorial = self.gameState.tutorial
+		if tutorial and tutorial:HoldsDemands() then
+			-- Uus mängija pole Demand-sammuni jõudnud: nõudeid ei tule ja
+			-- taimer ootab. Kui samm kätte jõuab, loetakse aeg sealt.
+			self.lastNeutralTime = os.clock()
+		elseif os.clock() - self.lastNeutralTime >= self:_demandInterval() then
 			self:EnterDemand()
 		end
 	end
@@ -256,7 +270,7 @@ function FractureSyndicate:GetClientState()
 	-- fraktsioon ettearvamatu ja runnak ebaausana.
 	if state == S.NEUTRAL then
 		local elapsed = os.clock() - self.lastNeutralTime
-		data.nextDemandIn = math.max(0, FractureSyndicate.DEMAND_INTERVAL - elapsed)
+		data.nextDemandIn = math.max(0, self:_demandInterval() - elapsed)
 	end
 
 	if state == S.DEMAND and self.demand then
