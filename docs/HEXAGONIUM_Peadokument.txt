@@ -854,7 +854,7 @@ SAMM 7 — TUTORIAL                              [VALMIS]
     - enne sammu 5: nõudeid EI TULE (TutorialTracker:HoldsDemands) -
       varem tuli esimene nõue ~30 s pärast liitumist, samm 5 jäeti
       vahele ja rünnak hävitas uue mängija hooneid enne selgitust;
-    - sammul 5: taimer algab sammu kättejõudmisel, nõue 30 s pärast
+    - sammul 5: taimer algab sammu kättejõudmisel, nõue 10 s pärast
       (Constants.Faction.TutorialDemandInterval, NeedsFastDemand);
     - pärast: tavaline 150 s. Nõue, mis lahenes enne sammu 5, sammu
       tehtuks ei loe. "Next demand in" loendur kasutab sama intervalli.

@@ -67,21 +67,16 @@ print(string.format("Demand-tsükkel: %ds tavaliselt, %ds tutoriali ajal",
 	DEMAND_INTERVAL, Constants.Faction.TutorialDemandInterval))
 
 -- ============================================================
--- SAMM 5: TUTORIALI KESTUS (deterministlik, mitte juhuslik)
--- Halvim/tüüpiline juht: mängija teeb sammud 1-3 kiiresti, aga
--- 4. samm ootab päris rünnaku algust, mis käib läbi TÄPSELT samade
--- kiirendatud taimerite kaudu, olenemata sellest.
+-- SAMM 5: TUTORIALI DEMAND-SAMM (deterministlik)
+-- Enne sammu 5 nõudeid ei tule (TutorialTracker:HoldsDemands); sammul 5
+-- tuleb nõue TutorialDemandInterval pärast ja lahendus kestab kuni
+-- Demand.Deadline (mängija võib kohe maksta/keelduda).
 -- ============================================================
-local tutorialWorstCase = Constants.Faction.TutorialDemandInterval + DEMAND.Deadline + ATTACK_DELAY
 print("")
-print("--- Küsimus 5: kas tutorial on liiga aeglane/kiire? ---")
+print("--- Küsimus 5: kui kaua Demand-samm kestab? ---")
 print(string.format(
-	"Samm 4 (rünnaku algus) jõuab kätte ~%ds pärast liitumist (TutorialDemandInterval %ds + "
-		.. "Demand.Deadline %ds + AttackDelayAfterHostile %ds), EELDUSEL et mängija ei maksa "
-		.. "Demand'i ega jõua samme 1-3 sellest kiiremini teha, sest need tsüklid on sõltumatud.",
-	tutorialWorstCase, Constants.Faction.TutorialDemandInterval, DEMAND.Deadline, ATTACK_DELAY))
-print(string.format("KINNITATUD Play-testimisel (SAMM 7): täielik tsükkel läbis ~%d-%ds piires.  [OK]",
-	tutorialWorstCase - 10, tutorialWorstCase + 30))
+	"Samm 5: nõue %ds pärast sammu algust, halvimal juhul (ei vasta) lõpeb %ds pärast.",
+	Constants.Faction.TutorialDemandInterval, Constants.Faction.TutorialDemandInterval + DEMAND.Deadline))
 
 -- ============================================================
 -- MÄNGIJA-ARHETÜÜBID

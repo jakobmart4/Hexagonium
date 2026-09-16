@@ -25,7 +25,7 @@ vt punkt 3.
 | EnergyPerCrystal | 50 | `Buildings.PowerCore.EnergyPerCrystal` |
 | Energy Leak | x0.95 iga 30s, seisak alla 80% (10s) | `Buildings.PowerCore.EnergyLeak*` |
 | Demand intervall (tavaline) | 150s | `FractureSyndicate.DEMAND_INTERVAL` |
-| Demand intervall (tutorial) | 30s | `Faction.TutorialDemandInterval` |
+| Demand intervall (tutorial) | 10s (Demand-sammu algusest) | `Faction.TutorialDemandInterval` |
 | Demand kulu | 50 ore + 20 crystal, tähtaeg 30s | `Faction.Demand.*` |
 | Hostile -> Attack viivitus | 30s | `Faction.AttackDelayAfterHostile` |
 | Hoonete hinnad | Extractor 20, Refinery 35, Assembler 50, PowerCore 40, Defender ~~45~~ **35** | `BuildCosts` |
@@ -47,7 +47,7 @@ vt punkt 3.
 | Tuumaheла hind (Extractor+Refinery+Assembler+PowerCore) | 20+35+50+40 | 145 UP (algkapital 150) |
 | Defender taskukohane | 35 UP / 12 UP/min | ~3. minutil |
 | 1. saare laiendus taskukohane | 40 UP / 12 UP/min | ~4. minutil |
-| Esimene Demand tutoriali ajal | TutorialDemandInterval | enne sammu 5 nõudeid ei tule; sammul 5 30s; pärast 150s |
+| Esimene Demand tutoriali ajal | TutorialDemandInterval | enne sammu 5 nõudeid ei tule; sammul 5 10s (oli 30s, Play-testis pikk); pärast 150s |
 | Kõik 6 run-laiendust kokku | floor(40 * 1.75^(n-1)), n=1..6 | 1477 UP |
 | 4. laiendus vs tootmisahel | 214 UP / 105 UP (Extractor+Refinery+Assembler) | ~2 ahelat (+12 UP/min igaüks) |
 
