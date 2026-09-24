@@ -30,6 +30,17 @@ Constants.Debug = {
 	WipeSaveOnJoin = false,
 }
 
+-- KOHALIKUD TESTILIPUD: src/shared/LocalDebug.lua (gitignore'is, iga arendaja
+-- oma) kirjutab ülalolevad üle, nt `return {WipeSaveOnJoin = true}`.
+-- Nii ei satu testiväärtus kogemata commit'i ega jää git'i "muudetud"
+-- olekusse. Rakendub AINULT Studios - unustatud fail ei mõjuta avaldatud mängu.
+local localDebug = script.Parent:FindFirstChild("LocalDebug")
+if localDebug and game:GetService("RunService"):IsStudio() then
+	for key, value in pairs(require(localDebug)) do
+		Constants.Debug[key] = value
+	end
+end
+
 -- ============================================================
 -- RESSURSITÜÜBID (MVP: 3 tüüpi)
 -- ============================================================

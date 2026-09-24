@@ -109,6 +109,11 @@ WipeSaveOnJoin   -- kustutab salvestuse liitumisel (uue mängija vaade, ainult S
 `ForceAttackAfter` on ainus viis rünnakusüsteemi testida ilma
 150 sekundit ootamata.
 
+**Testiväärtused pane `src/shared/LocalDebug.lua`-sse, mitte
+Constants'i:** `return {WipeSaveOnJoin = true}`. Fail on gitignore'is,
+kehtib ainult Studios ja kirjutab `Constants.Debug` üle. Constants'is
+jäävad alati avaldamisväärtused.
+
 ---
 
 ## Studio ühendus

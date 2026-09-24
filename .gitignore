@@ -32,6 +32,9 @@ rbxlx-to-rojo.log
 .DS_Store
 Thumbs.db
 desktop.ini
+# Kohalikud testilipud (vt Constants.Debug)
+src/shared/LocalDebug.lua
+
 # Understand-Anything (graafi vahefailid; knowledge-graph.json ise on eraldi otsus)
 .ua/intermediate/
 .ua/tmp/
