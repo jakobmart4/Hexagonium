@@ -29,14 +29,31 @@ Plaan ja põhjendused: `tasks/plan.md`. Roadmap: `docs/HEXAGONIUM_Peadokument.tx
 
 ## Faas 3 — SAMM 9: Play-test (kasutaja mängib Studios)
 - [ ] 7. Stsenaariumid A (uus mängija), B (pikk kokkuhoidev run), C (meta-tsükkel); tulemused TASAKAALUSTAMINE.md p.3, kangide otsused p.4
+      A tehtud (16.09, -> 7a + Demand 30 s -> 10 s). B 1 run (8 min, 0 seemet) -> 7b. C tegemata.
+- [x] 7b. Play-test B leiud: Overclock algkomplektist välja (ostetav), paremklõpsu menüüs voog/min + puhvrid + ummiku olek (`788c81e`)
+- [ ] 7c. Play-test B kordus ilma Overclockita
+- [ ] 7d. Otsus: seemnete kang — 8-min run annab 0 seemet (558 < `Meta.SeedsPerPayout` 600); valik 400 või min 1 seeme run'i kohta
+- [ ] 7e. Otsus: algbaasi maak 5× ülepakkumises (Extractor 60 ore/min, Refinery 12) — teadlik või tuunida
 
 ### Kontrollpunkt C
 - [ ] Tulemused koos üle, tuunimised tehtud
 
 ## Faas 4 — SAMM 10: piiratud beta
-- [ ] 8. Avaldamiseelne kontroll: Debug-lipud, CardSystemTest, 2 mängijaga kohalik server, §15 (S)
+- [ ] 8a. Turvalisus: RemoteEvent'ide sagedusepiirang (`PlayerActionHandler`) (S)
+- [ ] 8b. Turvalisus: Right to Erasure — Robloxi GDPR-soovi korral salvestuse `player_<id>` kustutamine (`SaveService`) (S)
+- [ ] 8c. Review commit'idele `20d94a7..0666f32` (Lighting, ContextMenu voog, Overclocki lukk, LocalDebug) (S)
+- [ ] 8d. `CONSTRAINTS.md` CLAUDE.md reeglitest (TextSize ≥ 12, inglise tekst, üks allikas, Debug-lipud) (XS)
+- [ ] 8. Avaldamiseelne kontroll: Debug-lipud (testiväärtused ainult `LocalDebug.lua`-s), CardSystemTest, 2 mängijaga kohalik server, §15 (S)
 - [ ] 9. Avaldamine piiratud betana + tagasivõtuplaan (kasutaja)
 - [ ] 10. Avaldamisjärgne kontroll: salvestus live's, Error Report, Analytics ≤24 h (S)
+
+## Muu tehtud (väljaspool faase)
+- [x] Studio korrastus: topelt-Lighting parandatud, prügi kustutatud, hexi mallid `assets/HexTemplates.rbxm` (16.09)
+- [x] `docs/arendus/` (roadmap, play-testid, kontrollid, ADR-001..009) + Understand-Anything graaf (24.09)
+- [x] Testilipud `src/shared/LocalDebug.lua`-sse, Constants'is ainult avaldamisväärtused (`0666f32`)
+
+## Tööriistad (kasutaja)
+- [ ] Pythoni Store'i otseteed välja (Sätted -> Rakendused -> Täpsemad -> Rakenduse käivitamise pseudonüümid) — vajalik `/understand` uuendusteks
 
 ### Kontrollpunkt D
 - [ ] Beta live, telemeetria voolab -> arutelu: mobiilitugi, "kinnita jätkamine", co-op

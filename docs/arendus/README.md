@@ -32,8 +32,8 @@ vastav fail siin.
 
 ## Avaldamise blokeerijad
 
-- `WipeSaveOnJoin = true` lokaalselt → [Constants.lua](../../src/shared/Constants.lua) peab olema `false`
 - Right to Erasure protsess puudub → [SaveService.lua](../../src/server/Core/SaveService.lua)
+- RemoteEvent'idel pole sagedusepiirangut → [PlayerActionHandler.lua](../../src/server/Core/PlayerActionHandler.lua)
 - CardSystemTest pole pärast viimaseid muudatusi jooksnud → [CardSystemTest.server.lua](../../src/server/CardSystemTest.server.lua)
 
 ## Lahtised otsused
