@@ -31,7 +31,7 @@ Plaan ja põhjendused: `tasks/plan.md`. Roadmap: `docs/HEXAGONIUM_Peadokument.tx
 - [ ] 7. Stsenaariumid A (uus mängija), B (pikk kokkuhoidev run), C (meta-tsükkel); tulemused TASAKAALUSTAMINE.md p.3, kangide otsused p.4
       A tehtud (16.09, -> 7a + Demand 30 s -> 10 s). B 1 run (8 min, 0 seemet) -> 7b. C tegemata.
 - [x] 7b. Play-test B leiud: Overclock algkomplektist välja (ostetav), paremklõpsu menüüs voog/min + puhvrid + ummiku olek (`788c81e`)
-- [ ] 7c. Play-test B kordus ilma Overclockita
+- [x] 7c. Play-test B kordus ilma Overclockita (24.09): 18,6 min, tasu 633, +1 seeme, laiendused min 10/12
 - [x] 7d. Otsus (24.09): `Meta.MinSeedsPerRun = 1` iga Extract/Timeout run'i eest, määr 600 jääb kuni 7c andmeteni. Oli: seemnete kang — 8-min run annab 0 seemet (558 < `Meta.SeedsPerPayout` 600); valik 400 või min 1 seeme run'i kohta
 - [ ] 7e. Otsus: algbaasi maak 5× ülepakkumises (Extractor 60 ore/min, Refinery 12) — teadlik või tuunida
 

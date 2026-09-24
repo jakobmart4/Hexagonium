@@ -18,14 +18,16 @@ Täistulemused: [TASAKAALUSTAMINE.md](../TASAKAALUSTAMINE.md) punkt 3.
   [Tutorial.client.lua](../../src/client/Tutorial.client.lua),
   [FractureSyndicate.lua](../../src/server/Factions/FractureSyndicate.lua)
 
-## B — pikk kokkuhoidev run · pooleli (16.09, 1 run)
+## B — pikk kokkuhoidev run · tehtud (16.09 + kordus 24.09)
 
 - 8 min, Extract, tasu 558, 1 rünnak, laiendused minutil 4 ja 5, **0 seemet**.
 - Leid: tasuta Overclock tegi majanduse liiga lihtsaks → lukku
   ([ADR-002](otsused/ADR-002-kaardilukud.md)).
 - Leid: ühendusi ei saa optimeerida ilma kiiruste ja puhvriteta →
   [ADR-009](otsused/ADR-009-hoone-voog.md).
-- Järgmine: kordus ilma Overclockita.
+- Kordus ilma Overclockita (7c, 24.09, kiirendusega): 18,6 min, Extract, tasu 633
+  (~34/min), 1 rünnak, laiendused minutil 10 ja 12, **+1 seeme**. Määr 600 annab
+  ~1 seemne 18 minuti kohta — otsus Kontrollpunktis C.
 - Kood: [PlayerActionHandler.lua](../../src/server/Core/PlayerActionHandler.lua)
   (IslandExpanded minut), [Constants.lua](../../src/shared/Constants.lua)
 
