@@ -92,9 +92,16 @@ Constants.Buildings = {
 		-- Power Core'i korral loeb kõrgeim tase, mitte summa. Hävinud Power
 		-- Core'iga kaob ka boonus. Tase 1 = ehitatud hoone.
 		TownHall = {
-			[2] = {Cost = 30, Crystal = 30, ProductionBonus = 0.15, MaxEnergy = 1500},
-			[3] = {Cost = 60, Crystal = 60, ProductionBonus = 0.30, MaxEnergy = 2000},
+			[2] = {Cost = 30, Crystal = 30, ProductionBonus = 0.15, MaxEnergy = 1500, HealRadius = 3},
+			[3] = {Cost = 60, Crystal = 60, ProductionBonus = 0.30, MaxEnergy = 2000, HealRadius = 4},
 		},
+
+		-- PARANDUSPUNKT: hooned tervenevad AINULT Power Core'i raadiuses
+		-- (hexides; tase 1 = HealRadius, edasi TownHall[tase].HealRadius).
+		-- Väljaspool ei tervene üldse - baas koondub tuuma ümber (CoC-stiil,
+		-- 24.09). Tervenemine algab Attack.BuildingRegenDelay pärast.
+		HealRadius = 2,
+		HealPerSecond = 5,
 	},
 
 	Defender = {
@@ -386,8 +393,7 @@ Constants.Attack = {
 
 	-- Hoone elupunktid. Uks vaartus koigile - MVP lihtsus.
 	BuildingHealth = 100,
-	-- Hoone taastub aeglaselt, kui teda ei runnata
-	BuildingRegenPerSecond = 2,
+	-- Tervenemine: kiirus ja raadius on Buildings.PowerCore.Heal* all
 	BuildingRegenDelay = 15, -- sekundit parast viimast kahju
 
 	-- AJAS KASVAV OHT

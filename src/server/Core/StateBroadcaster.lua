@@ -138,6 +138,7 @@ function StateBroadcaster:CollectBuildings()
 				linksOut = #building.outputConnections,
 				-- Defender saab energiat otse Power Core'ist, mitte lingi kaudu
 				level = building.level,
+				healing = building.inHealRange == true,
 				hasPowerCore = building.buildingType == "Defender"
 					and building.powerCoreRef ~= nil and not building.powerCoreRef.isDestroyed or nil,
 			})

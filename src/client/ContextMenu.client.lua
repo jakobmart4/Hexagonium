@@ -269,6 +269,13 @@ local function describeStatus(state, flow)
 	if t == "Defender" and not state.hasPowerCore then
 		return "No Power Core", Theme.UI.error
 	end
+	-- Parandus käib ainult Power Core'i raadiuses
+	if (state.health or 1) < 0.999 then
+		if state.healing then
+			return "Repairing", Theme.UI.success
+		end
+		return "Out of repair range", Theme.UI.warning
+	end
 	if flow.uses and state.input ~= nil then
 		if state.linksIn == 0 then
 			return "No input link", Theme.UI.warning
@@ -331,8 +338,9 @@ local function refreshMenu()
 	local nextLevel = state.level and TOWN_HALL[state.level + 1]
 	if state.level then
 		local current = TOWN_HALL[state.level]
-		subLabel.Text = string.format("Town Hall · Level %d/%d%s", state.level, TOWN_HALL_MAX,
-			current and string.format(" · +%d%% production", math.floor(current.ProductionBonus * 100 + 0.5)) or "")
+		local radius = current and current.HealRadius or Constants.Buildings.PowerCore.HealRadius
+		subLabel.Text = string.format("Town Hall Lv %d/%d · repair %d%s", state.level, TOWN_HALL_MAX, radius,
+			current and string.format(" · +%d%%", math.floor(current.ProductionBonus * 100 + 0.5)) or "")
 	end
 	if nextLevel then
 		upgradeButton.Text = string.format("Upgrade (%d UP + %d crystal)", nextLevel.Cost, nextLevel.Crystal)

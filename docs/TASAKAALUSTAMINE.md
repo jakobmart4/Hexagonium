@@ -31,7 +31,8 @@ vt punkt 3.
 | Extractor kristall | ~~3~~ **1** crystal / 5 s = 12/min = 600 energiat/min (~5 Defenderit) | `Buildings.Extractor.CrystalProductionRate` |
 | Resource Bloom | ~~+25/10/5 %~~ **+15 %** Extractor/Refinery/Assembler (ühtlane) | `Cards.ResourceBloom.*` |
 | Kordaja tähendus | läbilaskevõime: Refinery/Assembler tarbivad JA toodavad kordaja võrra rohkem (oli: ainult väljund) | `Refinery:Tick`, `Assembler:Tick` |
-| Town Hall (Power Core'i tase) | Lv2: 30 UP + 30 kristalli -> +15 % kogu tootmine, 1500 energiat; Lv3: 60 UP + 60 kristalli -> +30 %, 2000 energiat. Kõrgeim tase loeb, hävinguga kaob | `Buildings.PowerCore.TownHall` |
+| Town Hall (Power Core'i tase) | Lv2: 30 UP + 30 kristalli -> +15 % kogu tootmine, 1500 energiat; Lv3: 60 UP + 60 kristalli -> +30 %, 2000 energiat. Kõrgeim tase loeb, hävinguga kaob |
+| Parandusala (Power Core) | hooned tervenevad AINULT raadiuses: Lv1 2, Lv2 3, Lv3 4 hexi; 5 HP/s pärast 15 s ilma kahjuta (oli: kõik 2 HP/s) | `PowerCore.HealRadius/HealPerSecond`, `TownHall[n].HealRadius` | `Buildings.PowerCore.TownHall` |
 | Hostile -> Attack viivitus | 30s | `Faction.AttackDelayAfterHostile` |
 | Hoonete hinnad | Extractor 25, Refinery 40, Assembler 55, PowerCore 45, Defender 40 (24.09: kõik ~15% kallimaks; oli 20/35/50/40/35) | `BuildCosts` |
 | Lammutuse tagastus | 50% | `DemolishRefund` |
@@ -79,6 +80,10 @@ Play-testide põhjal. Vormis: kuupäev, mida testiti, mis leiti.
 | 24.09.2026 | 11. Play-test 7c (B kordus ILMA Overclockita, uus mängija, bonus 0, kiirendus 2-5x) | — | Kestus **18,6 min** mänguaega (1115 s), lõpp **Extract**, tasu **633** (~34 tasu/min; B-s Overclockiga ~70/min), rünnakuid 1. Laiendused minutil **10 ja 12** (B-s 4 ja 5). Kaart: Resource Bloom. Tutorial Skip. **Hex Seeds +1** (633/600 = 1, miinimumreeglit ei läinud vaja). Järeldus: määr 600 = ~1 seeme 18 min kohta; kaardi avamine (2 seemet) = 2 sellist run'i. Kasutaja muljed: ootel. |
 
 ## 4. Muudatuste logi
+
+### 24.09.2026 (hilisõhtul) — Power Core = baasi tuum ja parandusala (CoC-suund)
+
+Kasutaja: mäng on juba väga hea; suund Clash of Clansi stiili poole, Power Core baasi tuumaks ja parandamise kohaks. Otsused: tuuma hävimine EI lõpeta run'i - kaovad Town Hall'i boonus ja parandamine, kuni ehitad uue (tase 1); parandus = tervenemise ala (Lv1 2 / Lv2 3 / Lv3 4 hexi, 5 HP/s), väljaspool ei tervene midagi. Varasem üldine tervenemine (2 HP/s kõigile) kadus. Live-test: Town Hall Lv2 uuendus, 1500 energiat, kordaja 1.15 kõigil; tervenemist rünnaku järel veel kontrollimata.
 
 ### 24.09.2026 (õhtul) — Kordaja = läbilaskevõime, Resource Bloom ühtlaseks, Town Hall
 

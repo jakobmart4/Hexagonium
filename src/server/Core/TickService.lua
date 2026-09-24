@@ -9,6 +9,7 @@ local RunService = game:GetService("RunService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Constants = require(ReplicatedStorage.Shared.Constants)
 local GameClock = require(game:GetService("ServerScriptService").Core.GameClock)
+local HexGrid = require(game:GetService("ServerScriptService").Hex.HexGrid)
 
 local TickService = {}
 TickService.__index = TickService
@@ -72,6 +73,23 @@ function TickService:_getTownHallBonus()
 	return config and (1 + config.ProductionBonus) or 1
 end
 
+-- Power Core'id ja nende paranduse raadius (tase kasvatab)
+function TickService:_getHealZones()
+	local config = Constants.Buildings.PowerCore
+	local zones = {}
+	for _, building in ipairs(self.buildings) do
+		if building.buildingType == "PowerCore" and not building.isDestroyed then
+			local levelConfig = config.TownHall[building.level]
+			table.insert(zones, {
+				q = building.q,
+				r = building.r,
+				radius = levelConfig and levelConfig.HealRadius or config.HealRadius,
+			})
+		end
+	end
+	return zones
+end
+
 function TickService:Tick()
 	-- 1) Kaardid uuendavad oma tsüklid ja rakendavad kordajad hoonetele
 	--    ENNE tootmist, et jooksev tick kasutaks juba õigeid väärtusi.
@@ -96,14 +114,24 @@ function TickService:Tick()
 		end
 	end
 
-	-- 2) Hooned toodavad/töötlevad
+	-- 2) Hooned toodavad/töötlevad; tervenevad AINULT Power Core'i raadiuses
+	local healZones = self:_getHealZones()
 	for _, building in ipairs(self.buildings) do
 		if not building.isDestroyed and building.Tick then
 			building:Tick()
 		end
-		-- Elupunktide aeglane taastumine
-		if not building.isDestroyed and building.RegenerateHealth then
-			building:RegenerateHealth()
+		if not building.isDestroyed then
+			local inRange = false
+			for _, zone in ipairs(healZones) do
+				if HexGrid.Distance(nil, building.q, building.r, zone.q, zone.r) <= zone.radius then
+					inRange = true
+					break
+				end
+			end
+			building.inHealRange = inRange
+			if inRange and building.RegenerateHealth then
+				building:RegenerateHealth()
+			end
 		end
 	end
 

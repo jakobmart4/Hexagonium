@@ -69,9 +69,9 @@ BuildingInfo.Buildings = {
 		displayName = "Power Core",
 		tagline = "Town Hall: energy and upgrades",
 		description = string.format(
-			"Stores up to %d energy and converts each crystal into %d. Defenders draw from it directly. Upgrade it (right-click) with UP and spare crystal to boost ALL production by up to +%d%%.",
-			B.PowerCore.MaxEnergyStorage, B.PowerCore.EnergyPerCrystal,
-			math.floor(B.PowerCore.TownHall[3].ProductionBonus * 100 + 0.5)),
+			"The heart of your base. Stores up to %d energy (each crystal = %d) for Defenders and repairs buildings within %d hexes - nothing else heals. Upgrade it (right-click) with UP and spare crystal: ALL production up to +%d%%, repair range up to %d. If it falls, bonuses and repairs stop until you build a new one.",
+			B.PowerCore.MaxEnergyStorage, B.PowerCore.EnergyPerCrystal, B.PowerCore.HealRadius,
+			math.floor(B.PowerCore.TownHall[3].ProductionBonus * 100 + 0.5), B.PowerCore.TownHall[3].HealRadius),
 		requiresResourceHex = false,
 	},
 	Refinery = {

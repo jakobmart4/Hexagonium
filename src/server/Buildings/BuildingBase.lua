@@ -157,7 +157,7 @@ function BuildingBase:RegenerateHealth()
 		return
 	end
 
-	self.health = math.min(self.maxHealth, self.health + cfg.BuildingRegenPerSecond)
+	self.health = math.min(self.maxHealth, self.health + Constants.Buildings.PowerCore.HealPerSecond)
 end
 
 return BuildingBase

@@ -120,7 +120,7 @@ local ARCHETYPES = {
 -- üle piiri) — vt TASAKAALUSTAMINE.md punkt 4, esimene katse.
 -- Ründaja kohalejõudmise aeg on endiselt ignoreeritud (pessimistlik).
 local BASE_HP_POOL = 5 * ATK.BuildingHealth
-local REGEN_PER_CYCLE = ATK.BuildingRegenPerSecond
+local REGEN_PER_CYCLE = Constants.Buildings.PowerCore.HealPerSecond -- eeldab: hoone on Power Core'i raadiuses
 	* math.max(0, (DEMAND_INTERVAL - ATTACK_DURATION) - ATK.BuildingRegenDelay)
 
 local function simulateRun(archetype, rng)
