@@ -32,3 +32,7 @@ rbxlx-to-rojo.log
 .DS_Store
 Thumbs.db
 desktop.ini
+# Understand-Anything (graafi vahefailid; knowledge-graph.json ise on eraldi otsus)
+.ua/intermediate/
+.ua/tmp/
+.ua/.trash-*/
