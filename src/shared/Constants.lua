@@ -68,7 +68,10 @@ Constants.Buildings = {
 		-- sisendisse, alloy'd jäi paarsada (24.09).
 		OreProductionRate = 1,
 		OreProductionInterval = 5,
-		CrystalProductionRate = 3,
+		-- 1 / 5 s = 12/min = 600 energiat/min ~ 5 Defenderit. Oli 3 (36/min):
+		-- Play-test 7c kordusel kuhjus 332 kristalli, Power Core oli pidevalt
+		-- täis ja 2 Defenderit tarbisid ~5 kristalli/min (24.09).
+		CrystalProductionRate = 1,
 		CrystalProductionInterval = 5,
 	},
 
@@ -246,14 +249,16 @@ Constants.IslandExpansion.MaxRadius = Constants.IslandExpansion.StartRadius
 -- Arvutus: Assembler toodab 1 punkti / 5 sek = 12 punkti/min.
 -- Algkapital 150 lubab avada tootmisahela, edasi tuleb teenida.
 -- ============================================================
+-- 24.09 (Play-test 7c kordus, kasutaja): kõik ~15% kallimaks. Uus ahel
+-- Extractor+Refinery+Assembler = 120 UP, tasub end ära ~10 min (12 UP/min).
 Constants.BuildCosts = {
-	Extractor = 20,
-	Refinery  = 35,
-	Assembler = 50,
-	PowerCore = 40,
-	-- Tasakaalustatud SAMM 8 samm 3: 45 -> 35, et 2./3. Defender oleks
-	-- majanduslikult jouetav lahedal ajal, mil oht seda juba nouab.
-	Defender  = 35,
+	Extractor = 25,
+	Refinery  = 40,
+	Assembler = 55,
+	PowerCore = 45,
+	-- SAMM 8 samm 3: 45 -> 35, et 2./3. Defender oleks jõukohane, kui
+	-- oht seda nõuab. 24.09: 35 -> 40 koos teiste hindadega.
+	Defender  = 40,
 }
 
 -- Lammutamisel tagastatav osa. Alla poole, et ehitusvead maksaksid,

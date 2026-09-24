@@ -28,8 +28,9 @@ vt punkt 3.
 | Demand intervall (tutorial) | 10s (Demand-sammu algusest) | `Faction.TutorialDemandInterval` |
 | Demand kulu | ~~50~~ **10** ore + 20 crystal, tähtaeg 30s | `Faction.Demand.*` |
 | Extractor maak | ~~5~~ **1** ore / 5 s = 12/min (= 1 Refinery tarbimine) | `Buildings.Extractor.OreProductionRate` |
+| Extractor kristall | ~~3~~ **1** crystal / 5 s = 12/min = 600 energiat/min (~5 Defenderit) | `Buildings.Extractor.CrystalProductionRate` |
 | Hostile -> Attack viivitus | 30s | `Faction.AttackDelayAfterHostile` |
-| Hoonete hinnad | Extractor 20, Refinery 35, Assembler 50, PowerCore 40, Defender ~~45~~ **35** | `BuildCosts` |
+| Hoonete hinnad | Extractor 25, Refinery 40, Assembler 55, PowerCore 45, Defender 40 (24.09: kõik ~15% kallimaks; oli 20/35/50/40/35) | `BuildCosts` |
 | Lammutuse tagastus | 50% | `DemolishRefund` |
 | Saare laienduse kulu (run) | 40 -> 70 -> 122 -> 214 -> 375 -> 656 UP (x1.75; x2 ja x3 proovitud) | `IslandExpansion.RunExpansionBaseCost` / `CostMultiplier` |
 | Laienduse run'i tasu | ~~40~~ **0** (laiendus ei anna tasu) | `Run.RewardPerExpansion` |
@@ -45,7 +46,8 @@ vt punkt 3.
 | Suurus | Valem | Väärtus |
 |---|---|---|
 | Assembler baastoodang | 1 UP / 5s | 12 UP/min |
-| Tuumaheла hind (Extractor+Refinery+Assembler+PowerCore) | 20+35+50+40 | 145 UP (algkapital 150) |
+| Tuumaheла hind (Extractor+Refinery+Assembler+PowerCore) | 25+40+55+45 | 165 UP (algkapital 150; algbaas on juba ehitatud) |
+| Uue tootmisahela tasuvus (Extractor+Refinery+Assembler) | 120 UP / 12 UP/min | ~10 min |
 | Defender taskukohane | 35 UP / 12 UP/min | ~3. minutil |
 | 1. saare laiendus taskukohane | 40 UP / 12 UP/min | ~4. minutil |
 | Esimene Demand tutoriali ajal | TutorialDemandInterval | enne sammu 5 nõudeid ei tule; sammul 5 10s (oli 30s, Play-testis pikk); pärast 150s |
@@ -74,6 +76,10 @@ Play-testide põhjal. Vormis: kuupäev, mida testiti, mis leiti.
 | 24.09.2026 | 11. Play-test 7c (B kordus ILMA Overclockita, uus mängija, bonus 0, kiirendus 2-5x) | — | Kestus **18,6 min** mänguaega (1115 s), lõpp **Extract**, tasu **633** (~34 tasu/min; B-s Overclockiga ~70/min), rünnakuid 1. Laiendused minutil **10 ja 12** (B-s 4 ja 5). Kaart: Resource Bloom. Tutorial Skip. **Hex Seeds +1** (633/600 = 1, miinimumreeglit ei läinud vaja). Järeldus: määr 600 = ~1 seeme 18 min kohta; kaardi avamine (2 seemet) = 2 sellist run'i. Kasutaja muljed: ootel. |
 
 ## 4. Muudatuste logi
+
+### 24.09.2026 (hiljem) — Kristall 36 -> 12/min, hoonete hinnad ~15% kõrgemaks
+
+Play-test (7e järel, minut ~9): 332 kristalli kuhjunud Extractori väljundisse, Power Core pidevalt 1000/1000, 2 Defenderit tarbisid ~5 kristalli/min (tootmine 45/min Resource Bloomiga). Kristall 3 -> 1 / 5 s (soovitus, kasutaja kinnitas). Hinnad: analüüs näitas uue ahela tasuvust ~9 min ja soovitas odavamaks; kasutaja valis vastupidi "natuke kallimaks" -> Extractor 25, Refinery 40, Assembler 55, PowerCore 45, Defender 40 (tasuvus ~10 min). Jälgida: kas kokkuhoidev mängija ehitab veel teise ahela ja kas Defender 40 on rünnakute kasvuga õigel ajal jõukohane (SAMM 8 alandas selle 45 -> 35 just sel põhjusel).
 
 ### 24.09.2026 — Maagi tootmine 60 -> 12/min, Demand 50 -> 10 ore (7e)
 
