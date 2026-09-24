@@ -26,7 +26,8 @@ vt punkt 3.
 | Energy Leak | x0.95 iga 30s, seisak alla 80% (10s) | `Buildings.PowerCore.EnergyLeak*` |
 | Demand intervall (tavaline) | 150s | `FractureSyndicate.DEMAND_INTERVAL` |
 | Demand intervall (tutorial) | 10s (Demand-sammu algusest) | `Faction.TutorialDemandInterval` |
-| Demand kulu | 50 ore + 20 crystal, tähtaeg 30s | `Faction.Demand.*` |
+| Demand kulu | ~~50~~ **10** ore + 20 crystal, tähtaeg 30s | `Faction.Demand.*` |
+| Extractor maak | ~~5~~ **1** ore / 5 s = 12/min (= 1 Refinery tarbimine) | `Buildings.Extractor.OreProductionRate` |
 | Hostile -> Attack viivitus | 30s | `Faction.AttackDelayAfterHostile` |
 | Hoonete hinnad | Extractor 20, Refinery 35, Assembler 50, PowerCore 40, Defender ~~45~~ **35** | `BuildCosts` |
 | Lammutuse tagastus | 50% | `DemolishRefund` |
@@ -73,6 +74,10 @@ Play-testide põhjal. Vormis: kuupäev, mida testiti, mis leiti.
 | 24.09.2026 | 11. Play-test 7c (B kordus ILMA Overclockita, uus mängija, bonus 0, kiirendus 2-5x) | — | Kestus **18,6 min** mänguaega (1115 s), lõpp **Extract**, tasu **633** (~34 tasu/min; B-s Overclockiga ~70/min), rünnakuid 1. Laiendused minutil **10 ja 12** (B-s 4 ja 5). Kaart: Resource Bloom. Tutorial Skip. **Hex Seeds +1** (633/600 = 1, miinimumreeglit ei läinud vaja). Järeldus: määr 600 = ~1 seeme 18 min kohta; kaardi avamine (2 seemet) = 2 sellist run'i. Kasutaja muljed: ootel. |
 
 ## 4. Muudatuste logi
+
+### 24.09.2026 — Maagi tootmine 60 -> 12/min, Demand 50 -> 10 ore (7e)
+
+Play-test 7c: ~3000 maaki kogunes Refinery sisendisse, alloy'd paarsada — Extractor tootis 60 ore/min, Refinery tarbis 12 (1 Extractor vajas 5 Refineryt + 5 Assemblerit). Kasutaja valik (3 variandi seast): Extractor aeglasemaks -> ahel 1:1:1, UP-tempo sama (12/min ahela kohta). Demand'i maagi nõue skaleeriti samas suhtes (50 -> 10, ~50 s tootmist), sest 1:1:1 ahelas maaki ei kogune ja uus mängija ei saaks esimest nõuet maksta. Kristall (36/min) jäi muutmata.
 
 ### 24.09.2026 — Vähemalt 1 Hex Seed run'i kohta (`Meta.MinSeedsPerRun = 1`)
 

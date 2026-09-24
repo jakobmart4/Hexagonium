@@ -33,7 +33,7 @@ Plaan ja põhjendused: `tasks/plan.md`. Roadmap: `docs/HEXAGONIUM_Peadokument.tx
 - [x] 7b. Play-test B leiud: Overclock algkomplektist välja (ostetav), paremklõpsu menüüs voog/min + puhvrid + ummiku olek (`788c81e`)
 - [x] 7c. Play-test B kordus ilma Overclockita (24.09): 18,6 min, tasu 633, +1 seeme, laiendused min 10/12
 - [x] 7d. Otsus (24.09): `Meta.MinSeedsPerRun = 1` iga Extract/Timeout run'i eest, määr 600 jääb kuni 7c andmeteni. Oli: seemnete kang — 8-min run annab 0 seemet (558 < `Meta.SeedsPerPayout` 600); valik 400 või min 1 seeme run'i kohta
-- [ ] 7e. Otsus: algbaasi maak 5× ülepakkumises (Extractor 60 ore/min, Refinery 12) — teadlik või tuunida
+- [x] 7e. Maak 60 -> 12 ore/min (ahel 1:1:1), Demand 50 -> 10 ore (24.09). Oli: algbaasi maak 5× ülepakkumises
 
 ### Kontrollpunkt C
 - [ ] Tulemused koos üle, tuunimised tehtud

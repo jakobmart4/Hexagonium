@@ -63,7 +63,10 @@ Constants.HexTypes = {
 -- ============================================================
 Constants.Buildings = {
 	Extractor = {
-		OreProductionRate = 5,
+		-- 1 / 5 s = 12 ore/min = täpselt ühe Refinery tarbimine (1:1:1 ahel).
+		-- Oli 5 (60/min): Play-test 7c-s kogunes ~3000 maaki Refinery
+		-- sisendisse, alloy'd jäi paarsada (24.09).
+		OreProductionRate = 1,
 		OreProductionInterval = 5,
 		CrystalProductionRate = 3,
 		CrystalProductionInterval = 5,
@@ -395,7 +398,10 @@ Constants.Faction = {
 	},
 
 	Demand = {
-		OreRequired = 50,
+		-- Skaleeritud koos Extractoriga (50 -> 10): ~50 s ühe Extractori
+		-- tootmist nagu enne. 1:1:1 ahelas maaki ei kogune, nõue peab olema
+		-- täidetav lisa-Extractoriga või ahela korraks peatamisega.
+		OreRequired = 10,
 		CrystalRequired = 20,
 		Deadline = 30,
 	},
