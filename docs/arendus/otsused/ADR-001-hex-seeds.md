@@ -15,7 +15,7 @@ kaartidele.
 **Miks:** varem andis run'i lõpp laiendused otse ja korraga — üks pikk run
 ammendas kogu meta-progressiooni.
 
-**Lahtine:** 8-minutiline run annab 0 seemet ([playtestid.md](../playtestid.md) B).
+**Muudatus 24.09:** iga run, mis ei lõppenud baasi hävinguga, annab vähemalt `Meta.MinSeedsPerRun` (1) seemne — 8-minutiline run andis 0 ([playtestid.md](../playtestid.md) B). Määr 600 vaadatakse üle pärast 7c-d.
 
 **Täispõhjendus:** [Peadokument](../../HEXAGONIUM_Peadokument.txt) §14.11
 

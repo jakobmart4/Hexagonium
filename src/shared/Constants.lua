@@ -320,6 +320,11 @@ Constants.Meta = {
 	-- nihkuks: 1 seeme = endine 1 tasuta laiendus.
 	SeedsPerPayout = 600,
 
+	-- Vähemalt nii palju seemneid iga run'i eest, mis ei lõppenud baasi
+	-- hävinguga (Extract/Timeout). Play-test B: 8-min run andis 0 seemet
+	-- ja uus mängija ei näinud meta-tsüklit üldse (16.09).
+	MinSeedsPerRun = 1,
+
 	-- N-s ostetud lisalaiendus maksab N * see. Tabelit TAHTLIKULT pole:
 	-- ostude arv tuleb ainult IslandExpansion.MetaExpansionsMax'ist,
 	-- mitte teisest kohast, mis voiks sellest lahku minna.

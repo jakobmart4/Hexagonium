@@ -38,7 +38,7 @@ vastav fail siin.
 
 ## Lahtised otsused
 
-- 8-minutiline run annab 0 seemet (558 < `Meta.SeedsPerPayout` 600) → [Constants.lua](../../src/shared/Constants.lua)
+- Seemnete määr: nüüd vähemalt 1 seeme run'i kohta (`Meta.MinSeedsPerRun`); kas 600 tasu = 1 seeme sobib, selgub 7c-s → [Constants.lua](../../src/shared/Constants.lua)
 - Algbaasi maak 5× ülepakkumises (Extractor 60 ore/min, Refinery 12) → [MapGenerator.lua](../../src/server/Core/MapGenerator.lua)
 - Run'i laienduste lagi (2) täis 5. minutil → [IslandManager.lua](../../src/server/Core/IslandManager.lua)
 

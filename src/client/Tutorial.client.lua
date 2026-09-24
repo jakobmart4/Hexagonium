@@ -66,7 +66,7 @@ local STEP_TEXT = {
 		flavor = "Your reward grows every minute you survive.",
 	},
 	[9] = {
-		hint = string.format("Every %d run reward becomes 1 Hex Seed. Spend seeds in MENU on extra expansion slots and more cards.", Constants.Meta.SeedsPerPayout),
+		hint = string.format("Every %d run reward becomes 1 Hex Seed - at least %d if your base survives. Spend seeds in MENU on extra expansion slots and more cards.", Constants.Meta.SeedsPerPayout, Constants.Meta.MinSeedsPerRun),
 		flavor = "Seeds and purchases carry over between runs.",
 	},
 }

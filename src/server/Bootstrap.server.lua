@@ -77,6 +77,9 @@ local function wireRunEnd(world)
 		-- (PlayerActionHandler:HandleBuyMetaUpgrade). Varem anti saare
 		-- laiendused siin OTSE ja korraga - vt Constants.Meta.
 		local seeds = math.floor(result.payout / Constants.Meta.SeedsPerPayout)
+		if result.reason ~= "Destroyed" then
+			seeds = math.max(seeds, Constants.Meta.MinSeedsPerRun)
+		end
 
 		for _, owner in ipairs(world.owners) do
 			SaveService.AddStat(owner, "runsPlayed", 1)

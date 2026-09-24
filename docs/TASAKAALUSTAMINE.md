@@ -32,7 +32,7 @@ vt punkt 3.
 | Lammutuse tagastus | 50% | `DemolishRefund` |
 | Saare laienduse kulu (run) | 40 -> 70 -> 122 -> 214 -> 375 -> 656 UP (x1.75; x2 ja x3 proovitud) | `IslandExpansion.RunExpansionBaseCost` / `CostMultiplier` |
 | Laienduse run'i tasu | ~~40~~ **0** (laiendus ei anna tasu) | `Run.RewardPerExpansion` |
-| Lisalaienduskoht (meta) | saar alustab alati raadiusega 3; N-s ostetud lisakoht = N Hex Seed'i (kuni 4, run'is 2 + ostetud laiendust); 1 seeme / 600 run'i tasu | `IslandExpansion.MetaExpansionsMax` / `Meta.SeedsPerPayout`, `Meta.IslandUpgradeCostPerStep` |
+| Lisalaienduskoht (meta) | saar alustab alati raadiusega 3; N-s ostetud lisakoht = N Hex Seed'i (kuni 4, run'is 2 + ostetud laiendust); 1 seeme / 600 run'i tasu, vähemalt 1 seeme iga Extract/Timeout run'i eest | `IslandExpansion.MetaExpansionsMax` / `Meta.SeedsPerPayout`, `Meta.IslandUpgradeCostPerStep` |
 | Run'i Timeout | 3600s (60 min, ülempiir) | `Run.Duration` |
 | RestartDelay | 8s | `Run.RestartDelay` |
 | Ohu kasv | +12%/min, lagi 8.0x (~60. minutil) | `Attack.ScalePerMinute` / `MaxScale` |
@@ -72,6 +72,10 @@ Play-testide põhjal. Vormis: kuupäev, mida testiti, mis leiti.
 | 16.09.2026 | 10. Play-test B (kokkuhoidev run, uus mängija, bonus 0) | — | Kestus **8 min** (plaan 20-30), lõpp **Extract**, tasu **558** (100%), rünnakuid üle elatud 1. Laiendused minutil **4 ja 5** -> run'i lagi (2) täis juba 5. minutil, edasi polnud saart kuhugi laiendada. Kaardid: Resource Bloom, Overclock. Tutorial Skip sammul 1. **Hex Seeds +0**: 558 < SeedsPerPayout 600 (~70 tasu/min -> 1. seeme alles ~8,6 min). Kasutaja muljed: ootel. |
 
 ## 4. Muudatuste logi
+
+### 24.09.2026 — Vähemalt 1 Hex Seed run'i kohta (`Meta.MinSeedsPerRun = 1`)
+
+Play-test B: 8-min run (tasu 558, koos Overclockiga) andis 0 seemet; ilma Overclockita annaks ka 20-min run hinnanguliselt ~500 tasu = 0 seemet. Uus mängija ei näeks meta-tsüklit (tutoriali samm 9) üldse. Otsus (kasutaja): iga run, mis ei lõpe baasi hävinguga, annab vähemalt 1 seemne; `SeedsPerPayout` 600 jääb, kuni 7c (B ilma Overclockita) annab päris tasuandmed.
 
 ### 15.09.2026 (õhtul) — Laienduse kordaja x3 -> x1.75 (kokkuhoidva mängija uuring)
 
