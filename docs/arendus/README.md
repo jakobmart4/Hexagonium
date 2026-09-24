@@ -28,7 +28,7 @@ vastav fail siin.
 | Tee beetani | Play-test B pooleli | [roadmap.md](roadmap.md) |
 | Play-testid | A tehtud, B 1 run, C tegemata | [playtestid.md](playtestid.md) |
 | Juhendi kontrollid | 1 OK, 2 osaliselt, 2 puudujääki, 2 tegemata | [kontrollid.md](kontrollid.md) |
-| Otsused | 9 kirjet | [otsused/](otsused/) |
+| Otsused | 10 kirjet | [otsused/](otsused/) |
 
 ## Avaldamise blokeerijad
 
@@ -53,3 +53,4 @@ vastav fail siin.
 - [ADR-007 Tutorial 9 sammu, Demand ootab](otsused/ADR-007-tutorial.md)
 - [ADR-008 Valgustus ainult koodist](otsused/ADR-008-valgustus.md)
 - [ADR-009 Hoone voog kontekstimenüüs](otsused/ADR-009-hoone-voog.md)
+- [ADR-010 Kordaja = läbilaskevõime, Town Hall](otsused/ADR-010-labilaskevoime-town-hall.md)

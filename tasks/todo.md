@@ -33,6 +33,7 @@ Plaan ja põhjendused: `tasks/plan.md`. Roadmap: `docs/HEXAGONIUM_Peadokument.tx
 - [x] 7b. Play-test B leiud: Overclock algkomplektist välja (ostetav), paremklõpsu menüüs voog/min + puhvrid + ummiku olek (`788c81e`)
 - [x] 7c. Play-test B kordus ilma Overclockita (24.09): 18,6 min, tasu 633, +1 seeme, laiendused min 10/12
 - [x] 7d. Otsus (24.09): `Meta.MinSeedsPerRun = 1` iga Extract/Timeout run'i eest, määr 600 jääb kuni 7c andmeteni. Oli: seemnete kang — 8-min run annab 0 seemet (558 < `Meta.SeedsPerPayout` 600); valik 400 või min 1 seeme run'i kohta
+- [ ] 7g. Kordaja = läbilaskevõime, Resource Bloom +15 % ühtlaselt, Power Core -> Town Hall (Lv2/3, UP + kristall) (24.09) — ootab Play-testi
 - [x] 7f. Kristall 36 -> 12/min, hoonete hinnad ~15% kallimaks (Extractor 25, Refinery 40, Assembler 55, PowerCore 45, Defender 40) (24.09)
 - [x] 7e. Maak 60 -> 12 ore/min (ahel 1:1:1), Demand 50 -> 10 ore (24.09). Oli: algbaasi maak 5× ülepakkumises
 

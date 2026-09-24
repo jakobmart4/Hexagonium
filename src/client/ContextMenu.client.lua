@@ -153,7 +153,23 @@ local function makeButton(text, color, yPos)
 	return btn
 end
 
+local upgradeButton = makeButton("", Theme.UI.accent, 188)
 local demolishButton = makeButton("Demolish", Theme.UI.error, 188)
+local upgradeRemote = RemoteEvents.Get("UpgradeBuilding")
+
+-- Town Hall: kõrgeim tase Constants'ist (üks allikas)
+local TOWN_HALL = Constants.Buildings.PowerCore.TownHall
+local TOWN_HALL_MAX = 1
+for level in pairs(TOWN_HALL) do
+	TOWN_HALL_MAX = math.max(TOWN_HALL_MAX, level)
+end
+
+-- Uuendusnupp ainult Power Core'il, kui tase pole maksimumis
+local function layoutButtons(showUpgrade)
+	upgradeButton.Visible = showUpgrade
+	demolishButton.Position = UDim2.new(0, 12, 0, showUpgrade and 222 or 188)
+	menu.Size = UDim2.new(0, 250, 0, showUpgrade and 260 or 226)
+end
 
 -- =========================================================
 -- OLEK
@@ -285,6 +301,7 @@ local function refreshMenu()
 			val.TextColor3 = Theme.UI.textDim
 		end
 		statusVal.Text = "Unknown"
+		layoutButtons(false)
 		return
 	end
 
@@ -305,9 +322,22 @@ local function refreshMenu()
 	makesVal.TextColor3 = (mult > 1.01) and Theme.UI.success
 		or (mult < 0.99) and Theme.UI.warning
 		or Theme.UI.text
-	-- Tarbimine on alati baaskiirusel (kordaja mojutab ainult valjundit)
-	usesVal.Text = formatFlow(flow.uses, 1)
+	-- Kordaja = läbilaskevõime: Refinery/Assembler tarbivad ka rohkem.
+	-- Defenderi energiakulu on fikseeritud.
+	usesVal.Text = formatFlow(flow.uses, currentTarget.buildingType == "Defender" and 1 or mult)
 	usesVal.TextColor3 = Theme.UI.text
+
+	-- Town Hall tase ja uuendus
+	local nextLevel = state.level and TOWN_HALL[state.level + 1]
+	if state.level then
+		local current = TOWN_HALL[state.level]
+		subLabel.Text = string.format("Town Hall · Level %d/%d%s", state.level, TOWN_HALL_MAX,
+			current and string.format(" · +%d%% production", math.floor(current.ProductionBonus * 100 + 0.5)) or "")
+	end
+	if nextLevel then
+		upgradeButton.Text = string.format("Upgrade (%d UP + %d crystal)", nextLevel.Cost, nextLevel.Crystal)
+	end
+	layoutButtons(nextLevel ~= nil)
 
 	if state.energy and state.maxEnergy then
 		storedVal.Text = string.format("%d / %d energy", state.energy, state.maxEnergy)
@@ -441,6 +471,14 @@ UserInputService.InputEnded:Connect(function(input)
 	else
 		closeMenu()
 	end
+end)
+
+upgradeButton.MouseButton1Click:Connect(function()
+	if not currentTarget then
+		return
+	end
+	-- Server kontrollib taset ja hinda; menüü jääb lahti, et uus tase näha
+	upgradeRemote:FireServer({q = currentTarget.q, r = currentTarget.r})
 end)
 
 demolishButton.MouseButton1Click:Connect(function()

@@ -52,15 +52,19 @@ function Assembler:Tick()
 	if now - self.lastProcessTime >= config.AlloyConsumptionInterval then
 		self.lastProcessTime = now
 
-		local required = config.AlloyConsumptionRate
+		-- Kordaja = LÄBILASKEVÕIME (vt Refinery:Tick)
+		local batch = config.AlloyConsumptionRate * self:GetProductionMultiplier()
 		local produced = nil
 
 		-- Null Surge efektifaas: toodab ilma sisendit tarbimata (spec 5.6)
 		if self:ShouldIgnoreInputs() then
-			produced = required * self:GetProductionMultiplier()
-		elseif self.inputBuffer >= required then
-			self.inputBuffer = self.inputBuffer - required
-			produced = required * self:GetProductionMultiplier()
+			produced = batch
+		else
+			local amount = math.min(self.inputBuffer, batch)
+			if amount > 0 then
+				self.inputBuffer = self.inputBuffer - amount
+				produced = amount
+			end
 		end
 
 		if produced then

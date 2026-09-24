@@ -23,6 +23,7 @@ local SaveService = require(ServerScriptService.Core.SaveService)
 local CardInfo = require(ReplicatedStorage.Shared.CardInfo)
 local Telemetry = require(ServerScriptService.Core.Telemetry)
 local GameClock = require(ServerScriptService.Core.GameClock)
+local ResourceLedger = require(ServerScriptService.Resources.ResourceLedger)
 
 local PlayerActionHandler = {}
 PlayerActionHandler.__index = PlayerActionHandler
@@ -394,6 +395,44 @@ function PlayerActionHandler:HandleAdvanceTutorial(player, request)
 	world.tutorial:AdvanceInfo(request.step)
 end
 
+-- ============================================================
+-- TOWN HALL (Power Core'i uuendus)
+-- ============================================================
+
+function PlayerActionHandler:HandleUpgradeBuilding(player, request)
+	local world = self:GetWorld(player)
+	if not world then return end
+	if type(request) ~= "table" or type(request.q) ~= "number" or type(request.r) ~= "number" then return end
+
+	local building = findBuildingAt(world, request.q, request.r)
+	if not building or building.buildingType ~= "PowerCore" then
+		self:Notify(player, "Only the Power Core can be upgraded.", "warning")
+		return
+	end
+
+	local nextLevel = building:GetNextLevel()
+	if not nextLevel then
+		self:Notify(player, "Power Core is already at max level.", "warning")
+		return
+	end
+
+	local bank = world.pointBank
+	if not bank or not bank:CanAfford(nextLevel.Cost)
+		or not ResourceLedger.CanAfford(world.buildings, {[Constants.ResourceTypes.CRYSTAL] = nextLevel.Crystal})
+	then
+		self:Notify(player, string.format("Upgrade needs %d UP + %d crystal.", nextLevel.Cost, nextLevel.Crystal), "warning")
+		return
+	end
+
+	bank:Spend(nextLevel.Cost)
+	ResourceLedger.Spend(world.buildings, {[Constants.ResourceTypes.CRYSTAL] = nextLevel.Crystal})
+	building:Upgrade()
+
+	Telemetry.Event(player, "TownHallUpgraded", building.level)
+	self:Notify(player, string.format("Power Core level %d: all production +%d%%.",
+		building.level, math.floor(nextLevel.ProductionBonus * 100 + 0.5)), "success", "build")
+end
+
 -- Play-testi kiirendus. AINULT Studios - avaldatud mängus ignoreeritakse.
 local GAME_SPEEDS = {[1] = true, [2] = true, [3] = true, [5] = true}
 
@@ -537,6 +576,7 @@ function PlayerActionHandler:Connect()
 	bind("BuyMetaUpgrade", PlayerActionHandler.HandleBuyMetaUpgrade)
 	bind("AdvanceTutorial", PlayerActionHandler.HandleAdvanceTutorial)
 	bind("SetGameSpeed", PlayerActionHandler.HandleSetGameSpeed)
+	bind("UpgradeBuilding", PlayerActionHandler.HandleUpgradeBuilding)
 end
 
 return PlayerActionHandler

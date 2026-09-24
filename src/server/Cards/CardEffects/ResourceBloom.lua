@@ -1,6 +1,7 @@
 --[[
 	ResourceBloom.lua (Rule Card, scope: buildingType)
-	Extractor +25%, Refinery +10%, Assembler +5%.
+	Extractor, Refinery, Assembler ühtlaselt +15% (Constants) - ühtlane
+	kordaja hoiab 1:1:1 ahela tasakaalus.
 	Power Core (energiatootmine) EI muutu.
 	PÜSIV kogu run'i vältel.
 ]]

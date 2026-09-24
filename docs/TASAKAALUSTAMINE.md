@@ -29,6 +29,9 @@ vt punkt 3.
 | Demand kulu | ~~50~~ **10** ore + 20 crystal, tähtaeg 30s | `Faction.Demand.*` |
 | Extractor maak | ~~5~~ **1** ore / 5 s = 12/min (= 1 Refinery tarbimine) | `Buildings.Extractor.OreProductionRate` |
 | Extractor kristall | ~~3~~ **1** crystal / 5 s = 12/min = 600 energiat/min (~5 Defenderit) | `Buildings.Extractor.CrystalProductionRate` |
+| Resource Bloom | ~~+25/10/5 %~~ **+15 %** Extractor/Refinery/Assembler (ühtlane) | `Cards.ResourceBloom.*` |
+| Kordaja tähendus | läbilaskevõime: Refinery/Assembler tarbivad JA toodavad kordaja võrra rohkem (oli: ainult väljund) | `Refinery:Tick`, `Assembler:Tick` |
+| Town Hall (Power Core'i tase) | Lv2: 30 UP + 30 kristalli -> +15 % kogu tootmine, 1500 energiat; Lv3: 60 UP + 60 kristalli -> +30 %, 2000 energiat. Kõrgeim tase loeb, hävinguga kaob | `Buildings.PowerCore.TownHall` |
 | Hostile -> Attack viivitus | 30s | `Faction.AttackDelayAfterHostile` |
 | Hoonete hinnad | Extractor 25, Refinery 40, Assembler 55, PowerCore 45, Defender 40 (24.09: kõik ~15% kallimaks; oli 20/35/50/40/35) | `BuildCosts` |
 | Lammutuse tagastus | 50% | `DemolishRefund` |
@@ -76,6 +79,10 @@ Play-testide põhjal. Vormis: kuupäev, mida testiti, mis leiti.
 | 24.09.2026 | 11. Play-test 7c (B kordus ILMA Overclockita, uus mängija, bonus 0, kiirendus 2-5x) | — | Kestus **18,6 min** mänguaega (1115 s), lõpp **Extract**, tasu **633** (~34 tasu/min; B-s Overclockiga ~70/min), rünnakuid 1. Laiendused minutil **10 ja 12** (B-s 4 ja 5). Kaart: Resource Bloom. Tutorial Skip. **Hex Seeds +1** (633/600 = 1, miinimumreeglit ei läinud vaja). Järeldus: määr 600 = ~1 seeme 18 min kohta; kaardi avamine (2 seemet) = 2 sellist run'i. Kasutaja muljed: ootel. |
 
 ## 4. Muudatuste logi
+
+### 24.09.2026 (õhtul) — Kordaja = läbilaskevõime, Resource Bloom ühtlaseks, Town Hall
+
+Play-test (kasutaja): "areng on väga meeldival tempol", aga kaartide kordajad lõid 1:1:1 ahela sassi (Bloom 25/10/5 %, kordaja mõjutas ainult väljundit -> maak/alloy kuhjus uuesti). Kristalli jääb tasuta Extractoril üle (3 Defenderiga 71 kristalli, Power Core täis). Otsused (kasutaja, 2 küsimust): kordaja tõstab tarbimist ja tootmist; Resource Bloom +15 % kõigile kolmele; Power Core = Town Hall, uuendus UP + kristall, tase annab ühtlase tootmisboonuse. Tasemete hinnad/boonused on esialgsed hoovad - kontrollida järgmises Play-testis.
 
 ### 24.09.2026 (hiljem) — Kristall 36 -> 12/min, hoonete hinnad ~15% kõrgemaks
 

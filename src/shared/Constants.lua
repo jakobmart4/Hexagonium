@@ -85,6 +85,16 @@ Constants.Buildings = {
 		-- OLULINE EELDUS: spec ei määratlenud crystal->energia konversioonimäära.
 		-- Väärtus on esialgne, playtestimisel tasakaalustatav. Muuda ainult siin.
 		EnergyPerCrystal = 50,
+
+		-- TOWN HALL: Power Core'i saab run'i jooksul uuendada. Maksab UP-d
+		-- ja kristalli (ülejääv kristall saab kasutuse, 24.09). Boonus kehtib
+		-- KÕIGI hoonete läbilaskevõimele ühtlaselt (ahel jääb 1:1:1); mitme
+		-- Power Core'i korral loeb kõrgeim tase, mitte summa. Hävinud Power
+		-- Core'iga kaob ka boonus. Tase 1 = ehitatud hoone.
+		TownHall = {
+			[2] = {Cost = 30, Crystal = 30, ProductionBonus = 0.15, MaxEnergy = 1500},
+			[3] = {Cost = 60, Crystal = 60, ProductionBonus = 0.30, MaxEnergy = 2000},
+		},
 	},
 
 	Defender = {
@@ -160,10 +170,12 @@ Constants.Cards = {
 		LagDuration = 5,
 	},
 
+	-- Ühtlane (oli 25/10/5 %): erinevad kordajad ahela lülidel viisid
+	-- 1:1:1 ahela tasakaalust välja - maak/alloy kuhjus (24.09).
 	ResourceBloom = {
-		ExtractorBonus = 0.25,
-		RefineryBonus = 0.10,
-		AssemblerBonus = 0.05,
+		ExtractorBonus = 0.15,
+		RefineryBonus = 0.15,
+		AssemblerBonus = 0.15,
 	},
 
 	EnergyLeak = {},

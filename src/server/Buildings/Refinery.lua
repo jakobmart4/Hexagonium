@@ -42,16 +42,20 @@ function Refinery:Tick()
 	if now - self.lastProcessTime >= config.OreToAlloyInterval then
 		self.lastProcessTime = now
 
-		local required = config.OreToAlloyRate
+		-- Kordaja = LÄBILASKEVÕIME: 1.1x tarbib ka 1.1x maaki. Varem tõstis
+		-- kordaja ainult väljundit ja 1:1:1 ahel läks kaartidega sassi
+		-- (maak/alloy kuhjus, 24.09).
+		local batch = config.OreToAlloyRate * self:GetProductionMultiplier()
 
 		-- Null Surge efektifaas: toodab ilma sisendit tarbimata (spec 5.6)
 		if self:ShouldIgnoreInputs() then
-			local produced = required * self:GetProductionMultiplier()
-			self.outputBuffer = self.outputBuffer + produced
-		elseif self.inputBuffer >= required then
-			self.inputBuffer = self.inputBuffer - required
-			local produced = required * self:GetProductionMultiplier()
-			self.outputBuffer = self.outputBuffer + produced
+			self.outputBuffer = self.outputBuffer + batch
+		else
+			local amount = math.min(self.inputBuffer, batch)
+			if amount > 0 then
+				self.inputBuffer = self.inputBuffer - amount
+				self.outputBuffer = self.outputBuffer + amount
+			end
 		end
 	end
 end

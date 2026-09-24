@@ -61,6 +61,17 @@ function TickService:UnregisterBuilding(building)
 	self.nodeSystem:UnregisterBuilding(building)
 end
 
+function TickService:_getTownHallBonus()
+	local level = 1
+	for _, building in ipairs(self.buildings) do
+		if building.buildingType == "PowerCore" and not building.isDestroyed and building.level > level then
+			level = building.level
+		end
+	end
+	local config = Constants.Buildings.PowerCore.TownHall[level]
+	return config and (1 + config.ProductionBonus) or 1
+end
+
 function TickService:Tick()
 	-- 1) Kaardid uuendavad oma tsüklid ja rakendavad kordajad hoonetele
 	--    ENNE tootmist, et jooksev tick kasutaks juba õigeid väärtusi.
@@ -71,6 +82,18 @@ function TickService:Tick()
 			nodeSystem = self.nodeSystem,
 			faction = self.faction,
 		})
+
+		-- Town Hall: kõrgeima Power Core'i taseme boonus KÕIGILE hoonetele.
+		-- CardManager arvutab kordaja igal tick'il nullist, nii et korrutamine
+		-- siin ei kuhju.
+		local bonus = self:_getTownHallBonus()
+		if bonus ~= 1 then
+			for _, building in ipairs(self.buildings) do
+				if not building.isDestroyed then
+					building:SetProductionMultiplier(building:GetProductionMultiplier() * bonus)
+				end
+			end
+		end
 	end
 
 	-- 2) Hooned toodavad/töötlevad

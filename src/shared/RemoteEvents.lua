@@ -13,6 +13,7 @@
 	  BuyMetaUpgrade   klient -> server   (Hex Seeds kulutamine start screen'il)
 	  AdvanceTutorial  klient -> server   (tutoriali infosammu "Next")
 	  SetGameSpeed     klient -> server   (Studio: mänguaja kiirus 1/2/3/5x)
+	  UpgradeBuilding  klient -> server   (Power Core / Town Hall järgmine tase)
 	  Notification     server -> klient   (teated: runnak, kaardi efekt)
 ]]
 
@@ -33,6 +34,7 @@ local EVENT_NAMES = {
 	"BuyMetaUpgrade",
 	"AdvanceTutorial",
 	"SetGameSpeed",
+	"UpgradeBuilding",
 	"Notification",
 }
 

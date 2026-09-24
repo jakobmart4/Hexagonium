@@ -19,6 +19,7 @@ function PowerCore.new(q, r)
 	local config = Constants.Buildings.PowerCore
 	self.maxEnergyStorage = config.MaxEnergyStorage
 	self.currentEnergy = config.StartingEnergy
+	self.level = 1 -- Town Hall tase (Constants.Buildings.PowerCore.TownHall)
 
 	self.energyLeakActive = false
 	self.lastLeakTime = GameClock.now()
@@ -68,6 +69,22 @@ function PowerCore:ConsumeEnergy(amount)
 		return false
 	end
 	self.currentEnergy = self.currentEnergy - amount
+	return true
+end
+
+-- Järgmise taseme seaded või nil, kui tase on maksimumis
+function PowerCore:GetNextLevel()
+	return Constants.Buildings.PowerCore.TownHall[self.level + 1]
+end
+
+-- Kulu kontrollib ja võtab PlayerActionHandler; siin ainult efekt
+function PowerCore:Upgrade()
+	local nextLevel = self:GetNextLevel()
+	if not nextLevel then
+		return false
+	end
+	self.level = self.level + 1
+	self.maxEnergyStorage = nextLevel.MaxEnergy
 	return true
 end
 

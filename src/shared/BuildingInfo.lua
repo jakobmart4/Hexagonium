@@ -67,10 +67,11 @@ BuildingInfo.Buildings = {
 	},
 	PowerCore = {
 		displayName = "Power Core",
-		tagline = "Turns crystal into energy",
+		tagline = "Town Hall: energy and upgrades",
 		description = string.format(
-			"Stores up to %d energy and converts each crystal into %d. Defenders draw from it directly.",
-			B.PowerCore.MaxEnergyStorage, B.PowerCore.EnergyPerCrystal),
+			"Stores up to %d energy and converts each crystal into %d. Defenders draw from it directly. Upgrade it (right-click) with UP and spare crystal to boost ALL production by up to +%d%%.",
+			B.PowerCore.MaxEnergyStorage, B.PowerCore.EnergyPerCrystal,
+			math.floor(B.PowerCore.TownHall[3].ProductionBonus * 100 + 0.5)),
 		requiresResourceHex = false,
 	},
 	Refinery = {
@@ -103,8 +104,8 @@ BuildingInfo.Buildings = {
 -- ============================================================
 -- VOOG MINUTIS (kontekstimenuu)
 -- Baaskiirused Constants'ist - kordajat EI arvestata, klient korrutab
--- serveri saadetud kordajaga. Refinery/Assembler tarbivad alati
--- baaskiirusel; kordaja mojutab ainult valjundit (vt nende Tick).
+-- serveri saadetud kordajaga. Kordaja = läbilaskevõime: Refinery ja
+-- Assembler tarbivad ja toodavad kordaja võrra rohkem (vt nende Tick).
 -- hexType on vajalik ainult Extractorile.
 -- Tagastab {makes = {amount, resource} | nil, uses = {amount, resource} | nil}
 -- ============================================================
