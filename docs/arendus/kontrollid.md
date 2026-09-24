@@ -1,7 +1,7 @@
 ---
 tüüp: kvaliteedikontrollid
 seis: 2026-09-24
-allikas: juhend "Ohutus ja Review.txt"
+allikas: "C:/Skills/Juhendid/Ohutus ja Review.md"
 ---
 
 # Juhendi kontrollid
