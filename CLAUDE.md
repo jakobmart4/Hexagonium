@@ -109,6 +109,11 @@ WipeSaveOnJoin   -- kustutab salvestuse liitumisel (uue mängija vaade, ainult S
 `ForceAttackAfter` on ainus viis rünnakusüsteemi testida ilma
 150 sekundit ootamata.
 
+**Aja kiirendus (ainult Studios):** Play-s all keskel nupud 2x/3x/5x
+(`GameSpeed.client.lua`, aktiivse uus klõps = 1x). Kogu mänguloogika
+loeb aega `Core/GameClock.now()`-st, mitte `os.clock()`-ist — uus taimer
+peab kasutama sama, muidu ei kiirene see kaasa.
+
 **Testiväärtused pane `src/shared/LocalDebug.lua`-sse, mitte
 Constants'i:** `return {WipeSaveOnJoin = true}`. Fail on gitignore'is,
 kehtib ainult Studios ja kirjutab `Constants.Debug` üle. Constants'is

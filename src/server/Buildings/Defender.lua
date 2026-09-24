@@ -6,6 +6,7 @@
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Constants = require(ReplicatedStorage.Shared.Constants)
+local GameClock = require(game:GetService("ServerScriptService").Core.GameClock)
 local BuildingBase = require(script.Parent.BuildingBase)
 
 local Defender = setmetatable({}, {__index = BuildingBase})
@@ -19,8 +20,8 @@ function Defender.new(q, r)
 	self.isUnderAttack = false
 	self.hasEnergy = true
 
-	self.lastEnergyDrawTime = os.clock()
-	self.lastFireTime = os.clock()
+	self.lastEnergyDrawTime = GameClock.now()
+	self.lastFireTime = GameClock.now()
 
 	return self
 end
@@ -35,7 +36,7 @@ end
 
 function Defender:Tick()
 	local config = Constants.Buildings.Defender
-	local now = os.clock()
+	local now = GameClock.now()
 
 	if not self.powerCoreRef or not self.powerCoreRef:IsOperational() then
 		return
@@ -59,7 +60,7 @@ end
 -- ============================================================
 function Defender:TryFire()
 	local config = Constants.Buildings.Defender
-	local now = os.clock()
+	local now = GameClock.now()
 
 	if not self:IsOperational() then
 		return nil

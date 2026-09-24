@@ -5,6 +5,7 @@
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Constants = require(ReplicatedStorage.Shared.Constants)
+local GameClock = require(game:GetService("ServerScriptService").Core.GameClock)
 local BuildingBase = require(script.Parent.BuildingBase)
 
 local Refinery = setmetatable({}, {__index = BuildingBase})
@@ -16,7 +17,7 @@ function Refinery.new(q, r)
 
 	self.inputBuffer = 0
 	self.outputBuffer = 0
-	self.lastProcessTime = os.clock()
+	self.lastProcessTime = GameClock.now()
 
 	return self
 end
@@ -36,7 +37,7 @@ function Refinery:Tick()
 	end
 
 	local config = Constants.Buildings.Refinery
-	local now = os.clock()
+	local now = GameClock.now()
 
 	if now - self.lastProcessTime >= config.OreToAlloyInterval then
 		self.lastProcessTime = now

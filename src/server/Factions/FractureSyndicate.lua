@@ -17,6 +17,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerScriptService = game:GetService("ServerScriptService")
 
 local Constants = require(ReplicatedStorage.Shared.Constants)
+local GameClock = require(game:GetService("ServerScriptService").Core.GameClock)
 local FactionStateMachine = require(ServerScriptService.Factions.FactionStateMachine)
 local ResourceLedger = require(ServerScriptService.Resources.ResourceLedger)
 local AttackManager = require(ServerScriptService.Factions.AttackManager)
@@ -48,7 +49,7 @@ function FractureSyndicate.new(gameState)
 
 
 	-- Millal viimati Neutral'isse joudsime (Demand ajastuse jaoks)
-	self.lastNeutralTime = os.clock()
+	self.lastNeutralTime = GameClock.now()
 
 	self:_wireTransitions()
 
@@ -98,7 +99,7 @@ function FractureSyndicate:_wireTransitions()
 	end)
 
 	m:OnEnter(S.NEUTRAL, function()
-		self.lastNeutralTime = os.clock()
+		self.lastNeutralTime = GameClock.now()
 	end)
 end
 
@@ -243,8 +244,8 @@ function FractureSyndicate:Tick()
 		if tutorial and tutorial:HoldsDemands() then
 			-- Uus mängija pole Demand-sammuni jõudnud: nõudeid ei tule ja
 			-- taimer ootab. Kui samm kätte jõuab, loetakse aeg sealt.
-			self.lastNeutralTime = os.clock()
-		elseif os.clock() - self.lastNeutralTime >= self:_demandInterval() then
+			self.lastNeutralTime = GameClock.now()
+		elseif GameClock.now() - self.lastNeutralTime >= self:_demandInterval() then
 			self:EnterDemand()
 		end
 	end
@@ -269,7 +270,7 @@ function FractureSyndicate:GetClientState()
 	-- teadma, millal jargmine noue tuleb. Ilma selleta tundub
 	-- fraktsioon ettearvamatu ja runnak ebaausana.
 	if state == S.NEUTRAL then
-		local elapsed = os.clock() - self.lastNeutralTime
+		local elapsed = GameClock.now() - self.lastNeutralTime
 		data.nextDemandIn = math.max(0, self:_demandInterval() - elapsed)
 	end
 

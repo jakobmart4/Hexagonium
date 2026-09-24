@@ -13,6 +13,7 @@
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Constants = require(ReplicatedStorage.Shared.Constants)
+local GameClock = require(game:GetService("ServerScriptService").Core.GameClock)
 
 local S = Constants.Faction.States
 
@@ -24,7 +25,7 @@ function FactionStateMachine.new(factionName)
 
 	self.factionName = factionName
 	self.state = S.NEUTRAL
-	self.stateStartTime = os.clock()
+	self.stateStartTime = GameClock.now()
 
 	-- Kui seatud, minnakse kestuse lopus automaatselt siia
 	self.stateDuration = nil
@@ -68,7 +69,7 @@ end
 function FactionStateMachine:SetState(newState, duration, nextState)
 	if newState == self.state then
 		-- Sama olek uuesti: uuenda ainult taimerit
-		self.stateStartTime = os.clock()
+		self.stateStartTime = GameClock.now()
 		self.stateDuration = duration
 		self.nextState = nextState
 		return true
@@ -79,7 +80,7 @@ function FactionStateMachine:SetState(newState, duration, nextState)
 	fire(self.onExit[previous], self, newState)
 
 	self.state = newState
-	self.stateStartTime = os.clock()
+	self.stateStartTime = GameClock.now()
 	self.stateDuration = duration
 	self.nextState = nextState
 
@@ -97,7 +98,7 @@ function FactionStateMachine:IsState(state)
 end
 
 function FactionStateMachine:GetElapsed()
-	return os.clock() - self.stateStartTime
+	return GameClock.now() - self.stateStartTime
 end
 
 -- Mitu sekundit on praeguses olekus veel jaanud (nil = piiramatu)

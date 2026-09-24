@@ -6,6 +6,7 @@
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Constants = require(ReplicatedStorage.Shared.Constants)
+local GameClock = require(game:GetService("ServerScriptService").Core.GameClock)
 local BuildingBase = require(script.Parent.BuildingBase)
 
 local Extractor = setmetatable({}, {__index = BuildingBase})
@@ -23,7 +24,7 @@ function Extractor.new(q, r, hexGrid)
 	self.hexType = hexType
 
 	self.outputBuffer = 0
-	self.lastProductionTime = os.clock()
+	self.lastProductionTime = GameClock.now()
 
 	return self
 end
@@ -34,7 +35,7 @@ function Extractor:Tick()
 	end
 
 	local config = Constants.Buildings.Extractor
-	local now = os.clock()
+	local now = GameClock.now()
 
 	local rate, interval, resourceType
 	if self.hexType == Constants.HexTypes.ORE_HEX then

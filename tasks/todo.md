@@ -51,6 +51,7 @@ Plaan ja põhjendused: `tasks/plan.md`. Roadmap: `docs/HEXAGONIUM_Peadokument.tx
 - [x] Studio korrastus: topelt-Lighting parandatud, prügi kustutatud, hexi mallid `assets/HexTemplates.rbxm` (16.09)
 - [x] `docs/arendus/` (roadmap, play-testid, kontrollid, ADR-001..009) + Understand-Anything graaf (24.09)
 - [x] Testilipud `src/shared/LocalDebug.lua`-sse, Constants'is ainult avaldamisväärtused (`0666f32`)
+- [x] Play-testi aja kiirendus 2x/3x/5x (Studio): `GameClock` + `GameSpeed.client.lua` (24.09)
 
 ## Tööriistad (kasutaja)
 - [ ] Pythoni Store'i otseteed välja (Sätted -> Rakendused -> Täpsemad -> Rakenduse käivitamise pseudonüümid) — vajalik `/understand` uuendusteks

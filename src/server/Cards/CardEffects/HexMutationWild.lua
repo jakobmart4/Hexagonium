@@ -9,6 +9,7 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerScriptService = game:GetService("ServerScriptService")
 local Constants = require(ReplicatedStorage.Shared.Constants)
+local GameClock = require(game:GetService("ServerScriptService").Core.GameClock)
 local CardBase = require(ServerScriptService.Cards.CardBase)
 
 local HexMutationWild = setmetatable({}, {__index = CardBase})
@@ -18,7 +19,7 @@ function HexMutationWild.new(q, r)
 	local self = CardBase.new("HexMutationWild", CardBase.Scopes.HEX)
 	setmetatable(self, HexMutationWild)
 	self:SetTargetHex(q, r)
-	self.lastFailCheck = os.clock()
+	self.lastFailCheck = GameClock.now()
 	return self
 end
 
@@ -32,7 +33,7 @@ end
 
 function HexMutationWild:OnTick(context)
 	local config = Constants.Cards.HexMutationWild
-	local now = os.clock()
+	local now = GameClock.now()
 
 	if now - self.lastFailCheck < config.FailCheckInterval then
 		return

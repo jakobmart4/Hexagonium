@@ -16,6 +16,7 @@
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Constants = require(ReplicatedStorage.Shared.Constants)
+local GameClock = require(game:GetService("ServerScriptService").Core.GameClock)
 
 local CFG = Constants.Run
 
@@ -38,7 +39,7 @@ function RunManager.new(gameState)
 
 	self.gameState = gameState
 	self.state = RunManager.States.ACTIVE
-	self.startTime = os.clock()
+	self.startTime = GameClock.now()
 	self.endReason = nil
 	self.result = nil
 
@@ -75,7 +76,7 @@ end
 -- ============================================================
 
 function RunManager:GetElapsed()
-	return os.clock() - self.startTime
+	return GameClock.now() - self.startTime
 end
 
 function RunManager:GetRemaining()

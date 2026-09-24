@@ -6,6 +6,7 @@
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Constants = require(ReplicatedStorage.Shared.Constants)
+local GameClock = require(game:GetService("ServerScriptService").Core.GameClock)
 local BuildingBase = require(script.Parent.BuildingBase)
 
 local PowerCore = setmetatable({}, {__index = BuildingBase})
@@ -20,7 +21,7 @@ function PowerCore.new(q, r)
 	self.currentEnergy = config.StartingEnergy
 
 	self.energyLeakActive = false
-	self.lastLeakTime = os.clock()
+	self.lastLeakTime = GameClock.now()
 
 	return self
 end
@@ -28,13 +29,13 @@ end
 function PowerCore:SetEnergyLeakActive(active)
 	self.energyLeakActive = active
 	if active then
-		self.lastLeakTime = os.clock()
+		self.lastLeakTime = GameClock.now()
 	end
 end
 
 function PowerCore:Tick()
 	local config = Constants.Buildings.PowerCore
-	local now = os.clock()
+	local now = GameClock.now()
 
 	if self.energyLeakActive then
 		if now - self.lastLeakTime >= config.EnergyLeakInterval then

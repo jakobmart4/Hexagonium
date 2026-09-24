@@ -8,6 +8,7 @@
 local RunService = game:GetService("RunService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Constants = require(ReplicatedStorage.Shared.Constants)
+local GameClock = require(game:GetService("ServerScriptService").Core.GameClock)
 
 local TickService = {}
 TickService.__index = TickService
@@ -111,7 +112,8 @@ function TickService:Start()
 	local interval = Constants.NodeSystem.TickInterval
 
 	self.heartbeatConnection = RunService.Heartbeat:Connect(function(dt)
-		self.accumulatedTime = self.accumulatedTime + dt
+		-- Mänguaja kiirusega (Studio kiirendus): 1 tick = 1 mängusekund
+		self.accumulatedTime = self.accumulatedTime + dt * GameClock.GetSpeed()
 
 		while self.accumulatedTime >= interval do
 			self.accumulatedTime = self.accumulatedTime - interval

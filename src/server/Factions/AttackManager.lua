@@ -22,6 +22,7 @@ local ServerScriptService = game:GetService("ServerScriptService")
 local TweenService = game:GetService("TweenService")
 
 local Constants = require(ReplicatedStorage.Shared.Constants)
+local GameClock = require(game:GetService("ServerScriptService").Core.GameClock)
 local Theme = require(ReplicatedStorage.Shared.Theme)
 local BuildingFactory = require(ServerScriptService.Buildings.BuildingFactory)
 
@@ -138,7 +139,7 @@ function AttackManager:StartWave(durationSeconds)
 	self.threatScale = threat
 
 	self.active = true
-	self.waveStartTime = os.clock()
+	self.waveStartTime = GameClock.now()
 	self.waveDuration = durationSeconds
 	self.spawnQueue = count
 	self.lastSpawnTime = 0
@@ -249,7 +250,7 @@ function AttackManager:Tick()
 		return
 	end
 
-	local now = os.clock()
+	local now = GameClock.now()
 	local dt = Constants.NodeSystem.TickInterval
 
 	-- 1) Tekita jargmine ruundaja
@@ -307,7 +308,7 @@ function AttackManager:Tick()
 			local newPos = a.model.Position + toTarget.Unit * step
 			TweenService:Create(
 				a.model,
-				TweenInfo.new(dt, Enum.EasingStyle.Linear),
+				TweenInfo.new(dt / GameClock.GetSpeed(), Enum.EasingStyle.Linear),
 				{Position = newPos}
 			):Play()
 		else

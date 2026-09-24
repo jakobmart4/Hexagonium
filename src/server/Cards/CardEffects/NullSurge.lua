@@ -14,6 +14,7 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerScriptService = game:GetService("ServerScriptService")
 local Constants = require(ReplicatedStorage.Shared.Constants)
+local GameClock = require(game:GetService("ServerScriptService").Core.GameClock)
 local CardBase = require(ServerScriptService.Cards.CardBase)
 
 local NullSurge = setmetatable({}, {__index = CardBase})
@@ -24,8 +25,8 @@ function NullSurge.new()
 	setmetatable(self, NullSurge)
 
 	self.phase = "idle"        -- "idle" | "effect" | "lag"
-	self.phaseStartTime = os.clock()
-	self.lastCycleStart = os.clock()
+	self.phaseStartTime = GameClock.now()
+	self.lastCycleStart = GameClock.now()
 
 	return self
 end
@@ -33,13 +34,13 @@ end
 function NullSurge:OnActivate(context)
 	CardBase.OnActivate(self, context)
 	self.phase = "idle"
-	self.phaseStartTime = os.clock()
-	self.lastCycleStart = os.clock()
+	self.phaseStartTime = GameClock.now()
+	self.lastCycleStart = GameClock.now()
 end
 
 function NullSurge:OnTick(context)
 	local config = Constants.Cards.NullSurge
-	local now = os.clock()
+	local now = GameClock.now()
 	local elapsed = now - self.phaseStartTime
 
 	if self.phase == "idle" then

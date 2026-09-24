@@ -22,6 +22,7 @@ local BuildingFactory = require(ServerScriptService.Buildings.BuildingFactory)
 local SaveService = require(ServerScriptService.Core.SaveService)
 local CardInfo = require(ReplicatedStorage.Shared.CardInfo)
 local Telemetry = require(ServerScriptService.Core.Telemetry)
+local GameClock = require(ServerScriptService.Core.GameClock)
 
 local PlayerActionHandler = {}
 PlayerActionHandler.__index = PlayerActionHandler
@@ -393,6 +394,17 @@ function PlayerActionHandler:HandleAdvanceTutorial(player, request)
 	world.tutorial:AdvanceInfo(request.step)
 end
 
+-- Play-testi kiirendus. AINULT Studios - avaldatud mängus ignoreeritakse.
+local GAME_SPEEDS = {[1] = true, [2] = true, [3] = true, [5] = true}
+
+function PlayerActionHandler:HandleSetGameSpeed(player, request)
+	if not game:GetService("RunService"):IsStudio() then return end
+	if type(request) ~= "table" or not GAME_SPEEDS[request.speed] then return end
+
+	GameClock.SetSpeed(request.speed)
+	print(string.format("[Hexagonium] Mänguaja kiirus %dx (%s)", request.speed, player.Name))
+end
+
 function PlayerActionHandler:HandleExpandIsland(player)
 	local world = self:GetWorld(player)
 	if not world then return end
@@ -524,6 +536,7 @@ function PlayerActionHandler:Connect()
 	bind("SkipTutorial", PlayerActionHandler.HandleSkipTutorial)
 	bind("BuyMetaUpgrade", PlayerActionHandler.HandleBuyMetaUpgrade)
 	bind("AdvanceTutorial", PlayerActionHandler.HandleAdvanceTutorial)
+	bind("SetGameSpeed", PlayerActionHandler.HandleSetGameSpeed)
 end
 
 return PlayerActionHandler

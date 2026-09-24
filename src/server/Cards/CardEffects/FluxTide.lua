@@ -10,6 +10,7 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerScriptService = game:GetService("ServerScriptService")
 local Constants = require(ReplicatedStorage.Shared.Constants)
+local GameClock = require(game:GetService("ServerScriptService").Core.GameClock)
 local CardBase = require(ServerScriptService.Cards.CardBase)
 
 local FluxTide = setmetatable({}, {__index = CardBase})
@@ -25,8 +26,8 @@ function FluxTide.new()
 	}
 
 	self.phase = "normal"      -- "normal" | "bonus" | "penalty"
-	self.phaseStartTime = os.clock()
-	self.lastCycleStart = os.clock()
+	self.phaseStartTime = GameClock.now()
+	self.lastCycleStart = GameClock.now()
 
 	return self
 end
@@ -34,13 +35,13 @@ end
 function FluxTide:OnActivate(context)
 	CardBase.OnActivate(self, context)
 	self.phase = "normal"
-	self.phaseStartTime = os.clock()
-	self.lastCycleStart = os.clock()
+	self.phaseStartTime = GameClock.now()
+	self.lastCycleStart = GameClock.now()
 end
 
 function FluxTide:OnTick(context)
 	local config = Constants.Cards.FluxTide
-	local now = os.clock()
+	local now = GameClock.now()
 	local elapsed = now - self.phaseStartTime
 
 	if self.phase == "normal" then

@@ -10,6 +10,7 @@
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Constants = require(ReplicatedStorage.Shared.Constants)
+local GameClock = require(game:GetService("ServerScriptService").Core.GameClock)
 local BuildingBase = require(script.Parent.BuildingBase)
 
 local Assembler = setmetatable({}, {__index = BuildingBase})
@@ -22,7 +23,7 @@ function Assembler.new(q, r)
 	self.inputBuffer = 0
 	self.pointBank = nil        -- seotakse BuildingFactory kaudu
 	self.producedThisRun = 0    -- ainult statistika/kuvamise jaoks
-	self.lastProcessTime = os.clock()
+	self.lastProcessTime = GameClock.now()
 
 	return self
 end
@@ -46,7 +47,7 @@ function Assembler:Tick()
 	end
 
 	local config = Constants.Buildings.Assembler
-	local now = os.clock()
+	local now = GameClock.now()
 
 	if now - self.lastProcessTime >= config.AlloyConsumptionInterval then
 		self.lastProcessTime = now

@@ -11,6 +11,7 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerScriptService = game:GetService("ServerScriptService")
 local Constants = require(ReplicatedStorage.Shared.Constants)
+local GameClock = require(game:GetService("ServerScriptService").Core.GameClock)
 local CardBase = require(ServerScriptService.Cards.CardBase)
 
 local Overclock = setmetatable({}, {__index = CardBase})
@@ -32,7 +33,7 @@ end
 
 function Overclock:OnTick(context)
 	local config = Constants.Cards.Overclock
-	local now = os.clock()
+	local now = GameClock.now()
 
 	-- Null Surge efektifaasis Overclock ei aktiveeru -> ei kontrolli ka ülekuumenemist
 	if context.cardManager and context.cardManager:IsNullSurgeActive() then

@@ -12,6 +12,7 @@
 	  SkipTutorial     klient -> server   (mängija jätab tutoriali vahele)
 	  BuyMetaUpgrade   klient -> server   (Hex Seeds kulutamine start screen'il)
 	  AdvanceTutorial  klient -> server   (tutoriali infosammu "Next")
+	  SetGameSpeed     klient -> server   (Studio: mänguaja kiirus 1/2/3/5x)
 	  Notification     server -> klient   (teated: runnak, kaardi efekt)
 ]]
 
@@ -31,6 +32,7 @@ local EVENT_NAMES = {
 	"SkipTutorial",
 	"BuyMetaUpgrade",
 	"AdvanceTutorial",
+	"SetGameSpeed",
 	"Notification",
 }
 

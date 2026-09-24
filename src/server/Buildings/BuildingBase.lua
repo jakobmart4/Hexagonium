@@ -8,6 +8,7 @@ local BuildingBase = {}
 BuildingBase.__index = BuildingBase
 
 local Constants = require(game:GetService("ReplicatedStorage").Shared.Constants)
+local GameClock = require(game:GetService("ServerScriptService").Core.GameClock)
 
 function BuildingBase.new(buildingType, q, r)
 	local self = setmetatable({}, BuildingBase)
@@ -70,11 +71,11 @@ end
 
 function BuildingBase:Pause(duration)
 	self.isPaused = true
-	self.pauseEndTime = os.clock() + duration
+	self.pauseEndTime = GameClock.now() + duration
 end
 
 function BuildingBase:UpdatePauseState()
-	if self.isPaused and self.pauseEndTime and os.clock() >= self.pauseEndTime then
+	if self.isPaused and self.pauseEndTime and GameClock.now() >= self.pauseEndTime then
 		self.isPaused = false
 		self.pauseEndTime = nil
 	end
@@ -126,7 +127,7 @@ function BuildingBase:TakeDamage(amount)
 	end
 
 	self.health = math.max(0, self.health - amount)
-	self.lastDamageTime = os.clock()
+	self.lastDamageTime = GameClock.now()
 
 	if self.health <= 0 then
 		self:Destroy()
@@ -152,7 +153,7 @@ function BuildingBase:RegenerateHealth()
 
 	local cfg = Constants.Attack
 
-	if self.lastDamageTime and (os.clock() - self.lastDamageTime) < cfg.BuildingRegenDelay then
+	if self.lastDamageTime and (GameClock.now() - self.lastDamageTime) < cfg.BuildingRegenDelay then
 		return
 	end
 

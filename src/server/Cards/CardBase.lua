@@ -13,6 +13,8 @@
 	kuid on ka peamine POWER-CREEP RISK - vt CardManager.EXPLOIT_WARN_THRESHOLD.
 ]]
 
+local GameClock = require(game:GetService("ServerScriptService").Core.GameClock)
+
 local CardBase = {}
 CardBase.__index = CardBase
 
@@ -75,7 +77,7 @@ end
 
 function CardBase:OnActivate(context)
 	self.isActive = true
-	self.activatedAt = os.clock()
+	self.activatedAt = GameClock.now()
 end
 
 function CardBase:OnTick(context)
