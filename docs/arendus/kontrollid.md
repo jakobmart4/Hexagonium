@@ -44,7 +44,7 @@ mängijale inglise tekst, üks allikas, Debug-lipud väljas).
 
 ### documentation-and-adrs · osaliselt
 Otsused on [Peadokument](../HEXAGONIUM_Peadokument.txt) §14-s ja
-kaartidena [otsused/](otsused/) kaustas. `docs/` all on 4 "vana" faili.
+kaartidena [otsused/](otsused/) kaustas. Vanad failid on [arhiiv/](../arhiiv/README.md) kaustas.
 
 ### engineering:architecture · tegemata
 Arhitektuur kirjas `CLAUDE.md`-s (isoleeritud maailmad,
