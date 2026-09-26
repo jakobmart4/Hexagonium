@@ -19,6 +19,9 @@ local MirrorWorld = require(ServerScriptService.Cards.CardEffects.MirrorWorld)
 local HexMutationWild = require(ServerScriptService.Cards.CardEffects.HexMutationWild)
 local BlessedHex = require(ServerScriptService.Cards.CardEffects.BlessedHex)
 
+-- Resource Bloomi Extractori kordaja Constants'ist (üks allikas; oli käsitsi 1.25)
+local BLOOM = 1 + require(ReplicatedStorage.Shared.Constants).Cards.ResourceBloom.ExtractorBonus
+
 task.wait(2)
 
 print("")
@@ -62,10 +65,10 @@ cm:ActivateCard(Overclock.new(), ctx)
 report("Overclock", 2.5)
 
 cm:ActivateCard(ResourceBloom.new(), ctx)
-report("Overclock + ResourceBloom", 2.5 * 1.25)
+report("Overclock + ResourceBloom", 2.5 * BLOOM)
 
 cm:ActivateCard(HexMutationWild.new(0, 0), ctx)
-report("+ HexMutationWild (sama hex)", 2.5 * 1.25 * 1.20)
+report("+ HexMutationWild (sama hex)", 2.5 * BLOOM * 1.20)
 
 print("")
 print("--- 2. EXPLOIT-KAITSE: Null Surge + Overclock ---")
@@ -73,12 +76,12 @@ local ns = NullSurge.new()
 cm:ActivateCard(ns, ctx)
 
 ns.phase = "idle"
-report("NullSurge idle (Overclock kehtib)", 2.5 * 1.25 * 1.20)
+report("NullSurge idle (Overclock kehtib)", 2.5 * BLOOM * 1.20)
 
 ns.phase = "effect"
-local effectMult = report("NullSurge EFFECT (Overclock välistatud)", 3.0 * 1.25 * 1.20)
-print(string.format("    -> ilma kaitseta oleks: %.2fx", 3.0 * 2.5 * 1.25 * 1.20))
-print(string.format("    -> kaitse säästis: %.2fx", (3.0 * 2.5 * 1.25 * 1.20) - effectMult))
+local effectMult = report("NullSurge EFFECT (Overclock välistatud)", 3.0 * BLOOM * 1.20)
+print(string.format("    -> ilma kaitseta oleks: %.2fx", 3.0 * 2.5 * BLOOM * 1.20))
+print(string.format("    -> kaitse säästis: %.2fx", (3.0 * 2.5 * BLOOM * 1.20) - effectMult))
 
 ns.phase = "lag"
 report("NullSurge LAG (tootmine peatub)", 0)
@@ -88,14 +91,14 @@ ns.phase = "idle"
 print("")
 print("--- 3. Mirror World pöörab biome-efektid ümber ---")
 cm:ActivateCard(MirrorWorld.new(), ctx)
-report("+ MirrorWorld (Wild 1.20 -> 1.10, global 0.9)", 2.5 * 1.25 * 1.10 * 0.9)
+report("+ MirrorWorld (Wild 1.20 -> 1.10, global 0.9)", 2.5 * BLOOM * 1.10 * 0.9)
 
 print("")
 print("--- 4. Hex-scope: kaart ei mõjuta teisi hexe ---")
 local otherHex = makeFakeBuilding("Extractor", 5, 5)
 local mOther = cm:ComputeProductionMultiplier(otherHex, ctx)
 print(string.format("%-52s %.3fx  %s", "Hoone hexil (5,5) - Wild ei kehti", mOther,
-	(math.abs(mOther - (2.5 * 1.25 * 0.9)) < 0.01) and "[OK]" or "[VIGA]"))
+	(math.abs(mOther - (2.5 * BLOOM * 0.9)) < 0.01) and "[OK]" or "[VIGA]"))
 
 print("")
 print("--- 5. BuildingType-scope: PowerCore ei saa Bloomi ---")
