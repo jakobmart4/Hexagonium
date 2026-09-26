@@ -25,8 +25,8 @@ vastav fail siin.
 
 | Ala | Seis | Fail |
 |---|---|---|
-| Tee beetani | Play-test B pooleli | [roadmap.md](roadmap.md) |
-| Play-testid | A tehtud, B 1 run, C tegemata | [playtestid.md](playtestid.md) |
+| Tee beetani | Play-test C ja Kontrollpunkt C ees | [roadmap.md](roadmap.md) |
+| Play-testid | A, B (+7c) tehtud; 7h (parandusala) ja C tegemata | [playtestid.md](playtestid.md) |
 | Juhendi kontrollid | 1 OK, 2 osaliselt, 2 puudujääki, 2 tegemata | [kontrollid.md](kontrollid.md) |
 | Otsused | 10 kirjet | [otsused/](otsused/) |
 
@@ -38,9 +38,8 @@ vastav fail siin.
 
 ## Lahtised otsused
 
-- Seemnete määr: nüüd vähemalt 1 seeme run'i kohta (`Meta.MinSeedsPerRun`); kas 600 tasu = 1 seeme sobib, selgub 7c-s → [Constants.lua](../../src/shared/Constants.lua)
+- Seemnete määr: 7c andis ~1 seemne 18 min kohta (600); otsus pärast Play-testi C → [Constants.lua](../../src/shared/Constants.lua)
 - Pärast kristalli (12/min) ja hindade (+15%) muutust: kas teine tootmisahel ja Defender 40 on õigel ajal jõukohased → [Constants.lua](../../src/shared/Constants.lua)
-- Run'i laienduste lagi (2) täis 5. minutil → [IslandManager.lua](../../src/server/Core/IslandManager.lua)
 
 ## Otsused
 
