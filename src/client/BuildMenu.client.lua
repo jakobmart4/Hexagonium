@@ -18,6 +18,7 @@ local RemoteEvents = require(ReplicatedStorage.Shared.RemoteEvents)
 local BuildingInfo = require(ReplicatedStorage.Shared.BuildingInfo)
 local Constants = require(ReplicatedStorage.Shared.Constants)
 local Theme = require(ReplicatedStorage.Shared.Theme)
+local RangeRing = require(ReplicatedStorage.Shared.RangeRing)
 
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
@@ -259,6 +260,7 @@ local function stopTargeting()
 	tween:Play()
 	highlight.Enabled = false
 	highlight.Adornee = nil
+	RangeRing.Hide("build")
 end
 
 local function startTargeting(buildingType)
@@ -291,6 +293,16 @@ RunService.RenderStepped:Connect(function()
 	else
 		highlight.Enabled = false
 		highlight.Adornee = nil
+	end
+
+	-- Paigutamisel näha, mida uus Defender / Town Hall katab
+	local top = hexPart and hexPart.Position + Vector3.new(0, hexPart.Size.Y / 2 + 0.1, 0)
+	if top and selectedBuilding == "Defender" then
+		RangeRing.Show("build", top, RangeRing.DefenderRadius(), Theme.UI.error)
+	elseif top and selectedBuilding == "PowerCore" then
+		RangeRing.Show("build", top, RangeRing.HealRadius(1), Theme.UI.success)
+	else
+		RangeRing.Hide("build")
 	end
 
 	local name = BuildingInfo.GetDisplayName(selectedBuilding)

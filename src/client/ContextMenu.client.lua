@@ -11,11 +11,13 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local UserInputService = game:GetService("UserInputService")
+local GuiService = game:GetService("GuiService")
 
 local RemoteEvents = require(ReplicatedStorage.Shared.RemoteEvents)
 local BuildingInfo = require(ReplicatedStorage.Shared.BuildingInfo)
 local Constants = require(ReplicatedStorage.Shared.Constants)
 local Theme = require(ReplicatedStorage.Shared.Theme)
+local RangeRing = require(ReplicatedStorage.Shared.RangeRing)
 
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
@@ -192,6 +194,7 @@ end
 local function closeMenu()
 	menu.Visible = false
 	currentTarget = nil
+	RangeRing.Hide("menu")
 end
 
 -- Leia hoone kursori all
@@ -352,6 +355,18 @@ local function refreshMenu()
 	end
 	layoutButtons(nextLevel ~= nil)
 
+	-- Raadius maapinnal (tagasiside 26.09): Defenderi laskeulatus,
+	-- Town Hall'i parandusala (kasvab tasemega)
+	local body = currentTarget.visual and currentTarget.visual.PrimaryPart
+	if body and (isTownHall or currentTarget.buildingType == "Defender") then
+		local ground = body.Position - Vector3.new(0, body.Size.Y / 2 - 0.1, 0)
+		if isTownHall then
+			RangeRing.Show("menu", ground, RangeRing.HealRadius(state.level), Theme.UI.success)
+		else
+			RangeRing.Show("menu", ground, RangeRing.DefenderRadius(), Theme.UI.error)
+		end
+	end
+
 	if state.energy and state.maxEnergy then
 		storedVal.Text = string.format("%d / %d energy", state.energy, state.maxEnergy)
 	elseif state.input ~= nil or state.output ~= nil then
@@ -370,7 +385,8 @@ local function openMenu(visual)
 	local q = visual:GetAttribute("Q")
 	local r = visual:GetAttribute("R")
 
-	currentTarget = {q = q, r = r, buildingType = buildingType}
+	RangeRing.Hide("menu") -- eelmise hoone ring
+	currentTarget = {q = q, r = r, buildingType = buildingType, visual = visual}
 
 	local info = BuildingInfo.Get(buildingType)
 	titleLabel.Text = info and info.displayName or buildingType
@@ -378,9 +394,12 @@ local function openMenu(visual)
 
 	refreshMenu()
 
-	-- Aseta menuu kursori juurde, hoides seda ekraani sees
-	local mouse = UserInputService:GetMouseLocation()
-	local viewport = camera.ViewportSize
+	-- Aseta menuu kursori juurde, hoides seda ekraani sees. GetMouseLocation
+	-- ja ViewportSize loevad ekraani ülaservast, GUI aga topbar'i alt
+	-- (CLAUDE.md lõks 7) - ilma inset'ita jäi Demolish allservas ekraanist välja.
+	local inset = GuiService:GetGuiInset()
+	local mouse = UserInputService:GetMouseLocation() - inset
+	local viewport = camera.ViewportSize - inset
 	local x = math.min(mouse.X, viewport.X - menu.AbsoluteSize.X - 8)
 	local y = math.min(mouse.Y, viewport.Y - menu.AbsoluteSize.Y - 8)
 	menu.Position = UDim2.new(0, x, 0, y)

@@ -938,6 +938,19 @@ function MapGenerator.SetBuildingLevel(folder, q, r, level)
 	model:SetAttribute("Level", level)
 end
 
+-- Hoone visuaali eemaldamine (hävimine / lammutus): klient mängib
+-- kokkuvarisemise (WorldFx "Collapsing"), server kustutab hiljem. Q/R
+-- eemaldatakse KOHE: hex on uuesti vaba ja keegi ei leia seda hoonena.
+MapGenerator.COLLAPSE_TIME = 0.8
+
+function MapGenerator.RemoveBuildingVisual(visual)
+	visual:SetAttribute("Q", nil)
+	visual:SetAttribute("R", nil)
+	visual.Name = "Collapsing"
+	visual:SetAttribute("Collapsing", true)
+	game:GetService("Debris"):AddItem(visual, MapGenerator.COLLAPSE_TIME)
+end
+
 -- ============================================================
 -- DEMO-BAAS
 -- ============================================================

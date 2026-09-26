@@ -112,6 +112,9 @@ Constants.Buildings = {
 		-- ohukasvuga (vt Attack.ScalePerMinute).
 		DefensePoints = 35,
 		DefenseRadius = 3,
+		-- Raadius hexides -> studides (hexi läbimõõt ~6,9). Üks allikas
+		-- AttackManager'i sihtimisele ja kliendi raadiuse ringile.
+		StudsPerHex = 7,
 		FireInterval = 1,
 	},
 

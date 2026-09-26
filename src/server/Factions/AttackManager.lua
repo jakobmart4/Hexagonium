@@ -25,6 +25,7 @@ local Constants = require(ReplicatedStorage.Shared.Constants)
 local GameClock = require(game:GetService("ServerScriptService").Core.GameClock)
 local Theme = require(ReplicatedStorage.Shared.Theme)
 local BuildingFactory = require(ServerScriptService.Buildings.BuildingFactory)
+local MapGenerator = require(ServerScriptService.Core.MapGenerator)
 
 local CFG = Constants.Attack
 local GOBLIN_HEIGHT = 2.6
@@ -367,8 +368,7 @@ function AttackManager:_defendersFire()
 		if b.buildingType == "Defender" and not b.isDestroyed and b.TryFire then
 			local defenderPos = self:_getBuildingPosition(b)
 			if defenderPos then
-				-- Raadius hexides -> studides (hexi labimoot ~6.9)
-				local rangeStuds = b:GetDefenseRadius() * 7
+				local rangeStuds = b:GetDefenseRadius() * Constants.Buildings.Defender.StudsPerHex
 
 				-- Lahim ruundaja raadiuses
 				local best, bestDist = nil, math.huge
@@ -506,7 +506,7 @@ function AttackManager:_removeBuildingVisual(building)
 		if visual.PrimaryPart then
 			self:_showBurst(visual.PrimaryPart.Position, Theme.UI.warning, 7)
 		end
-		visual:Destroy()
+		MapGenerator.RemoveBuildingVisual(visual)
 	end
 
 	-- Eemalda registrist ja tick-susteemist

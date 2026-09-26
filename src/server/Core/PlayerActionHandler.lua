@@ -345,7 +345,7 @@ function PlayerActionHandler:HandleDemolish(player, request)
 	if buildings then
 		for _, visual in ipairs(buildings:GetChildren()) do
 			if visual:GetAttribute("Q") == q and visual:GetAttribute("R") == r then
-				visual:Destroy()
+				MapGenerator.RemoveBuildingVisual(visual)
 				break
 			end
 		end
