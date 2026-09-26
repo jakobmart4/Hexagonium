@@ -17,7 +17,7 @@ function PowerCore.new(q, r)
 	setmetatable(self, PowerCore)
 
 	local config = Constants.Buildings.PowerCore
-	self.maxEnergyStorage = config.MaxEnergyStorage
+	self.maxEnergyStorage = config.TownHall[1].MaxEnergy
 	self.currentEnergy = config.StartingEnergy
 	self.level = 1 -- Town Hall tase (Constants.Buildings.PowerCore.TownHall)
 

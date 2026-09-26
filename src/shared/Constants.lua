@@ -76,7 +76,7 @@ Constants.Buildings = {
 	},
 
 	PowerCore = {
-		MaxEnergyStorage = 1000,
+
 		StartingEnergy = 1000,
 		EnergyLeakMultiplier = 0.95,
 		EnergyLeakInterval = 30,
@@ -92,15 +92,15 @@ Constants.Buildings = {
 		-- Power Core'i korral loeb kõrgeim tase, mitte summa. Hävinud Power
 		-- Core'iga kaob ka boonus. Tase 1 = ehitatud hoone.
 		TownHall = {
+			[1] = {ProductionBonus = 0, MaxEnergy = 1000, HealRadius = 2}, -- ehitatud hoone
 			[2] = {Cost = 30, Crystal = 30, ProductionBonus = 0.15, MaxEnergy = 1500, HealRadius = 3},
 			[3] = {Cost = 60, Crystal = 60, ProductionBonus = 0.30, MaxEnergy = 2000, HealRadius = 4},
 		},
 
 		-- PARANDUSPUNKT: hooned tervenevad AINULT Power Core'i raadiuses
-		-- (hexides; tase 1 = HealRadius, edasi TownHall[tase].HealRadius).
-		-- Väljaspool ei tervene üldse - baas koondub tuuma ümber (CoC-stiil,
-		-- 24.09). Tervenemine algab Attack.BuildingRegenDelay pärast.
-		HealRadius = 2,
+		-- (TownHall[tase].HealRadius hexi). Väljaspool ei tervene üldse -
+		-- baas koondub tuuma ümber (CoC-stiil, 24.09). Tervenemine algab
+		-- Attack.BuildingRegenDelay pärast.
 		HealPerSecond = 5,
 	},
 
@@ -349,10 +349,10 @@ Constants.Meta = {
 	-- andis vaid 1 seemne; nüüd 2. Kaart maksab 2 seemet.
 	SeedsPerPayout = 400,
 
-	-- Vähemalt nii palju seemneid iga run'i eest, mis ei lõppenud baasi
-	-- hävinguga (Extract/Timeout) JA kestis vähemalt MinSeedsRunSeconds
-	-- mänguaega. Ilma ajapiirita andis Extract 1. minutil 1 seemne -
-	-- kiired lõpetamised olid kõige tulusamad (26.09).
+	-- UUE MÄNGIJA miinimum (0 seemet, midagi ostmata): vähemalt nii palju
+	-- seemneid run'i eest, mis ei lõppenud hävinguga JA kestis vähemalt
+	-- MinSeedsRunSeconds mänguaega. Kõigile antuna oli 5-min AFK-Extract
+	-- tulusam kui päris mäng (ülevaatus 26.09).
 	MinSeedsPerRun = 1,
 	MinSeedsRunSeconds = 300,
 

@@ -38,7 +38,7 @@ vt punkt 3.
 | Lammutuse tagastus | 50% | `DemolishRefund` |
 | Saare laienduse kulu (run) | 40 -> 70 -> 122 -> 214 -> 375 -> 656 UP (x1.75; x2 ja x3 proovitud) | `IslandExpansion.RunExpansionBaseCost` / `CostMultiplier` |
 | Laienduse run'i tasu | ~~40~~ **0** (laiendus ei anna tasu) | `Run.RewardPerExpansion` |
-| Lisalaienduskoht (meta) | saar alustab alati raadiusega 3; N-s ostetud lisakoht = N Hex Seed'i (kuni 4, run'is 2 + ostetud laiendust); 1 seeme / ~~600~~ **400** run'i tasu; vähemalt 1 seeme Extract/Timeout run'i eest, kui run kestis ≥ 5 min | `IslandExpansion.MetaExpansionsMax` / `Meta.SeedsPerPayout`, `Meta.IslandUpgradeCostPerStep` |
+| Lisalaienduskoht (meta) | saar alustab alati raadiusega 3; N-s ostetud lisakoht = N Hex Seed'i (kuni 4, run'is 2 + ostetud laiendust); 1 seeme / ~~600~~ **400** run'i tasu; vähemalt 1 seeme Extract/Timeout run'i eest, kui run kestis ≥ 5 min JA mängija on uus (0 seemet, midagi ostmata) | `IslandExpansion.MetaExpansionsMax` / `Meta.SeedsPerPayout`, `Meta.IslandUpgradeCostPerStep` |
 | Run'i Timeout | 3600s (60 min, ülempiir) | `Run.Duration` |
 | RestartDelay | 8s | `Run.RestartDelay` |
 | Ohu kasv | +12%/min, lagi 8.0x (~60. minutil) | `Attack.ScalePerMinute` / `MaxScale` |
@@ -81,6 +81,10 @@ Play-testide põhjal. Vormis: kuupäev, mida testiti, mis leiti.
 | 26.09.2026 | 12. Play-test C (meta-tsükkel ühe Play jooksul, 3 run'i; Town Hall + parandusala) | — | Run 1: **20,1 min**, Extract, tasu **851**, 4 rünnakut, +1 seeme, Town Hall Lv2, laiendused min 8/11. Run 2: **8,8 min**, tasu 323, 2 rünnakut, **+1 seeme miinimumreeglist**. Ostis **Overclocki (2 seemet)**, run 3 sellega (Quit 8 min). Kasutaja: parandusala ja Town Hall "kõik korras". Leiud: miinimumreegel andis lühikesele run'ile sama palju kui 20-min run'ile (ja Extract 1. minutil andnuks samuti 1) -> ajapiir 5 min; 600 määraga 20-min run = 1 seeme -> 400. DataStore SetAsync HTTP 500 üks kord (Roblox'i ajutine viga; dirty jääb, autosave kordab). |
 
 ## 4. Muudatuste logi
+
+### 26.09.2026 (hiljem) — Miinimumseeme ainult uuele mängijale
+
+Koodiülevaatus (8c, turvalisus): 5-min miinimumiga andis AFK-Extract-tsükkel ~11,7 seemet/h, aktiivne 20-min run ~6/h. Kasutaja valis soovituse: miinimumseeme ainult mängijale, kellel on 0 seemet ja kes pole midagi ostnud (reegli algne eesmärk - uus mängija näeb meta-tsüklit). Telemeetrias eraldi sku `RunRewardMin`.
 
 ### 26.09.2026 — Seemned: määr 600 -> 400, miinimumseeme alles 5 min run'ist
 

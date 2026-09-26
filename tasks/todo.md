@@ -45,7 +45,7 @@ Plaan ja põhjendused: `tasks/plan.md`. Roadmap: `docs/HEXAGONIUM_Peadokument.tx
 ## Faas 4 — SAMM 10: piiratud beta
 - [x] 8a. Turvalisus: RemoteEvent'ide sagedusepiirang (`PlayerActionHandler` allowRequest, 0,1 s) (26.09)
 - [x] 8b. Right to Erasure: `SaveService.EraseUserData(userId)` + juhend peadokumendi §15 (26.09)
-- [ ] 8c. Review commit'idele `20d94a7..0666f32` (Lighting, ContextMenu voog, Overclocki lukk, LocalDebug) (S)
+- [x] 8c. Review `20d94a7^..d7e54a9` (4 mõõdet + vastukontroll): 12 kinnitatud leidu parandatud, CardSystemTest 9/9, püsivus kontrollitud (26.09)
 - [ ] 8d. `CONSTRAINTS.md` CLAUDE.md reeglitest (TextSize ≥ 12, inglise tekst, üks allikas, Debug-lipud) (XS)
 - [ ] 8. Avaldamiseelne kontroll: Debug-lipud (testiväärtused ainult `LocalDebug.lua`-s), CardSystemTest, 2 mängijaga kohalik server, §15 (S)
 - [ ] 9. Avaldamine piiratud betana + tagasivõtuplaan (kasutaja)

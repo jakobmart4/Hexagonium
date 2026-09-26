@@ -48,9 +48,15 @@ layout.Padding = UDim.new(0, GAP)
 layout.Parent = box
 
 local buttons = {}
-local current = 1
+
+-- Serveri tegelik kiirus (GameClock.SetSpeed seab atribuudi) - mitte
+-- kliendi oletus: sagedusepiirangu taha jäänud klõps ei vii UI-d lahku.
+local function currentSpeed()
+	return ReplicatedStorage:GetAttribute("GameSpeed") or 1
+end
 
 local function refresh()
+	local current = currentSpeed()
 	for speed, button in pairs(buttons) do
 		local active = speed == current
 		button.BackgroundColor3 = active and Theme.UI.accent or Theme.UI.panel
@@ -73,11 +79,10 @@ for i, speed in ipairs(SPEEDS) do
 	buttons[speed] = button
 
 	button.MouseButton1Click:Connect(function()
-		current = (current == speed) and 1 or speed
-		speedRemote:FireServer({speed = current})
-		refresh()
+		speedRemote:FireServer({speed = (currentSpeed() == speed) and 1 or speed})
 	end)
 end
 
+ReplicatedStorage:GetAttributeChangedSignal("GameSpeed"):Connect(refresh)
 refresh()
 print("[Hexagonium] GameSpeed laaditud (Studio)")

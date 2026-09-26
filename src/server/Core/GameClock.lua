@@ -28,6 +28,8 @@ function GameClock.SetSpeed(value)
 	anchorGame = GameClock.now()
 	anchorReal = os.clock()
 	speed = value
+	-- Klient (GameSpeed.client.lua) näitab aktiivset nuppu selle järgi
+	game:GetService("ReplicatedStorage"):SetAttribute("GameSpeed", value)
 end
 
 return GameClock

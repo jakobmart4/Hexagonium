@@ -9,6 +9,8 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RemoteEvents = require(ReplicatedStorage.Shared.RemoteEvents)
+local Constants = require(ReplicatedStorage.Shared.Constants)
+local GameClock = require(game:GetService("ServerScriptService").Core.GameClock)
 
 local StateBroadcaster = {}
 StateBroadcaster.__index = StateBroadcaster
@@ -136,9 +138,13 @@ function StateBroadcaster:CollectBuildings()
 				maxEnergy = building.maxEnergyStorage,
 				linksIn = #building.inputConnections,
 				linksOut = #building.outputConnections,
-				-- Defender saab energiat otse Power Core'ist, mitte lingi kaudu
+				starved = building.starved,
 				level = building.level,
+				-- Parandusalas; paus = viimasest kahjust pole BuildingRegenDelay möödas
 				healing = building.inHealRange == true,
+				repairPaused = building.lastDamageTime ~= nil
+					and GameClock.now() - building.lastDamageTime < Constants.Attack.BuildingRegenDelay,
+				-- Defender saab energiat otse Power Core'ist, mitte lingi kaudu
 				hasPowerCore = building.buildingType == "Defender"
 					and building.powerCoreRef ~= nil and not building.powerCoreRef.isDestroyed or nil,
 			})

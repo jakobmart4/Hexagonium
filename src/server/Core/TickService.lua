@@ -62,35 +62,26 @@ function TickService:UnregisterBuilding(building)
 	self.nodeSystem:UnregisterBuilding(building)
 end
 
-function TickService:_getTownHallBonus()
-	local level = 1
-	for _, building in ipairs(self.buildings) do
-		if building.buildingType == "PowerCore" and not building.isDestroyed and building.level > level then
-			level = building.level
-		end
-	end
-	local config = Constants.Buildings.PowerCore.TownHall[level]
-	return config and (1 + config.ProductionBonus) or 1
-end
-
--- Power Core'id ja nende paranduse raadius (tase kasvatab)
-function TickService:_getHealZones()
-	local config = Constants.Buildings.PowerCore
+-- Üks läbikäik: kõrgeim Town Hall tase (boonus) ja paranduse alad.
+-- Ilma Power Core'ita on boonus 1 ja alasid pole.
+function TickService:_scanPowerCores()
+	local townHall = Constants.Buildings.PowerCore.TownHall
+	local bonus = 1
 	local zones = {}
 	for _, building in ipairs(self.buildings) do
 		if building.buildingType == "PowerCore" and not building.isDestroyed then
-			local levelConfig = config.TownHall[building.level]
-			table.insert(zones, {
-				q = building.q,
-				r = building.r,
-				radius = levelConfig and levelConfig.HealRadius or config.HealRadius,
-			})
+			local config = townHall[building.level]
+			bonus = math.max(bonus, 1 + config.ProductionBonus)
+			table.insert(zones, {q = building.q, r = building.r, radius = config.HealRadius})
 		end
 	end
-	return zones
+	return bonus, zones
 end
 
+
 function TickService:Tick()
+	local townHallBonus, healZones = self:_scanPowerCores()
+
 	-- 1) Kaardid uuendavad oma tsüklid ja rakendavad kordajad hoonetele
 	--    ENNE tootmist, et jooksev tick kasutaks juba õigeid väärtusi.
 	if self.cardManager then
@@ -104,18 +95,17 @@ function TickService:Tick()
 		-- Town Hall: kõrgeima Power Core'i taseme boonus KÕIGILE hoonetele.
 		-- CardManager arvutab kordaja igal tick'il nullist, nii et korrutamine
 		-- siin ei kuhju.
-		local bonus = self:_getTownHallBonus()
-		if bonus ~= 1 then
+		if townHallBonus ~= 1 then
 			for _, building in ipairs(self.buildings) do
 				if not building.isDestroyed then
-					building:SetProductionMultiplier(building:GetProductionMultiplier() * bonus)
+					building:SetProductionMultiplier(building:GetProductionMultiplier() * townHallBonus)
 				end
 			end
 		end
 	end
 
 	-- 2) Hooned toodavad/töötlevad; tervenevad AINULT Power Core'i raadiuses
-	local healZones = self:_getHealZones()
+
 	for _, building in ipairs(self.buildings) do
 		if not building.isDestroyed and building.Tick then
 			building:Tick()

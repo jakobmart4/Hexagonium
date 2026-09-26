@@ -77,9 +77,8 @@ local function wireRunEnd(world)
 		-- (PlayerActionHandler:HandleBuyMetaUpgrade). Varem anti saare
 		-- laiendused siin OTSE ja korraga - vt Constants.Meta.
 		local seeds = math.floor(result.payout / Constants.Meta.SeedsPerPayout)
-		if result.reason ~= "Destroyed" and result.duration >= Constants.Meta.MinSeedsRunSeconds then
-			seeds = math.max(seeds, Constants.Meta.MinSeedsPerRun)
-		end
+		local minEligible = result.reason ~= "Destroyed"
+			and result.duration >= Constants.Meta.MinSeedsRunSeconds
 
 		for _, owner in ipairs(world.owners) do
 			SaveService.AddStat(owner, "runsPlayed", 1)
@@ -94,10 +93,22 @@ local function wireRunEnd(world)
 			Telemetry.Event(owner, "RunPayout", result.payout, {reason})
 			Telemetry.Event(owner, "RunExpansions", result.expansionsMade, {bonusSlots})
 
+			-- Miinimumseeme AINULT uuele mängijale (0 seemet, midagi ostmata):
+			-- reegli mõte on, et uus mängija näeks meta-tsüklit. Kõigile antuna
+			-- oli 5-min AFK-Extract tulusam kui päris mäng (ülevaatus 26.09).
+			local ownerSeeds = seeds
+			local data = SaveService.Get(owner)
+			local isNewPlayer = data and data.hexSeeds == 0 and #data.unlockedCards == 0
+				and data.bonusExpansions == 0
+			local usedMin = minEligible and isNewPlayer and seeds < Constants.Meta.MinSeedsPerRun
+			if usedMin then
+				ownerSeeds = Constants.Meta.MinSeedsPerRun
+			end
+
 			-- Source ainult siis, kui seemned PÄRISELT lisati (AddSeeds'i enda kontroll)
-			if SaveService.AddSeeds(owner, seeds) then
-				Telemetry.Economy(owner, "Source", "HexSeeds", seeds,
-					SaveService.Get(owner).hexSeeds, "Gameplay", "RunReward")
+			if SaveService.AddSeeds(owner, ownerSeeds) then
+				Telemetry.Economy(owner, "Source", "HexSeeds", ownerSeeds,
+					SaveService.Get(owner).hexSeeds, "Gameplay", usedMin and "RunRewardMin" or "RunReward")
 			end
 		end
 

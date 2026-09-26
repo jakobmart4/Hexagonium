@@ -159,10 +159,7 @@ local upgradeRemote = RemoteEvents.Get("UpgradeBuilding")
 
 -- Town Hall: kõrgeim tase Constants'ist (üks allikas)
 local TOWN_HALL = Constants.Buildings.PowerCore.TownHall
-local TOWN_HALL_MAX = 1
-for level in pairs(TOWN_HALL) do
-	TOWN_HALL_MAX = math.max(TOWN_HALL_MAX, level)
-end
+local TOWN_HALL_MAX = #TOWN_HALL
 
 -- Uuendusnupp ainult Power Core'il, kui tase pole maksimumis
 local function layoutButtons(showUpgrade)
@@ -241,9 +238,9 @@ local function getHexTypeAt(q, r)
 		return "Unknown"
 	end
 	local t = hex:GetAttribute("HexType")
-	if t == "OreHex" then return "Ore" end
-	if t == "CrystalHex" then return "Crystal" end
-	return "Barren"
+	if t == Constants.HexTypes.ORE_HEX then return "Ore", t end
+	if t == Constants.HexTypes.CRYSTAL_HEX then return "Crystal", t end
+	return "Barren", nil
 end
 
 local function formatFlow(flow, mult)
@@ -261,7 +258,7 @@ end
 -- Kas hoone toob, nalgib voi ummistub? Jarjekord = mis on kõige
 -- olulisem parandada. "Piling up" = pakkumine uletab tarbimist rohkem
 -- kui minuti jagu -> lisa tarbija voi jaota link.
-local function describeStatus(state, flow)
+local function describeStatus(state, flow, usesMult)
 	local t = state.buildingType
 	if state.paused then
 		return "Offline", Theme.UI.error
@@ -271,17 +268,19 @@ local function describeStatus(state, flow)
 	end
 	-- Parandus käib ainult Power Core'i raadiuses
 	if (state.health or 1) < 0.999 then
-		if state.healing then
-			return "Repairing", Theme.UI.success
+		if not state.healing then
+			return "Out of repair range", Theme.UI.warning
+		elseif state.repairPaused then
+			return "Repair paused", Theme.UI.warning
 		end
-		return "Out of repair range", Theme.UI.warning
+		return "Repairing", Theme.UI.success
 	end
 	if flow.uses and state.input ~= nil then
 		if state.linksIn == 0 then
 			return "No input link", Theme.UI.warning
-		elseif state.input < 1 then
+		elseif state.starved then
 			return "Waiting for input", Theme.UI.warning
-		elseif state.input > flow.uses[1] then
+		elseif state.input > flow.uses[1] * usesMult then
 			return "Input piling up", Theme.UI.warning
 		end
 	end
@@ -298,7 +297,7 @@ local function refreshMenu()
 		return
 	end
 	local q, r = currentTarget.q, currentTarget.r
-	local hexName = getHexTypeAt(q, r)
+	local hexName, hexType = getHexTypeAt(q, r)
 	hexVal.Text = hexName
 
 	local state = buildingStates[q .. "," .. r]
@@ -312,12 +311,14 @@ local function refreshMenu()
 		return
 	end
 
-	local hexType = (hexName == "Ore" and Constants.HexTypes.ORE_HEX)
-		or (hexName == "Crystal" and Constants.HexTypes.CRYSTAL_HEX) or nil
+
 	local flow = BuildingInfo.GetFlow(currentTarget.buildingType, hexType)
 	local mult = state.multiplier or 1
 
-	statusVal.Text, statusVal.TextColor3 = describeStatus(state, flow)
+	-- Kordaja = läbilaskevõime: Refinery/Assembler tarbivad ka rohkem.
+	-- Defenderi energiakulu on fikseeritud.
+	local usesMult = currentTarget.buildingType == "Defender" and 1 or mult
+	statusVal.Text, statusVal.TextColor3 = describeStatus(state, flow, usesMult)
 
 	local hp = state.health or 1
 	healthVal.Text = string.format("%d%%", math.floor(hp * 100 + 0.5))
@@ -329,18 +330,15 @@ local function refreshMenu()
 	makesVal.TextColor3 = (mult > 1.01) and Theme.UI.success
 		or (mult < 0.99) and Theme.UI.warning
 		or Theme.UI.text
-	-- Kordaja = läbilaskevõime: Refinery/Assembler tarbivad ka rohkem.
-	-- Defenderi energiakulu on fikseeritud.
-	usesVal.Text = formatFlow(flow.uses, currentTarget.buildingType == "Defender" and 1 or mult)
+	usesVal.Text = formatFlow(flow.uses, usesMult)
 	usesVal.TextColor3 = Theme.UI.text
 
 	-- Town Hall tase ja uuendus
 	local nextLevel = state.level and TOWN_HALL[state.level + 1]
 	if state.level then
 		local current = TOWN_HALL[state.level]
-		local radius = current and current.HealRadius or Constants.Buildings.PowerCore.HealRadius
-		subLabel.Text = string.format("Town Hall Lv %d/%d · repair %d%s", state.level, TOWN_HALL_MAX, radius,
-			current and string.format(" · +%d%%", math.floor(current.ProductionBonus * 100 + 0.5)) or "")
+		subLabel.Text = string.format("Town Hall Lv %d/%d · repair %d%s", state.level, TOWN_HALL_MAX, current.HealRadius,
+			current.ProductionBonus > 0 and string.format(" · +%d%%", math.floor(current.ProductionBonus * 100 + 0.5)) or "")
 	end
 	if nextLevel then
 		upgradeButton.Text = string.format("Upgrade (%d UP + %d crystal)", nextLevel.Cost, nextLevel.Crystal)

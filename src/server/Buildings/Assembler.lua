@@ -59,12 +59,15 @@ function Assembler:Tick()
 		-- Null Surge efektifaas: toodab ilma sisendit tarbimata (spec 5.6)
 		if self:ShouldIgnoreInputs() then
 			produced = batch
+			self.starved = false
 		else
 			local amount = math.min(self.inputBuffer, batch)
 			if amount > 0 then
 				self.inputBuffer = self.inputBuffer - amount
 				produced = amount
 			end
+			-- Kontekstimenüü "Waiting for input": alla poole partiist sisendit
+			self.starved = amount < batch * 0.5
 		end
 
 		if produced then

@@ -11,13 +11,12 @@ Seis juhendi 7 kontrolli järgi. Staatused: **OK**, **osaliselt**,
 
 ## Koodikvaliteet ja turvalisus
 
-### code-review-and-quality · osaliselt
-Kaks mitmemõõtmelist review'd (telemeetria, tutorial), kõik kinnitatud
-leiud parandatud. Ülevaatamata: commit'id `20d94a7..788c81e` —
-[Environment.lua](../../src/server/Core/Environment.lua),
-[ContextMenu.client.lua](../../src/client/ContextMenu.client.lua),
-[BuildingInfo.lua](../../src/shared/BuildingInfo.lua),
-[StateBroadcaster.lua](../../src/server/Core/StateBroadcaster.lua).
+### code-review-and-quality · OK (26.09)
+Kolm mitmemõõtmelist review'd (telemeetria, tutorial, 8c: `20d94a7^..d7e54a9`
+kvaliteet/turvalisus/lihtsustamine/jälgitavus). 8c: 16 leidu, 12 kinnitatud
+ja parandatud (nt vale "Waiting for input" 1:1:1 ahelas, AFK-seemned,
+Town Hall tase 1 tabelisse), 4 ümber lükatud. CardSystemTest 9/9 OK,
+salvestuse püsivus üle Play-sessioonide kontrollitud.
 
 ### security-and-hardening · OK (26.09)
 Server autoriteetne, remote'id valideerivad tüüpe, Debug-lipud ja aja
@@ -27,7 +26,9 @@ kiirendus ainult Studios. Sagedusepiirang kõigile päringutele
 ([SaveService.lua](../../src/server/Core/SaveService.lua) `EraseUserData`,
 juhend peadokumendi §15-s). Live'is kontrollimata.
 
-### code-simplification · tegemata
+### code-simplification · osaliselt (26.09)
+8c ülevaatus lihtsustas uue koodi (üks Power Core'ide läbikäik, Town Hall tase 1
+tabelis, hex-tüübi topeltteisendus ära). Vana kood (MapGenerator jne) pärast beetat.
 Suurimad failid: [MapGenerator.lua](../../src/server/Core/MapGenerator.lua)
 (920 rida), [CardDeck.client.lua](../../src/client/CardDeck.client.lua),
 [PlayerActionHandler.lua](../../src/server/Core/PlayerActionHandler.lua).

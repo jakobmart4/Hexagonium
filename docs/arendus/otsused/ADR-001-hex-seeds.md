@@ -17,7 +17,7 @@ ammendas kogu meta-progressiooni.
 
 **Muudatus 24.09:** iga run, mis ei lõppenud baasi hävinguga, annab vähemalt `Meta.MinSeedsPerRun` (1) seemne — 8-minutiline run andis 0 ([playtestid.md](../playtestid.md) B). Määr 600 vaadatakse üle pärast 7c-d.
 
-**Muudatus 26.09 (Play-test C):** määr 600 → 400 ja miinimumseeme ainult run'ile, mis kestis ≥ 5 min (`Meta.MinSeedsRunSeconds`) — muidu oli Extract 1. minutil kõige tulusam.
+**Muudatus 26.09 (Play-test C):** määr 600 → 400 ja miinimumseeme ainult run'ile, mis kestis ≥ 5 min (`Meta.MinSeedsRunSeconds`) — muidu oli Extract 1. minutil kõige tulusam. Hiljem samal päeval (ülevaatus): miinimum ainult **uuele mängijale** (0 seemet, midagi ostmata), sest 5-min AFK-Extract andis ikka rohkem seemneid tunnis kui päris mäng.
 
 **Täispõhjendus:** [Peadokument](../../HEXAGONIUM_Peadokument.txt) §14.11
 

@@ -50,12 +50,15 @@ function Refinery:Tick()
 		-- Null Surge efektifaas: toodab ilma sisendit tarbimata (spec 5.6)
 		if self:ShouldIgnoreInputs() then
 			self.outputBuffer = self.outputBuffer + batch
+			self.starved = false
 		else
 			local amount = math.min(self.inputBuffer, batch)
 			if amount > 0 then
 				self.inputBuffer = self.inputBuffer - amount
 				self.outputBuffer = self.outputBuffer + amount
 			end
+			-- Kontekstimenüü "Waiting for input": alla poole partiist sisendit
+			self.starved = amount < batch * 0.5
 		end
 	end
 end

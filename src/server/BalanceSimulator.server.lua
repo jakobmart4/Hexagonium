@@ -113,7 +113,7 @@ local ARCHETYPES = {
 -- OLULINE EELDUS: baashoonete "eluring" on 5 * BuildingHealth
 -- (Extractor+Refinery+Assembler+PowerCore+Defender) — kahju KOGUNEB
 -- lainete vahel, aga REGENEREERUB samade valemitega mis pärismängus
--- (BuildingRegenPerSecond/Delay), sest kahe Demand-tsükli vahel
+-- (PowerCore.HealPerSecond / Attack.BuildingRegenDelay), sest kahe Demand-tsükli vahel
 -- (150s) on tavaliselt piisavalt aega taastuda. Esimene versioon
 -- IGNOREERIS regeneratsiooni täielikult, mis hoidis DESTROYED% kunstlikult
 -- kõrgena (iga, kasvõi väike, korduv kahju kuhjus lõpuks paratamatult
