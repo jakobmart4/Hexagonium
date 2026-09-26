@@ -218,7 +218,10 @@ end)
 
 UserInputService.InputChanged:Connect(function(input)
 	if input.UserInputType == Enum.UserInputType.MouseWheel then
-		zoomDistance = math.clamp(zoomDistance - input.Position.Z * ZOOM_STEP, ZOOM_MIN, ZOOM_MAX)
+		-- Kerimine paneelil (kaardipakk, ehitusmenüü jne) ei suumi kaamerat
+		if not isOverOwnUI() then
+			zoomDistance = math.clamp(zoomDistance - input.Position.Z * ZOOM_STEP, ZOOM_MIN, ZOOM_MAX)
+		end
 		return
 	end
 

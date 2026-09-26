@@ -269,7 +269,13 @@ local function formatNumber(n)
 	return string.format("%.0f", n)
 end
 
-local function updateCards(cards)
+local function updateCards(cards, buildings)
+	-- Hex-kaardi sihthoone nimi (QoL: varem ainult koordinaat)
+	local buildingAt = {}
+	for _, b in ipairs(buildings or {}) do
+		buildingAt[b.q .. "," .. b.r] = b.buildingType
+	end
+
 	-- Eemalda vanad kirjed
 	for _, entry in pairs(cardEntries) do
 		entry:Destroy()
@@ -301,9 +307,10 @@ local function updateCards(cards)
 		-- Mängijale loetav scope - mitte sisemine "global"/"buildingType"
 		local detail = "All buildings"
 		if card.scope == "hex" then
-			detail = card.targetQ
-				and string.format("Hex (%d, %d)", card.targetQ, card.targetR)
-				or "One hex"
+			local target = card.targetQ and buildingAt[card.targetQ .. "," .. card.targetR]
+			detail = not card.targetQ and "One hex"
+				or target and string.format("%s (%d, %d)", BuildingInfo.GetDisplayName(target), card.targetQ, card.targetR)
+				or string.format("Empty hex (%d, %d)", card.targetQ, card.targetR)
 		elseif card.scope == "buildingType" then
 			local names = {}
 			for _, buildingType in ipairs(card.affects or {}) do
@@ -362,7 +369,7 @@ remote.OnClientEvent:Connect(function(payload)
 	end
 
 	-- Kaardid
-	updateCards(payload.cards or {})
+	updateCards(payload.cards or {}, payload.buildings)
 end)
 
 print("[Hexagonium] HUD laaditud")
