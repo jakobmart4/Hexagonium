@@ -59,7 +59,8 @@ Plaan ja põhjendused: `tasks/plan.md`. Roadmap: `docs/HEXAGONIUM_Peadokument.tx
 - [x] 5.5 Animatsioonid kliendis (`WorldFx.client.lua`): ehituse pop, taseme hüpe + rõngas, kokkuvarisemine (`MapGenerator.RemoveBuildingVisual`, 0,8 s); raadiuse ring (`shared/RangeRing.lua`) paremklõpsul ja ehitusrežiimis Defenderile (punane) ja Town Hall'ile (roheline, kasvab tasemega). Lisaks: ContextMenu jäi 58 px kursorist allapoole ja lõikas allservas Demolish'i ära (lõks 7) - parandatud. Studio kontrollitud (26.09)
 - [x] 5.6 Hoone tasemed Lv1–3 (`Constants.BuildingLevels`, x1,5 / x2, hind ehitus x1 / x2), üks uuendusrada Town Hall'iga, lammutus tagastab ka tasemed. Studio: Refinery Lv3 (24 alloy/min), Town Hall Lv2, CardSystemTest 9/9 (26.09)
 - [x] Faction: "No demands during the tutorial" külmunud "150s" asemel (26.09)
-- [ ] 5.7 Tagasiside MENU-s: hinnang 1–5 analüütikasse + valikuline tekst eraldi DataStore'i (kasutaja valik 26.09)
+- [x] 5.7 Tagasiside MENU-s (`FeedbackService`): tärnid 1–5 + Fun/Bug/Idea -> `FeedbackRating`, tekst (≤500) -> DataStore `HexagoniumFeedback_v1` (userId-sildiga), 5 min ooteaeg, `EraseAllUserData` kustutab ka tagasiside; WASD ei liiguta kaamerat kirjutamisel. Sonnet-ülevaatus: 3 leidu parandatud. Studio: saatmine, ooteaeg, kirje DataStore'is (27.09)
+- [x] Studio Edit-vaate eelvaatesaar (`Islands/_Preview`) uute mudelitega (27.09)
 
 Järjekord (kasutaja 26.09): 5.3, siis 5.4 + 5.6 KOOS (hoone tase = mudel), siis 5.5, 5.7.
 

@@ -24,6 +24,7 @@ local CardInfo = require(ReplicatedStorage.Shared.CardInfo)
 local Telemetry = require(ServerScriptService.Core.Telemetry)
 local GameClock = require(ServerScriptService.Core.GameClock)
 local ResourceLedger = require(ServerScriptService.Resources.ResourceLedger)
+local FeedbackService = require(ServerScriptService.Core.FeedbackService)
 
 local PlayerActionHandler = {}
 PlayerActionHandler.__index = PlayerActionHandler
@@ -600,6 +601,32 @@ function PlayerActionHandler:HandleDeleteProfile(player, request)
 	self:SendProfiles(player)
 end
 
+-- Tagasiside (MENU): 1x FEEDBACK_COOLDOWN jooksul, et DataStore'i ei
+-- saaks üle ujutada. Päris aeg (os.clock) nagu sagedusepiirangul (E1).
+local FEEDBACK_COOLDOWN = 300
+local lastFeedback = {} -- [userId] = os.clock()
+
+function PlayerActionHandler:HandleSubmitFeedback(player, request)
+	if type(request) ~= "table" then return end
+	local last = lastFeedback[player.UserId]
+	if last and os.clock() - last < FEEDBACK_COOLDOWN then
+		self.notify:FireClient(player, {message = "You already sent feedback - try again in a few minutes.",
+			kind = "warning", source = "feedback"})
+		return
+	end
+	local ok, message = FeedbackService.Submit(player, request.rating, request.category, request.text)
+	if ok then
+		lastFeedback[player.UserId] = os.clock()
+	end
+	-- source = "feedback": klient eristab vastuse teistest teavitustest
+	-- (run jookseb MENU ajal edasi, "X built" jm tulevad samal kanalil)
+	self.notify:FireClient(player, {message = message, kind = ok and "success" or "warning", source = "feedback"})
+end
+
+game:GetService("Players").PlayerRemoving:Connect(function(player)
+	lastFeedback[player.UserId] = nil
+end)
+
 function PlayerActionHandler:HandleReturnToTitle(player)
 	if not self:GetWorld(player) then return end
 	self.onReturnToTitle(player)
@@ -666,6 +693,7 @@ function PlayerActionHandler:Connect()
 	bind("SelectProfile", PlayerActionHandler.HandleSelectProfile)
 	bind("DeleteProfile", PlayerActionHandler.HandleDeleteProfile)
 	bind("ReturnToTitle", PlayerActionHandler.HandleReturnToTitle)
+	bind("SubmitFeedback", PlayerActionHandler.HandleSubmitFeedback)
 end
 
 return PlayerActionHandler

@@ -309,6 +309,12 @@ TELEMEETRIA (Telemetry.lua, Roblox AnalyticsService)
                                               "RunReward"; Sink Shop "ExpansionSlot"
                                               / "Card_<Nimi>"
     Milliseid kaarte kasutatakse?             CardActivated (väli: kaardi nimi)
+    Kas hoonete tasemeid kasutatakse?         BuildingUpgraded (väärtus = uus tase,
+                                              väli: hoone tüüp)
+    Mida mängijad arvavad?                    FeedbackRating (1-5, väli: Fun/Bug/
+                                              Idea); tekst DataStore'is
+                                              "HexagoniumFeedback_v1" - loe:
+                                              FeedbackService.PrintRecent(20)
     Kas live's on vigu?                       Creator Dashboard -> Error Report
   LIVE: sündmused lähevad AINULT avaldatud mängu serverist; armatuurlaud
     täitub kuni 24 h. Kutsed on pcall'is.
@@ -663,7 +669,7 @@ ENNE AVALDAMIST
       (serveri asukoht). Max Players = 6 (Creator Hub).
   [x] Right to Erasure (26.09): Roblox'i kustutusnõude korral Studios
       (API Services sees) Command Bar'ist:
-        print(require(game.ServerScriptService.Core.SaveService).EraseUserData(<userId>))
+        print(require(game.ServerScriptService.Core.SaveService).EraseAllUserData(<userId>))  -- salvestus + tagasiside
       Kustutab DataStore võtme player_<userId>; analüütika käsitleb Roblox.
 
 TEHNILINE

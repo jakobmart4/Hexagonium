@@ -453,7 +453,8 @@ end
 -- userId'ga. Arendaja kohustus: kustutada selle mängija salvestus.
 -- Käivitamine Studios (Game Settings -> Security -> API Services sees),
 -- Command Bar'ist:
---   print(require(game.ServerScriptService.Core.SaveService).EraseUserData(123456))
+--   print(require(game.ServerScriptService.Core.SaveService).EraseAllUserData(123456))
+-- (EraseAllUserData = salvestus + tagasiside; EraseUserData ainult salvestus)
 -- Tagastab true või false + veateade. Analüütika (AnalyticsService) ei
 -- vaja midagi - Roblox käsitleb selle ise.
 -- ============================================================
@@ -478,6 +479,15 @@ function SaveService.EraseUserData(userId)
 		store:RemoveAsync("player_" .. userId)
 	end)
 	return ok, ok and "kustutatud: player_" .. userId or tostring(err)
+end
+
+-- Päris kustutusnõue: salvestus + tagasiside tekst (FeedbackService).
+-- WipeForTesting kasutab ainult EraseUserData't - Studio testi-tagasiside
+-- jääb loetavaks.
+function SaveService.EraseAllUserData(userId)
+	local ok, message = SaveService.EraseUserData(userId)
+	local fbOk, fbMessage = require(script.Parent.FeedbackService).EraseUser(userId)
+	return ok and fbOk, message .. "; " .. fbMessage
 end
 
 -- ============================================================

@@ -155,6 +155,7 @@ end
 local titleView = makeView("TitleView")
 local profilesView = makeView("ProfilesView")
 local menuView = makeView("MenuView")
+local feedbackView = makeView("FeedbackView")
 
 local inGame = false
 local disarmers = {}
@@ -181,16 +182,20 @@ local function show(view)
 	titleView.Visible = view == titleView
 	profilesView.Visible = view == profilesView
 	menuView.Visible = view == menuView
+	feedbackView.Visible = view == feedbackView
 	backdrop.Visible = view ~= nil
 	-- Title screen'il maailma pole -> peaaegu läbipaistmatu; MENU-s
 	-- jääb saar nähtavaks (run jookseb edasi)
-	backdrop.BackgroundTransparency = view == menuView and 0.3 or 0.08
+	local inRun = view == menuView or view == feedbackView
+	backdrop.BackgroundTransparency = inRun and 0.3 or 0.08
 	if view == titleView then
 		subtitle.Text = "Build. Bend the rules. Extract before it falls."
 	elseif view == profilesView then
 		subtitle.Text = "Select a profile"
 	elseif view == menuView then
 		subtitle.Text = "Menu \u{00B7} the run keeps going"
+	elseif view == feedbackView then
+		subtitle.Text = "Feedback \u{00B7} the run keeps going"
 	end
 end
 
@@ -416,6 +421,130 @@ end)
 backdrop:GetPropertyChangedSignal("Visible"):Connect(function()
 	menuButton.Visible = inGame and not backdrop.Visible
 end)
+
+-- =========================================================
+-- TAGASISIDE (5.7): tärnid 1-5 + kategooria -> analüütika, valikuline
+-- tekst -> DataStore (server: FeedbackService). Klient ainult kogub.
+-- =========================================================
+local feedbackButton = textButton(menuView, COL_X, 364, 300, 30, Theme.TextSize.body + 2,
+	Theme.UI.accent, "\u{203A} SEND FEEDBACK")
+feedbackButton.Name = "FeedbackButton"
+
+local feedbackRemote = RemoteEvents.Get("SubmitFeedback")
+local rating, category = nil, nil
+local awaitingReply = false
+local refreshFeedback -- ette deklareeritud (nupud kutsuvad)
+
+infoLabel(feedbackView, 316, 28, INFO_TEXT_SIZE, Theme.UI.text, "How is Hexagonium so far?")
+
+local starButtons = {}
+for i = 1, 5 do
+	local b = textButton(feedbackView, COL_X + (i - 1) * 46, 350, 44, 44, 36, Theme.UI.blocked, "\u{2605}")
+	b.Name = "Star" .. i
+	b.TextXAlignment = Enum.TextXAlignment.Center
+	b.MouseButton1Click:Connect(function()
+		rating = i
+		refreshFeedback()
+	end)
+	starButtons[i] = b
+end
+
+local categoryButtons = {}
+for i, name in ipairs({"Fun", "Bug", "Idea"}) do
+	local b = textButton(feedbackView, COL_X + (i - 1) * 110, 404, 100, 30, Theme.TextSize.body + 4,
+		Theme.UI.blocked, name)
+	b.Name = "Category" .. name
+	b.MouseButton1Click:Connect(function()
+		category = name
+		refreshFeedback()
+	end)
+	categoryButtons[name] = b
+end
+
+local feedbackBox = Instance.new("TextBox")
+feedbackBox.Name = "FeedbackText"
+feedbackBox.Size = UDim2.new(0, 560, 0, 120)
+feedbackBox.Position = UDim2.new(0, COL_X, 0, 446)
+feedbackBox.BackgroundColor3 = Theme.UI.panel
+feedbackBox.BackgroundTransparency = 0.1
+feedbackBox.BorderSizePixel = 0
+feedbackBox.ClearTextOnFocus = false
+feedbackBox.MultiLine = true
+feedbackBox.TextWrapped = true
+feedbackBox.TextXAlignment = Enum.TextXAlignment.Left
+feedbackBox.TextYAlignment = Enum.TextYAlignment.Top
+feedbackBox.Font = FONT
+feedbackBox.TextSize = Theme.TextSize.body
+feedbackBox.TextColor3 = Theme.UI.text
+feedbackBox.PlaceholderText = "Anything else? (optional)"
+feedbackBox.PlaceholderColor3 = Theme.UI.textDim
+feedbackBox.Text = ""
+feedbackBox.Parent = feedbackView
+Theme.Corner(feedbackBox, Theme.Layout.cornerSmall)
+local boxPad = Instance.new("UIPadding")
+boxPad.PaddingLeft = UDim.new(0, 10)
+boxPad.PaddingTop = UDim.new(0, 8)
+boxPad.PaddingRight = UDim.new(0, 10)
+boxPad.Parent = feedbackBox
+
+-- Sama piir mis serveris (FeedbackService.MAX_TEXT); server lõikab niikuinii
+local MAX_TEXT = 500
+feedbackBox:GetPropertyChangedSignal("Text"):Connect(function()
+	if #feedbackBox.Text > MAX_TEXT then
+		feedbackBox.Text = feedbackBox.Text:sub(1, MAX_TEXT)
+	end
+end)
+
+local sendButton = textButton(feedbackView, COL_X, 580, 160, 36, Theme.TextSize.body + 6, Theme.UI.blocked, "\u{203A} SEND")
+sendButton.Name = "SendFeedback"
+local feedbackBack = textButton(feedbackView, COL_X + 200, 580, 160, 36, Theme.TextSize.body + 6,
+	Theme.UI.textDim, "\u{2039} BACK")
+feedbackBack.Name = "FeedbackBack"
+local feedbackStatus = infoLabel(feedbackView, 624, 26, Theme.TextSize.body + 2, Theme.UI.textDim)
+
+refreshFeedback = function()
+	for i, b in ipairs(starButtons) do
+		setColor(b, rating and i <= rating and Theme.UI.warning or Theme.UI.blocked)
+	end
+	for name, b in pairs(categoryButtons) do
+		setColor(b, name == category and Theme.UI.accent or Theme.UI.blocked)
+	end
+	setColor(sendButton, (rating and category) and Theme.UI.success or Theme.UI.blocked)
+end
+
+feedbackButton.MouseButton1Click:Connect(function()
+	feedbackStatus.Text = ""
+	show(feedbackView)
+end)
+feedbackBack.MouseButton1Click:Connect(function()
+	show(menuView)
+end)
+sendButton.MouseButton1Click:Connect(function()
+	if not (rating and category) then
+		feedbackStatus.Text = "Pick stars and a category first."
+		return
+	end
+	feedbackRemote:FireServer({rating = rating, category = category, text = feedbackBox.Text})
+	feedbackStatus.Text = "Sending..."
+	awaitingReply = true
+end)
+
+-- Serveri vastus tuleb Notification'iga; tavaline teavitus on ülekatte
+-- all peidus (hideOtherUi), seega näitame seda siin. Ainult source =
+-- "feedback" - run jookseb edasi ja "X built" jm ei tohi vormi tühjendada.
+RemoteEvents.Get("Notification").OnClientEvent:Connect(function(data)
+	if awaitingReply and type(data) == "table" and data.source == "feedback" and type(data.message) == "string" then
+		awaitingReply = false
+		feedbackStatus.Text = data.message
+		if data.kind == "success" then
+			rating, category = nil, nil
+			feedbackBox.Text = ""
+			refreshFeedback()
+		end
+	end
+end)
+
+refreshFeedback()
 
 -- =========================================================
 -- MENU ANDMED (iga GameStateUpdate'iga - Hex Seeds ostud peavad kohe näha olema)

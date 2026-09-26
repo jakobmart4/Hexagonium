@@ -258,6 +258,12 @@ end)
 local function updateInput(dt)
 	local dir = Vector2.new(0, 0)
 
+	-- Tekstikastis kirjutades (MENU tagasiside) ei liiguta WASD/nooled kaamerat
+	if UserInputService:GetFocusedTextBox() then
+		moveInput = dir
+		return
+	end
+
 	if UserInputService:IsKeyDown(Enum.KeyCode.W) then dir += Vector2.new(0, 1) end
 	if UserInputService:IsKeyDown(Enum.KeyCode.S) then dir += Vector2.new(0, -1) end
 	if UserInputService:IsKeyDown(Enum.KeyCode.A) then dir += Vector2.new(-1, 0) end

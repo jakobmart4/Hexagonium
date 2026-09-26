@@ -18,6 +18,7 @@
 	  DeleteProfile    klient -> server   (title screen: profiili kustutamine)
 	  ReturnToTitle    klient -> server   (MENU: maailm hävib, tagasi title'isse)
 	  ProfileList      server -> klient   (profiilide kokkuvõte title screen'ile)
+	  SubmitFeedback   klient -> server   (MENU: hinnang 1-5 + kategooria + tekst)
 	  Notification     server -> klient   (teated: runnak, kaardi efekt)
 ]]
 
@@ -43,6 +44,7 @@ local EVENT_NAMES = {
 	"DeleteProfile",
 	"ReturnToTitle",
 	"ProfileList",
+	"SubmitFeedback",
 	"Notification",
 }
 

@@ -23,7 +23,7 @@ Server autoriteetne, remote'id valideerivad tüüpe, Debug-lipud ja aja
 kiirendus ainult Studios. Sagedusepiirang kõigile päringutele
 ([PlayerActionHandler.lua](../../src/server/Core/PlayerActionHandler.lua)
 `allowRequest`) ja Right to Erasure
-([SaveService.lua](../../src/server/Core/SaveService.lua) `EraseUserData`,
+([SaveService.lua](../../src/server/Core/SaveService.lua) `EraseAllUserData`,
 juhend peadokumendi §15-s). Live'is kontrollimata.
 
 ### code-simplification · osaliselt (26.09)
