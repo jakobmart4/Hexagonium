@@ -32,6 +32,7 @@ vt punkt 3.
 | Resource Bloom | ~~+25/10/5 %~~ **+15 %** Extractor/Refinery/Assembler (ühtlane) | `Cards.ResourceBloom.*` |
 | Kordaja tähendus | läbilaskevõime: Refinery/Assembler tarbivad JA toodavad kordaja võrra rohkem (oli: ainult väljund) | `Refinery:Tick`, `Assembler:Tick` |
 | Town Hall (Power Core'i tase) | Lv2: 30 UP + 30 kristalli -> +15 % kogu tootmine, 1500 energiat; Lv3: 60 UP + 60 kristalli -> +30 %, 2000 energiat. Kõrgeim tase loeb, hävinguga kaob |
+| Hoone tasemed (Extractor/Refinery/Assembler) | Lv2: x1,5 läbilaskevõime, hind = ehitushind; Lv3: x2, 2x ehitushind (26.09, "merge buildings" tagasiside). Lammutus tagastab 50% ka tasemetest | `Constants.BuildingLevels` | `Constants.BuildingLevels` |
 | Parandusala (Power Core) | hooned tervenevad AINULT raadiuses: Lv1 2, Lv2 3, Lv3 4 hexi; 5 HP/s pärast 15 s ilma kahjuta (oli: kõik 2 HP/s) | `PowerCore.HealRadius/HealPerSecond`, `TownHall[n].HealRadius` | `Buildings.PowerCore.TownHall` |
 | Hostile -> Attack viivitus | 30s | `Faction.AttackDelayAfterHostile` |
 | Hoonete hinnad | Extractor 25, Refinery 40, Assembler 55, PowerCore 45, Defender 40 (24.09: kõik ~15% kallimaks; oli 20/35/50/40/35) | `BuildCosts` |

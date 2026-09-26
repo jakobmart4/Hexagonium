@@ -55,9 +55,10 @@ Plaan ja põhjendused: `tasks/plan.md`. Roadmap: `docs/HEXAGONIUM_Peadokument.tx
 ## Faas 5 — Title screen, UI, mudelid, animatsioonid (kasutaja valik 26.09)
 - [x] 5.1–5.2 Title screen + 3 profiili + MENU (Resume / Back to title / seemnepood); run algab profiili valikul. Studio: uus profiil, tagasi title'isse, teine profiil, kustutamine, püsivus üle sessioonide, vana salvestuse migratsioon profiili 1, pood (26.09)
 - [x] 5.3 UI kattumised: kaardipakk/ehitusmenüü mahuvad ekraanile (`Theme.FitLeftColumn`), tutorial nihkub avatud paneeli kõrvale, read kasvavad kirjelduse järgi (`Theme.GrowWithText`), Active Cards ja Faction sisu kõrgused, MENU peidab HUD-i. Studio 1914x830 (26.09)
-- [ ] 5.4 Mudelid: Town Hall taseme järgi, Defender tornina, veidi suuremad hooned, ründajad rohelised goblinid (tagasiside)
+- [x] 5.4 Mudelid: 6 AI-meshi (`ReplicatedStorage.BuildingMeshes`), hooned ~25% suuremad (`MapGenerator.MeshFit`), goblin-ründaja vaatab liikumise suunas; taseme visuaal = +12% suurust + hõbe/kuld alus + silt "Lv2" (26.09). Place tuleb salvestada + varukoopia `assets/BuildingMeshes.rbxm`
 - [ ] 5.5 Animatsioonid kliendis: ehitus, Town Hall'i tase, hävimine; Defenderi ja Town Hall'i raadius nähtavaks (tagasiside)
-- [ ] 5.6 Hoone tasemed: Extractor/Refinery/Assembler Lv1–3 nagu Town Hall (tagasiside "merge buildings", kasutaja valik 26.09)
+- [x] 5.6 Hoone tasemed Lv1–3 (`Constants.BuildingLevels`, x1,5 / x2, hind ehitus x1 / x2), üks uuendusrada Town Hall'iga, lammutus tagastab ka tasemed. Studio: Refinery Lv3 (24 alloy/min), Town Hall Lv2, CardSystemTest 9/9 (26.09)
+- [x] Faction: "No demands during the tutorial" külmunud "150s" asemel (26.09)
 - [ ] 5.7 Tagasiside MENU-s: hinnang 1–5 analüütikasse + valikuline tekst eraldi DataStore'i (kasutaja valik 26.09)
 
 Järjekord (kasutaja 26.09): 5.3, siis 5.4 + 5.6 KOOS (hoone tase = mudel), siis 5.5, 5.7.

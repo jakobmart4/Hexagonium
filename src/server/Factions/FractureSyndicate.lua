@@ -272,6 +272,8 @@ function FractureSyndicate:GetClientState()
 	if state == S.NEUTRAL then
 		local elapsed = GameClock.now() - self.lastNeutralTime
 		data.nextDemandIn = math.max(0, self:_demandInterval() - elapsed)
+		local tutorial = self.gameState.tutorial
+		data.demandsHeld = tutorial and tutorial:HoldsDemands() or nil
 	end
 
 	if state == S.DEMAND and self.demand then

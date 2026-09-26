@@ -92,14 +92,13 @@ function TickService:Tick()
 			faction = self.faction,
 		})
 
-		-- Town Hall: kõrgeima Power Core'i taseme boonus KÕIGILE hoonetele.
-		-- CardManager arvutab kordaja igal tick'il nullist, nii et korrutamine
-		-- siin ei kuhju.
-		if townHallBonus ~= 1 then
-			for _, building in ipairs(self.buildings) do
-				if not building.isDestroyed then
-					building:SetProductionMultiplier(building:GetProductionMultiplier() * townHallBonus)
-				end
+		-- Town Hall'i boonus KÕIGILE hoonetele (kõrgeim Power Core'i tase)
+		-- ja hoone enda tase (Constants.BuildingLevels). CardManager arvutab
+		-- kordaja igal tick'il nullist, nii et korrutamine siin ei kuhju.
+		for _, building in ipairs(self.buildings) do
+			local mult = townHallBonus * building:GetLevelMultiplier()
+			if mult ~= 1 and not building.isDestroyed then
+				building:SetProductionMultiplier(building:GetProductionMultiplier() * mult)
 			end
 		end
 	end

@@ -290,6 +290,21 @@ Constants.BuildCosts = {
 -- aga umberpaigutamine ei oleks karistus.
 Constants.DemolishRefund = 0.5
 
+-- HOONE TASEMED (26.09, mängijate tagasiside "merge buildings"): hoonet saab
+-- run'i jooksul uuendada (paremklõps -> Upgrade). Mult = läbilaskevõime
+-- kordaja (nagu kaardid: ahel jääb 1:1:1), Cost = UP. Kasutaja valik:
+-- x1,5 / x2, hind = ehitushind x1 / x2. Power Core'i tasemed on
+-- Buildings.PowerCore.TownHall'is.
+Constants.BuildingLevels = {}
+for _, buildingType in ipairs({"Extractor", "Refinery", "Assembler"}) do
+	local cost = Constants.BuildCosts[buildingType]
+	Constants.BuildingLevels[buildingType] = {
+		[1] = {Mult = 1},
+		[2] = {Mult = 1.5, Cost = cost},
+		[3] = {Mult = 2, Cost = cost * 2},
+	}
+end
+
 -- ============================================================
 -- RUN-SUSTEEM
 --

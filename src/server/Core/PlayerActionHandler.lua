@@ -331,8 +331,8 @@ function PlayerActionHandler:HandleDemolish(player, request)
 
 	local buildingType = foundLogic.buildingType
 
-	local cost = Constants.BuildCosts[buildingType] or 0
-	local refund = math.floor(cost * Constants.DemolishRefund)
+	-- Tagastus arvestab ka tasemetele kulutatud UP-d (GetInvestedCost)
+	local refund = math.floor(foundLogic:GetInvestedCost() * Constants.DemolishRefund)
 	if refund > 0 and world.pointBank then
 		world.pointBank:Refund(refund)
 	end
@@ -419,32 +419,44 @@ function PlayerActionHandler:HandleUpgradeBuilding(player, request)
 	if type(request) ~= "table" or type(request.q) ~= "number" or type(request.r) ~= "number" then return end
 
 	local building = findBuildingAt(world, request.q, request.r)
-	if not building or building.buildingType ~= "PowerCore" then
-		self:Notify(player, "Only the Power Core can be upgraded.", "warning")
+	if not building or not building:GetLevels() then
+		self:Notify(player, "This building can't be upgraded.", "warning")
 		return
 	end
 
 	local nextLevel = building:GetNextLevel()
 	if not nextLevel then
-		self:Notify(player, "Power Core is already at max level.", "warning")
+		self:Notify(player, building.buildingType .. " is already at max level.", "warning")
 		return
 	end
 
+	-- Kristall ainult Town Hall'il (Constants.Buildings.PowerCore.TownHall)
+	local crystal = nextLevel.Crystal or 0
 	local bank = world.pointBank
 	if not bank or not bank:CanAfford(nextLevel.Cost)
-		or not ResourceLedger.CanAfford(world.buildings, {[Constants.ResourceTypes.CRYSTAL] = nextLevel.Crystal})
+		or not ResourceLedger.CanAfford(world.buildings, {[Constants.ResourceTypes.CRYSTAL] = crystal})
 	then
-		self:Notify(player, string.format("Upgrade needs %d UP + %d crystal.", nextLevel.Cost, nextLevel.Crystal), "warning")
+		self:Notify(player, crystal > 0
+			and string.format("Upgrade needs %d UP + %d crystal.", nextLevel.Cost, crystal)
+			or string.format("Upgrade needs %d UP.", nextLevel.Cost), "warning")
 		return
 	end
 
 	bank:Spend(nextLevel.Cost)
-	ResourceLedger.Spend(world.buildings, {[Constants.ResourceTypes.CRYSTAL] = nextLevel.Crystal})
+	if crystal > 0 then
+		ResourceLedger.Spend(world.buildings, {[Constants.ResourceTypes.CRYSTAL] = crystal})
+	end
 	building:Upgrade()
+	MapGenerator.SetBuildingLevel(world.folder, building.q, building.r, building.level)
 
-	Telemetry.Event(player, "TownHallUpgraded", building.level)
-	self:Notify(player, string.format("Power Core level %d: all production +%d%%.",
-		building.level, math.floor(nextLevel.ProductionBonus * 100 + 0.5)), "success", "build")
+	Telemetry.Event(player, "BuildingUpgraded", building.level, {building.buildingType})
+	if building.buildingType == "PowerCore" then
+		self:Notify(player, string.format("Power Core level %d: all production +%d%%.",
+			building.level, math.floor(nextLevel.ProductionBonus * 100 + 0.5)), "success", "build")
+	else
+		self:Notify(player, string.format("%s level %d: x%s speed.",
+			building.buildingType, building.level, tostring(nextLevel.Mult)), "success", "build")
+	end
 end
 
 -- Play-testi kiirendus. AINULT Studios - avaldatud mängus ignoreeritakse.

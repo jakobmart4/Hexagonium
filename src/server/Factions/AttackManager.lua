@@ -27,6 +27,7 @@ local Theme = require(ReplicatedStorage.Shared.Theme)
 local BuildingFactory = require(ServerScriptService.Buildings.BuildingFactory)
 
 local CFG = Constants.Attack
+local GOBLIN_HEIGHT = 2.6
 
 local AttackManager = {}
 AttackManager.__index = AttackManager
@@ -204,14 +205,26 @@ function AttackManager:_spawnAttacker()
 		return nil
 	end
 
-	local fullSize = Vector3.new(2.2, 2.2, 2.2)
+	-- Goblin (mängijate tagasiside 26.09): AI-mesh BuildingMeshes.Goblin,
+	-- kõrgus GOBLIN_HEIGHT. Varu: punane kera. Üks BasePart nimega
+	-- "Attacker" - WorldFx.client.lua liigutab seda.
+	local meshes = ReplicatedStorage:FindFirstChild("BuildingMeshes")
+	local goblin = meshes and meshes:FindFirstChild("Goblin")
+	goblin = goblin and (goblin:IsA("MeshPart") and goblin or goblin:FindFirstChildWhichIsA("MeshPart", true))
 
-	local model = Instance.new("Part")
+	local model, fullSize
+	if goblin then
+		model = goblin:Clone()
+		fullSize = goblin.Size * (GOBLIN_HEIGHT / goblin.Size.Y)
+	else
+		model = Instance.new("Part")
+		model.Shape = Enum.PartType.Ball
+		model.Color = Theme.UI.error
+		model.Material = Enum.Material.Neon
+		fullSize = Vector3.new(2.2, 2.2, 2.2)
+	end
 	model.Name = "Attacker"
-	model.Shape = Enum.PartType.Ball
 	model.Size = fullSize * 0.3
-	model.Color = Theme.UI.error
-	model.Material = Enum.Material.Neon
 	model.Anchored = true
 	model.CanCollide = false
 	model.CanQuery = false
@@ -464,23 +477,26 @@ function AttackManager:_flashBuilding(building)
 		return
 	end
 
-	for _, part in ipairs(visual:GetDescendants()) do
-		if part:IsA("BasePart") then
-			-- Pariset varvi EI tohi lugeda part.Color'ist: kui eelmine
-			-- vilgatus veel tween'ib (mitu ruundajat sama hoone kallal,
-			-- AttackerHitInterval on RUUNDAJA kohta, mitte hoone kohta),
-			-- oleks see poolpunane vahevarv ja hoone nihkuks iga
-			-- tabamusega pusivalt punasemaks. Kirjutame UKS kord.
-			local original = part:GetAttribute("BaseColor")
-			if not original then
-				original = part.Color
-				part:SetAttribute("BaseColor", original)
-			end
-
-			part.Color = Theme.UI.error
-			TweenService:Create(part, TweenInfo.new(0.3), {Color = original}):Play()
-		end
+	-- Highlight, mitte osade Color: teksturiga meshil (5.4) Color ei
+	-- mõju. Üks Highlight hoone kohta, uus tabamus lähtestab selle.
+	local flash = visual:FindFirstChild("HitFlash")
+	if not flash then
+		flash = Instance.new("Highlight")
+		flash.Name = "HitFlash"
+		flash.FillColor = Theme.UI.error
+		flash.OutlineTransparency = 1
+		flash.DepthMode = Enum.HighlightDepthMode.Occluded
+		flash.Parent = visual
 	end
+	flash.FillTransparency = 0.3
+	local tween = TweenService:Create(flash, TweenInfo.new(0.3), {FillTransparency = 1})
+	-- Robloxis renderdub korraga kuni 31 Highlight'i -> pärast välgatust ära
+	tween.Completed:Connect(function(state)
+		if state == Enum.PlaybackState.Completed and flash.Parent then
+			flash:Destroy()
+		end
+	end)
+	tween:Play()
 end
 
 -- Havinud hoone visuaali eemaldamine

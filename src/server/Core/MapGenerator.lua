@@ -255,6 +255,80 @@ function MapGenerator.EnsureOcean()
 	terrain:SetAttribute("HexagoniumOcean", true)
 end
 
+-- Nimesilt hoone kohal (BillboardGui) - ühine mesh- ja klotsimallile
+local function addLabel(base, buildingType, heightAboveCenter)
+	local billboard = Instance.new("BillboardGui")
+	billboard.Name = "Label"
+	billboard.Size = UDim2.new(0, 110, 0, 26)
+	billboard.StudsOffset = Vector3.new(0, heightAboveCenter + 1.5, 0)
+	billboard.AlwaysOnTop = true
+	billboard.MaxDistance = 200
+	billboard.Parent = base
+
+	local text = Instance.new("TextLabel")
+	text.Name = "NameLabel"
+	text.Size = UDim2.new(1, 0, 1, 0)
+	text.BackgroundTransparency = 1
+	text.Text = buildingType
+	text.TextColor3 = Color3.new(1, 1, 1)
+	text.TextStrokeTransparency = 0.2
+	text.TextScaled = true
+	text.Font = Theme.Font.bold
+	text.Parent = billboard
+end
+
+-- MESH-MALL (5.4, 26.09): AI-mesh (Studio generate_mesh) kaustast
+-- ReplicatedStorage.BuildingMeshes (place-failis, varukoopia
+-- assets/BuildingMeshes.rbxm). Mesh skaleeritakse ühtlaselt MeshFit'i
+-- kasti sisse. PrimaryPart = nähtamatu "Body" meshi mõõdus: PlaceBuilding,
+-- klõpsud ja AttackManager töötavad samamoodi nagu klotsimalliga.
+-- Hex on ~7 studi lai (hexSize 4); Lv3 on +24% (LevelScale), seega
+-- Lv1 laius ~5-6 mahub ka Lv3-na hexile.
+MapGenerator.MeshFit = {
+	Extractor = Vector3.new(5.2, 7.2, 5.2),
+	Refinery  = Vector3.new(5.4, 4.8, 5.4),
+	Assembler = Vector3.new(5.6, 4.4, 5.6),
+	PowerCore = Vector3.new(6.0, 6.0, 6.0),
+	Defender  = Vector3.new(4.6, 6.2, 4.6),
+}
+
+local function makeMeshTemplate(buildingType, source)
+	local sourceMesh = source:IsA("MeshPart") and source or source:FindFirstChildWhichIsA("MeshPart", true)
+	if not sourceMesh then
+		return nil
+	end
+
+	local fit = MapGenerator.MeshFit[buildingType]
+	local s = sourceMesh.Size
+	local scale = math.min(fit.X / s.X, fit.Y / s.Y, fit.Z / s.Z)
+
+	local model = Instance.new("Model")
+	model.Name = buildingType .. "Template"
+
+	local mesh = sourceMesh:Clone()
+	mesh.Name = "Mesh"
+	mesh.Size = s * scale
+	mesh.CFrame = CFrame.new()
+	mesh.Anchored = true
+	mesh.CanCollide = false
+	mesh.Parent = model
+
+	local base = Instance.new("Part")
+	base.Name = "Body"
+	base.Size = mesh.Size
+	base.CFrame = CFrame.new()
+	base.Transparency = 1
+	base.Anchored = true
+	base.CanCollide = false
+	base.Parent = model
+
+	addLabel(base, buildingType, mesh.Size.Y / 2)
+
+	model.PrimaryPart = base
+	model:SetAttribute("BuildingType", buildingType)
+	return model
+end
+
 function MapGenerator.CreateBuildingTemplates()
 	local existing = ReplicatedStorage:FindFirstChild("BuildingTemplates")
 	if existing then
@@ -265,8 +339,19 @@ function MapGenerator.CreateBuildingTemplates()
 	templates.Name = "BuildingTemplates"
 	templates.Parent = ReplicatedStorage
 
+	local meshes = ReplicatedStorage:FindFirstChild("BuildingMeshes")
+
 	local created = 0
 	for buildingType, color in pairs(MapGenerator.BuildingColors) do
+		local source = meshes and meshes:FindFirstChild(buildingType)
+		local meshModel = source and makeMeshTemplate(buildingType, source)
+		if meshModel then
+			meshModel.Parent = templates
+			created += 1
+			continue
+		end
+		-- Varu: klotsidest mall (mesh puudub, nt tühi place / rojo build)
+
 		local size = MapGenerator.BuildingSizes[buildingType]
 		local shape = MapGenerator.BuildingShapes[buildingType]
 
@@ -339,24 +424,7 @@ function MapGenerator.CreateBuildingTemplates()
 			end
 		end
 
-		local billboard = Instance.new("BillboardGui")
-		billboard.Name = "Label"
-		billboard.Size = UDim2.new(0, 110, 0, 26)
-		billboard.StudsOffset = Vector3.new(0, topOffsetFromBaseBottom - size.Y / 2 + 1.5, 0)
-		billboard.AlwaysOnTop = true
-		billboard.MaxDistance = 200
-		billboard.Parent = base
-
-		local text = Instance.new("TextLabel")
-		text.Name = "NameLabel"
-		text.Size = UDim2.new(1, 0, 1, 0)
-		text.BackgroundTransparency = 1
-		text.Text = buildingType
-		text.TextColor3 = Color3.new(1, 1, 1)
-		text.TextStrokeTransparency = 0.2
-		text.TextScaled = true
-		text.Font = Theme.Font.bold
-		text.Parent = billboard
+		addLabel(base, buildingType, topOffsetFromBaseBottom - size.Y / 2)
 
 		model.PrimaryPart = base
 		model:SetAttribute("BuildingType", buildingType)
@@ -802,6 +870,72 @@ function MapGenerator.PlaceBuilding(buildingType, q, r, config)
 	end
 
 	return clone
+end
+
+-- ============================================================
+-- HOONE TASE (5.4 + 5.6): suurem hoone + helendav rõngas aluse ümber
+-- (Lv2 üks, Lv3 kaks) + silt "Refinery Lv2". Staatilised osad - ühekordne
+-- replikatsioon, mitte tween (vt CLAUDE.md lõks 14). Kutsub
+-- PlayerActionHandler:HandleUpgradeBuilding pärast building:Upgrade()'i.
+-- ============================================================
+
+MapGenerator.LevelScale = 0.12 -- +12% suurust taseme kohta
+MapGenerator.LevelRingColors = {
+	[2] = Color3.fromRGB(150, 220, 255),
+	[3] = Color3.fromRGB(255, 205, 90),
+}
+
+function MapGenerator.SetBuildingLevel(folder, q, r, level)
+	local buildings = folder and folder:FindFirstChild("Buildings")
+	local model
+	for _, candidate in ipairs(buildings and buildings:GetChildren() or {}) do
+		if candidate:GetAttribute("Q") == q and candidate:GetAttribute("R") == r then
+			model = candidate
+			break
+		end
+	end
+	if not model or not model.PrimaryPart then
+		return
+	end
+
+	-- Suurus: skaala alati algsest (ScaleTo on absoluutne), alus jääb hexile
+	local body = model.PrimaryPart
+	local bottom = body.Position.Y - body.Size.Y / 2
+	model:ScaleTo(1 + MapGenerator.LevelScale * (level - 1))
+	model:PivotTo(model:GetPivot() + Vector3.new(0, bottom + body.Size.Y / 2 - body.Position.Y, 0))
+
+	for _, old in ipairs(model:GetChildren()) do
+		if old.Name == "LevelRing" then
+			old:Destroy()
+		end
+	end
+	-- Kuni hexi laiuseni (~6,9): Lv3 Town Hall ulatus muidu naabri peale
+	local width = math.min(math.max(body.Size.X, body.Size.Z) + 0.3, 6.6)
+	for i = 1, level - 1 do
+		-- i = 1 alumine (laiem), i = 2 peal (kitsam) -> astmed
+		local ring = Instance.new("Part")
+		ring.Name = "LevelRing"
+		ring.Shape = Enum.PartType.Cylinder
+		-- Cylinder'i telg on kohalik X -> keerame püsti (vt CreateBuildingTemplates)
+		ring.Size = Vector3.new(0.2, width - (i - 1) * 0.6, width - (i - 1) * 0.6)
+		ring.CFrame = CFrame.new(body.Position.X, bottom + 0.1 + (i - 1) * 0.2, body.Position.Z)
+			* CFrame.Angles(0, 0, math.rad(90))
+		-- Metallist astmeline alus (hõbe/kuld), mitte Neon: neoonketas
+		-- helendas kollase loigu moodi (Studio test 26.09)
+		ring.Color = MapGenerator.LevelRingColors[level] or Theme.UI.accent
+		ring.Material = Enum.Material.Metal
+		ring.Anchored = true
+		ring.CanCollide = false
+		ring.CanQuery = false
+		ring.Parent = model
+	end
+
+	local label = body:FindFirstChild("Label")
+	local text = label and label:FindFirstChild("NameLabel")
+	if text then
+		text.Text = string.format("%s Lv%d", model:GetAttribute("BuildingType") or "", level)
+	end
+	model:SetAttribute("Level", level)
 end
 
 -- ============================================================

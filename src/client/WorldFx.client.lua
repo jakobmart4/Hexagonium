@@ -28,8 +28,16 @@ local function watch(part)
 		part:GetAttributeChangedSignal("MoveTo"):Connect(function()
 			local target = part:GetAttribute("MoveTo")
 			if target then
+				-- Goblin vaatab liikumise suunas (ainult pööre ümber Y)
+				local from = part.Position
+				local flat = Vector3.new(target.X, from.Y, target.Z)
+				-- FacingYaw: mesh'i "ette" nurk (BuildingMeshes.Goblin = 180)
+				local goal = (flat - from).Magnitude > 0.05
+					and CFrame.lookAt(target, target + (flat - from).Unit)
+						* CFrame.Angles(0, math.rad(part:GetAttribute("FacingYaw") or 0), 0)
+					or CFrame.new(target) * part.CFrame.Rotation
 				TweenService:Create(part, TweenInfo.new(part:GetAttribute("MoveTime") or 1,
-					Enum.EasingStyle.Linear), {Position = target}):Play()
+					Enum.EasingStyle.Linear), {CFrame = goal}):Play()
 			end
 		end)
 	end

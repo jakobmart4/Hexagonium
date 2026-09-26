@@ -157,11 +157,10 @@ local upgradeButton = makeButton("", Theme.UI.accent, 188)
 local demolishButton = makeButton("Demolish", Theme.UI.error, 188)
 local upgradeRemote = RemoteEvents.Get("UpgradeBuilding")
 
--- Town Hall: kõrgeim tase Constants'ist (üks allikas)
+-- Town Hall'i tasemed Constants'ist (üks allikas); teised: Constants.BuildingLevels
 local TOWN_HALL = Constants.Buildings.PowerCore.TownHall
-local TOWN_HALL_MAX = #TOWN_HALL
 
--- Uuendusnupp ainult Power Core'il, kui tase pole maksimumis
+-- Uuendusnupp, kui hoonel on tasemed ja tase pole maksimumis
 local function layoutButtons(showUpgrade)
 	upgradeButton.Visible = showUpgrade
 	demolishButton.Position = UDim2.new(0, 12, 0, showUpgrade and 222 or 188)
@@ -333,15 +332,23 @@ local function refreshMenu()
 	usesVal.Text = formatFlow(flow.uses, usesMult)
 	usesVal.TextColor3 = Theme.UI.text
 
-	-- Town Hall tase ja uuendus
-	local nextLevel = state.level and TOWN_HALL[state.level + 1]
-	if state.level then
-		local current = TOWN_HALL[state.level]
-		subLabel.Text = string.format("Town Hall Lv %d/%d · repair %d%s", state.level, TOWN_HALL_MAX, current.HealRadius,
-			current.ProductionBonus > 0 and string.format(" · +%d%%", math.floor(current.ProductionBonus * 100 + 0.5)) or "")
+	-- Tase ja uuendus: Town Hall (Power Core) või Constants.BuildingLevels
+	local isTownHall = currentTarget.buildingType == "PowerCore"
+	local levels = isTownHall and TOWN_HALL or Constants.BuildingLevels[currentTarget.buildingType]
+	local nextLevel = levels and state.level and levels[state.level + 1]
+	if levels and state.level then
+		local current = levels[state.level]
+		if isTownHall then
+			subLabel.Text = string.format("Town Hall Lv %d/%d · repair %d%s", state.level, #levels, current.HealRadius,
+				current.ProductionBonus > 0 and string.format(" · +%d%%", math.floor(current.ProductionBonus * 100 + 0.5)) or "")
+		else
+			subLabel.Text = string.format("Level %d/%d · x%s speed", state.level, #levels, tostring(current.Mult))
+		end
 	end
 	if nextLevel then
-		upgradeButton.Text = string.format("Upgrade (%d UP + %d crystal)", nextLevel.Cost, nextLevel.Crystal)
+		upgradeButton.Text = (nextLevel.Crystal or 0) > 0
+			and string.format("Upgrade (%d UP + %d crystal)", nextLevel.Cost, nextLevel.Crystal)
+			or string.format("Upgrade to x%s (%d UP)", tostring(nextLevel.Mult), nextLevel.Cost)
 	end
 	layoutButtons(nextLevel ~= nil)
 

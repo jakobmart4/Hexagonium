@@ -72,9 +72,9 @@ function PowerCore:ConsumeEnergy(amount)
 	return true
 end
 
--- Järgmise taseme seaded või nil, kui tase on maksimumis
-function PowerCore:GetNextLevel()
-	return Constants.Buildings.PowerCore.TownHall[self.level + 1]
+-- Tasemed = Town Hall (BuildingBase:GetNextLevel/GetInvestedCost loevad siit)
+function PowerCore:GetLevels()
+	return Constants.Buildings.PowerCore.TownHall
 end
 
 -- Kulu kontrollib ja võtab PlayerActionHandler; siin ainult efekt

@@ -102,6 +102,13 @@ BuildingInfo.Buildings = {
 	},
 }
 
+-- Uuendatavad hooned (Constants.BuildingLevels): lause lõppu, numbrid Constants'ist
+for buildingType, levels in pairs(Constants.BuildingLevels) do
+	local info = BuildingInfo.Buildings[buildingType]
+	info.description = string.format("%s Upgrade (right-click) up to x%s speed - saves space.",
+		info.description, tostring(levels[#levels].Mult))
+end
+
 -- ============================================================
 -- VOOG MINUTIS (kontekstimenuu)
 -- Baaskiirused Constants'ist - kordajat EI arvestata, klient korrutab

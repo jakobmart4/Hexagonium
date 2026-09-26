@@ -393,6 +393,11 @@ ReplicatedStorage/
   BuildingTemplates/       5 hoonemudelit (loodud koodiga)
   HexTemplates/            4 kuusnurkset malli (AINULT place-failis, mitte gitis -
                            varukoopia: Save to File -> assets/HexTemplates.rbxm)
+  BuildingMeshes/          6 AI-meshi (Studio generate_mesh, 26.09): Extractor,
+                           Refinery, Assembler, PowerCore, Defender, Goblin (ründaja,
+                           FacingYaw=180). AINULT place-failis - varukoopia
+                           assets/BuildingMeshes.rbxm. Puudumisel klotsimallid
+                           (MapGenerator.CreateBuildingTemplates) ja punane kera.
 
 ServerScriptService/
   Bootstrap.lua            käivitab mängu pärast andmete laadimist

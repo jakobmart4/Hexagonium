@@ -32,6 +32,9 @@ function BuildingBase.new(buildingType, q, r)
 	-- Null Surge efektifaasis tõene: hoone toodab ilma sisendressursita
 	self.ignoreInputs = false
 
+	-- Hoone tase (Constants.BuildingLevels; Power Core: TownHall)
+	self.level = 1
+
 	-- Elupunktid. Uks vaartus koigile hoonetele (MVP lihtsus).
 	self.maxHealth = Constants.Attack.BuildingHealth
 	self.health = self.maxHealth
@@ -105,6 +108,43 @@ end
 
 function BuildingBase:GetDefenseMultiplier()
 	return self.activeMultipliers.defense
+end
+
+-- ============================================================
+-- TASEMED (Constants.BuildingLevels). PowerCore kirjutab üle (TownHall).
+-- ============================================================
+
+function BuildingBase:GetLevels()
+	return Constants.BuildingLevels[self.buildingType]
+end
+
+-- Järgmise taseme rida ({Cost, Mult, ...}) või nil (max / ei uuendata)
+function BuildingBase:GetNextLevel()
+	local levels = self:GetLevels()
+	return levels and levels[self.level + 1]
+end
+
+function BuildingBase:GetLevelMultiplier()
+	local levels = self:GetLevels()
+	return levels and levels[self.level].Mult or 1
+end
+
+-- Kulutatud UP (ehitus + tasemed) - lammutamise tagastuse alus
+function BuildingBase:GetInvestedCost()
+	local total = Constants.BuildCosts[self.buildingType] or 0
+	local levels = self:GetLevels()
+	for i = 2, self.level do
+		total += levels and levels[i].Cost or 0
+	end
+	return total
+end
+
+function BuildingBase:Upgrade()
+	if not self:GetNextLevel() then
+		return false
+	end
+	self.level += 1
+	return true
 end
 
 -- CardManager seab selle igal tickil (Null Surge efektifaas).

@@ -243,7 +243,12 @@ if stateRemote then
 
 		-- Pooordloendus: mis on jargmine sundmus ja millal
 		local seconds = f.remaining or f.nextDemandIn
-		if seconds then
+		if f.demandsHeld then
+			-- Tutorial hoiab nõudeid kinni (TutorialTracker:HoldsDemands):
+			-- taimer seisab, külmunud "150s" näis veana
+			countdownLabel.Text = "No demands during the tutorial"
+			countdownLabel.TextColor3 = Theme.UI.textDim
+		elseif seconds then
 			countdownLabel.Text = string.format("%s  %ds", info.countdown, math.ceil(seconds))
 			-- Punane, kui oht laheneb
 			if f.state == "Hostile" or f.state == "Attack" then
