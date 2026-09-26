@@ -174,12 +174,20 @@ end
 -- MANGIJA LIITUB
 -- ============================================================
 
+-- Liitumisel EI looda maailma: mängija on title screen'il ja valib
+-- profiili (PlayerActionHandler:HandleSelectProfile -> startWorld).
 local function onPlayerJoined(player)
 	if DEBUG.WipeSaveOnJoin and IS_STUDIO then
 		SaveService.WipeForTesting(player)
 	end
 
-	local data = SaveService.Load(player)
+	SaveService.Load(player)
+	actionHandler:SendProfiles(player)
+end
+
+-- Profiil on valitud (SaveService.SelectSlot) -> maailm ja run algavad
+local function startWorld(player)
+	local data = SaveService.Get(player)
 
 	local world = WorldManager.CreateFor(player, {
 		bonusExpansions = data.bonusExpansions,
@@ -204,7 +212,7 @@ local function onPlayerJoined(player)
 	world.profileSnapshot = data
 
 	print(string.format(
-		"[Hexagonium] %s -> slot %d, lisalaiendusi=%d, runid=%d%s",
+		"[Hexagonium] %s -> saar %d, lisalaiendusi=%d, runid=%d%s",
 		player.Name, world.slot, data.bonusExpansions, data.stats.runsPlayed,
 		SaveService.IsAvailable() and "" or "  (SALVESTAMINE VALJAS)"))
 
@@ -231,7 +239,8 @@ local function onPlayerJoined(player)
 	end
 end
 
-local function onPlayerLeaving(player)
+-- Maailm hävib (lahkumine VÕI MENU -> Back to title)
+local function endWorld(player)
 	-- Telemeetria: pooleli jäetud run lõpeb "Quit"-iga. Ilma selleta näeks
 	-- "kuidas run'id lõpevad" ainult Extract/Destroyed/Timeout, kuigi enamik
 	-- sessioone lõpeb lahkumisega. Ainult analüütika - tasu ei maksta.
@@ -244,9 +253,18 @@ local function onPlayerLeaving(player)
 	end
 
 	WorldManager.RemovePlayer(player)
-	print(string.format("[Hexagonium] %s lahkus, maailmu alles: %d",
+	print(string.format("[Hexagonium] %s lahkus saarelt, maailmu alles: %d",
 		player.Name, WorldManager.Count()))
 end
+
+actionHandler.onSelectProfile = startWorld
+actionHandler.onReturnToTitle = function(player)
+	endWorld(player)
+	SaveService.ClearActive(player)
+	SaveService.SaveSoon(player)
+	actionHandler:SendProfiles(player)
+end
+
 
 for _, player in ipairs(Players:GetPlayers()) do
 	task.spawn(onPlayerJoined, player)
@@ -256,4 +274,4 @@ Players.PlayerAdded:Connect(function(player)
 	task.spawn(onPlayerJoined, player)
 end)
 
-Players.PlayerRemoving:Connect(onPlayerLeaving)
+Players.PlayerRemoving:Connect(endWorld)

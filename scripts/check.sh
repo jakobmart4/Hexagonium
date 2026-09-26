@@ -35,7 +35,7 @@ fi
 
 # 6. Iga klient -> server RemoteEvent on serveris seotud (bind)
 for name in $(sed -n '/local EVENT_NAMES = {/,/}/p' src/shared/RemoteEvents.lua | grep -oE '"[A-Za-z]+"' | tr -d '"'); do
-	case "$name" in GameStateUpdate|Notification) continue ;; esac
+	case "$name" in GameStateUpdate|Notification|ProfileList) continue ;; esac
 	grep -q "bind(\"$name\"" src/server/Core/PlayerActionHandler.lua || bad "RemoteEvent $name pole PlayerActionHandler'is seotud"
 done
 

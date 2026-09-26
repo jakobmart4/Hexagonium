@@ -255,6 +255,13 @@ TÄHTIS: kirjeldused mängijale GENEREERITAKSE Constants'ist
 
 SaveService.lua, DataStore "HexagoniumPlayer_v1"
 
+PROFIILID (26.09): üks võti mängija kohta, selles kuni 3 profiili
+  {slots = {["1"] = profiil, ...}} (stringvõtmed - DataStore'i massiivis
+  ei tohi auke olla). Iga profiil = allolevad väljad + lastPlayed.
+  Vana ühe-profiilne salvestus kolib laadimisel profiili 1
+  (normalizeRoot, kontrollitud Studios). Get/AddSeeds/... töötavad
+  AKTIIVSE profiili peal; title screen'il aktiivset profiili pole.
+
 SALVESTATAKSE (stats run'i lõpus - Bootstrap wireRunEnd; tutorial ja start screen'i ostud KOHE)
     bonusExpansions           ostetud lisalaienduskohad run'i kohta (0-4)
     tutorialComplete          kas mängija on tutoriali läbinud (wireTutorial)
@@ -361,7 +368,7 @@ HIIR
   Hiir ekraani serval   Pann
   Klõps minimapil       Kaamera liigub sinna
   EXTRACT-nupp          KAKS klõpsu 3 s sees ("SURE?"-kinnitus)
-  MENU-nupp             Start screen (statistika + Hex Seeds ostud)
+  MENU-nupp             Resume / Back to title, statistika, seemnepood (run EI peatu)
 
 MIKS MITTE ESC: Roblox võtab selle endale.
 MIKS L, MITTE E: E on inglise keeles sage täht, satub vestluses ette.
@@ -426,7 +433,7 @@ StarterPlayer/StarterPlayerScripts/
   Minimap.lua              hex-ülevaade + kaamera hüpe
   Tutorial.lua             4-sammuline vihjebänner + Skip-nupp
   SoundEffects.lua         heliefektid (Notification kind/hint + GameStateUpdate diff)
-  StartScreen.lua          peamenüü / start screen (statistika + Hex Seeds ostud)
+  StartScreen.lua          title screen -> 3 profiili -> run; mängus MENU (statistika + seemnepood)
   RunPanel.lua             run'i taimer, tasu, Extract, lõpuekraan
 
 MÄRKUS: UI-skriptid EI OLE StarterGui's. Need loovad oma ScreenGui
@@ -1031,7 +1038,17 @@ VISUAALNE POLEERIMINE                          [VALMIS]
   output` veatult. BuildMenu/CardDeck regressioonitest pärast
   `ClampToViewport` lisamist näitas paneele endiselt õiges kohas.
 
-PEAMENÜÜ / START SCREEN                        [VALMIS]
+PEAMENÜÜ / START SCREEN                        [ASENDATUD 26.09]
+  26.09: Minecrafti-laadne title screen. Liitumisel maailma POLE:
+  TITLE (Play) -> PROFILES (3 kohta: New/Play/Delete kinnitusega) ->
+  SelectProfile -> Bootstrap.startWorld loob saare ja run algab 0:00-st.
+  MENU mängus: Resume, Back to title (kinnitusega; run lõpeb tasuta,
+  telemeetria "Quit", maailm hävib), statistika, seemnepood (OWNED /
+  hind / tuhm kui ei jõua). Title/profiilivaates on muu UI peidetud.
+  Remote'id: SelectProfile, DeleteProfile, ReturnToTitle (seotud
+  PlayerActionHandler'is), ProfileList (server -> klient). Allolev tekst
+  kirjeldab vana ülekatet ja on ajalugu.
+
   Uus lisand (mitte poleerimise jätk) — täisekraani ülekate, mis
   näitab liitumisel save-faili ülevaadet (`bonusExpansions`,
   `tutorialComplete`) ja elu-aegset statistikat (`stats.*`), kuni

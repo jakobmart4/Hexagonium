@@ -197,6 +197,12 @@ task.spawn(function()
 			targetPosition = islandOrigin
 		end
 	end)
+
+	-- Title screen (liitumine / Back to title): järgmine maailm võib olla
+	-- teises slotis -> kaamera viiakse uuesti esimese payload'iga kohale
+	RemoteEvents.Get("ProfileList").OnClientEvent:Connect(function()
+		originReceived = false
+	end)
 end)
 
 UserInputService.InputEnded:Connect(function(input)

@@ -52,6 +52,12 @@ Plaan ja põhjendused: `tasks/plan.md`. Roadmap: `docs/HEXAGONIUM_Peadokument.tx
 - [x] 9. Avaldamine piiratud betana (kasutaja, 26.09; server size 6)
 - [ ] 10. Avaldamisjärgne kontroll: salvestus live's ✓ (runid 0 -> 1), lag parandatud ✓ (Recv 58 -> 2,6 KB/s, Data Ping ~500 ms -> ping 171 ms asukohast), Error Report + Analytics ≤24 h — ootel
 
+## Faas 5 — Title screen, UI, mudelid, animatsioonid (kasutaja valik 26.09)
+- [x] 5.1–5.2 Title screen + 3 profiili + MENU (Resume / Back to title / seemnepood); run algab profiili valikul. Studio: uus profiil, tagasi title'isse, teine profiil, kustutamine, püsivus üle sessioonide, vana salvestuse migratsioon profiili 1, pood (26.09)
+- [ ] 5.3 UI kattumised: tutoriali paneel vs kaardipakk/ehitusmenüü, ehitusmenüü kärbitud tekst, paremate paneelide suurus
+- [ ] 5.4 Mudelid: Town Hall taseme järgi, Defender tornina, veidi suuremad hooned
+- [ ] 5.5 Animatsioonid kliendis: ehitus, Town Hall'i tase, hävimine
+
 ## Muu tehtud (väljaspool faase)
 - [x] Studio korrastus: topelt-Lighting parandatud, prügi kustutatud, hexi mallid `assets/HexTemplates.rbxm` (16.09)
 - [x] `docs/arendus/` (roadmap, play-testid, kontrollid, ADR-001..009) + Understand-Anything graaf (24.09)

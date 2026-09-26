@@ -481,7 +481,7 @@ function PlayerActionHandler:HandleExpandIsland(player)
 end
 
 -- ============================================================
--- META-OST (Hex Seeds, start screen)
+-- META-OST (Hex Seeds, MENU)
 -- ============================================================
 
 function PlayerActionHandler:HandleBuyMetaUpgrade(player, request)
@@ -563,6 +563,37 @@ function PlayerActionHandler:HandleBuyMetaUpgrade(player, request)
 end
 
 -- ============================================================
+-- PROFIILID (title screen)
+--
+-- Maailm on olemas ainult mängus olles: title screen'il ei jookse
+-- midagi. Maailma loomine/hävitamine on Bootstrap'is (onSelectProfile,
+-- onReturnToTitle) - sama kood mis liitumisel ja lahkumisel.
+-- ============================================================
+
+function PlayerActionHandler:SendProfiles(player)
+	RemoteEvents.Get("ProfileList"):FireClient(player, SaveService.GetProfileSummaries(player))
+end
+
+function PlayerActionHandler:HandleSelectProfile(player, request)
+	if self:GetWorld(player) or type(request) ~= "table" then return end
+	if not SaveService.SelectSlot(player, request.slot) then return end
+	self.onSelectProfile(player)
+end
+
+function PlayerActionHandler:HandleDeleteProfile(player, request)
+	if self:GetWorld(player) or type(request) ~= "table" then return end
+	if SaveService.DeleteSlot(player, request.slot) then
+		SaveService.SaveSoon(player)
+	end
+	self:SendProfiles(player)
+end
+
+function PlayerActionHandler:HandleReturnToTitle(player)
+	if not self:GetWorld(player) then return end
+	self.onReturnToTitle(player)
+end
+
+-- ============================================================
 -- UHENDAMINE
 -- ============================================================
 
@@ -620,6 +651,9 @@ function PlayerActionHandler:Connect()
 	bind("AdvanceTutorial", PlayerActionHandler.HandleAdvanceTutorial)
 	bind("SetGameSpeed", PlayerActionHandler.HandleSetGameSpeed)
 	bind("UpgradeBuilding", PlayerActionHandler.HandleUpgradeBuilding)
+	bind("SelectProfile", PlayerActionHandler.HandleSelectProfile)
+	bind("DeleteProfile", PlayerActionHandler.HandleDeleteProfile)
+	bind("ReturnToTitle", PlayerActionHandler.HandleReturnToTitle)
 end
 
 return PlayerActionHandler

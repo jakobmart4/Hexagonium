@@ -8,7 +8,7 @@
 	          laiali ja jattis hooneid Defenderist kaugele.
 
 	  META  - bonusExpansions: pusivalt OSTETUD lisalaiendused (Hex Seeds,
-	          start screen). Iga ost = run'is uks laiendusrong rohkem.
+	          MENU). Iga ost = run'is uks laiendusrong rohkem.
 	          Salvestub DataStore'i (SaveService.SetBonusExpansions).
 
 	  RUN   - runExpansions: selle run'i jooksul avatud rongad, makstakse

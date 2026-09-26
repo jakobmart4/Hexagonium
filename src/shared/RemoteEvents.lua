@@ -10,10 +10,14 @@
 	  ConnectNodes     klient -> server   (mangija loob node-uhenduse)
 	  FactionDecision  klient -> server   (Fracture Pact jah/ei)
 	  SkipTutorial     klient -> server   (mängija jätab tutoriali vahele)
-	  BuyMetaUpgrade   klient -> server   (Hex Seeds kulutamine start screen'il)
+	  BuyMetaUpgrade   klient -> server   (Hex Seeds kulutamine MENU-s)
 	  AdvanceTutorial  klient -> server   (tutoriali infosammu "Next")
 	  SetGameSpeed     klient -> server   (Studio: mänguaja kiirus 1/2/3/5x)
 	  UpgradeBuilding  klient -> server   (Power Core / Town Hall järgmine tase)
+	  SelectProfile    klient -> server   (title screen: profiil 1-3 -> run algab)
+	  DeleteProfile    klient -> server   (title screen: profiili kustutamine)
+	  ReturnToTitle    klient -> server   (MENU: maailm hävib, tagasi title'isse)
+	  ProfileList      server -> klient   (profiilide kokkuvõte title screen'ile)
 	  Notification     server -> klient   (teated: runnak, kaardi efekt)
 ]]
 
@@ -35,6 +39,10 @@ local EVENT_NAMES = {
 	"AdvanceTutorial",
 	"SetGameSpeed",
 	"UpgradeBuilding",
+	"SelectProfile",
+	"DeleteProfile",
+	"ReturnToTitle",
+	"ProfileList",
 	"Notification",
 }
 

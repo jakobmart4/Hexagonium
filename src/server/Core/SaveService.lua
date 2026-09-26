@@ -2,7 +2,13 @@
 	SaveService.lua
 	Mangija puusiva edenemise salvestamine DataStore'i.
 
-	MIDA SALVESTATAKSE:
+	PROFIILID (26.09): üks DataStore võti mängija kohta, selles kuni 3
+	profiili (nagu Minecrafti maailmad): {slots = {["1"] = andmed, ...}}.
+	Mängija valib profiili title screen'il (SelectSlot); kõik muud
+	funktsioonid (Get, AddSeeds, ...) töötavad AKTIIVSE profiili peal.
+	Vana ühe-profiilne salvestus kolib automaatselt profiili 1.
+
+	MIDA PROFIIL SALVESTAB:
 	  bonusExpansions  - ostetud lisalaiendused run'i kohta (Hex Seeds)
 	  tutorialComplete - kas mangija on esmase tutoriali labinud
 	  tutorialStep     - pooleli tutoriali viimane järjest läbitud samm
@@ -28,6 +34,8 @@ local Constants = require(ReplicatedStorage.Shared.Constants)
 
 local SaveService = {}
 
+SaveService.SLOTS = 3
+
 -- Versioon nimes: kui andmestruktuur muutub uhilduvusetult,
 -- tosta numbrit, et vanad andmed ei laguneks.
 SaveService.STORE_NAME = "HexagoniumPlayer_v1"
@@ -36,8 +44,9 @@ SaveService.AUTOSAVE_INTERVAL = 120
 local store = nil
 local storeAvailable = false
 
--- Malus hoitav seis mangija kohta: [userId] = data
-local cache = {}
+-- Malus hoitav seis mangija kohta
+local roots = {}      -- [userId] = {slots = {["1"] = profiil, ...}}
+local activeSlot = {} -- [userId] = "1".."3" (nil = title screen'il)
 local dirty = {}
 
 -- ============================================================
@@ -51,6 +60,7 @@ function SaveService.GetDefaults()
 		tutorialStep = 0, -- viimane JÄRJEST läbitud tutoriali samm (jätkamiseks)
 		hexSeeds = 0,
 		unlockedCards = {}, -- ostetud kaardid; algkomplekt on Constants.Meta
+		lastPlayed = 0,     -- os.time() viimase valiku hetkel (title screen)
 		stats = {
 			runsPlayed = 0,
 			attacksSurvived = 0,
@@ -96,6 +106,10 @@ local function fillDefaults(data)
 		data.unlockedCards = defaults.unlockedCards
 	end
 
+	if type(data.lastPlayed) ~= "number" then
+		data.lastPlayed = defaults.lastPlayed
+	end
+
 	if type(data.stats) ~= "table" then
 		data.stats = defaults.stats
 	else
@@ -111,6 +125,20 @@ local function fillDefaults(data)
 		Constants.IslandExpansion.MetaExpansionsMax)
 
 	return data
+end
+
+-- Profiilide juur. MIGRATSIOON: vana ühe-profiilne salvestus -> profiil 1.
+local function normalizeRoot(raw)
+	if type(raw) ~= "table" then
+		return {slots = {}}
+	end
+	if type(raw.slots) ~= "table" then
+		return {slots = {["1"] = fillDefaults(raw)}}
+	end
+	for key, profile in pairs(raw.slots) do
+		raw.slots[key] = fillDefaults(profile)
+	end
+	return raw
 end
 
 -- ============================================================
@@ -143,11 +171,12 @@ end
 -- LAADIMINE
 -- ============================================================
 
+-- Laeb profiilide juure (profiili EI vali - vt SelectSlot)
 function SaveService.Load(player)
 	local userId = player.UserId
 
-	if cache[userId] then
-		return cache[userId]
+	if roots[userId] then
+		return roots[userId]
 	end
 
 	local data = nil
@@ -165,15 +194,84 @@ function SaveService.Load(player)
 		end
 	end
 
-	data = fillDefaults(data)
-	cache[userId] = data
+	roots[userId] = normalizeRoot(data)
 	dirty[userId] = false
 
-	return data
+	return roots[userId]
 end
 
+-- AKTIIVSE profiili andmed (nil, kui mängija on title screen'il)
 function SaveService.Get(player)
-	return cache[player.UserId]
+	local root = roots[player.UserId]
+	local slot = activeSlot[player.UserId]
+	return root and slot and root.slots[slot] or nil
+end
+
+-- ============================================================
+-- PROFIILID (title screen)
+-- ============================================================
+
+-- Kokkuvõte kõigist kohtadest kliendi profiilivalikuks
+function SaveService.GetProfileSummaries(player)
+	local root = roots[player.UserId]
+	local list = {}
+	for i = 1, SaveService.SLOTS do
+		local profile = root and root.slots[tostring(i)]
+		if profile then
+			list[i] = {
+				slot = i,
+				hexSeeds = profile.hexSeeds,
+				runsPlayed = profile.stats.runsPlayed,
+				tutorialComplete = profile.tutorialComplete,
+				bonusExpansions = profile.bonusExpansions,
+				cardsUnlocked = #profile.unlockedCards,
+				lastPlayed = profile.lastPlayed,
+			}
+		else
+			list[i] = {slot = i, empty = true}
+		end
+	end
+	return list
+end
+
+local function slotKey(slot)
+	if type(slot) ~= "number" or slot ~= math.floor(slot) or slot < 1 or slot > SaveService.SLOTS then
+		return nil
+	end
+	return tostring(slot)
+end
+
+-- Teeb profiili aktiivseks (loob uue, kui koht on tühi). Tagastab andmed.
+function SaveService.SelectSlot(player, slot)
+	local root = roots[player.UserId]
+	local key = slotKey(slot)
+	if not root or not key then
+		return nil
+	end
+	if not root.slots[key] then
+		root.slots[key] = SaveService.GetDefaults()
+	end
+	root.slots[key].lastPlayed = os.time()
+	activeSlot[player.UserId] = key
+	dirty[player.UserId] = true
+	return root.slots[key]
+end
+
+-- Tagasi title screen'ile: ükski profiil pole aktiivne
+function SaveService.ClearActive(player)
+	activeSlot[player.UserId] = nil
+end
+
+-- Kustutab profiili. Aktiivset (mängus olevat) ei saa kustutada.
+function SaveService.DeleteSlot(player, slot)
+	local root = roots[player.UserId]
+	local key = slotKey(slot)
+	if not root or not key or not root.slots[key] or activeSlot[player.UserId] == key then
+		return false
+	end
+	root.slots[key] = nil
+	dirty[player.UserId] = true
+	return true
 end
 
 -- ============================================================
@@ -181,7 +279,7 @@ end
 -- ============================================================
 
 function SaveService.SetBonusExpansions(player, amount)
-	local data = cache[player.UserId]
+	local data = SaveService.Get(player)
 	if not data then
 		return false
 	end
@@ -192,7 +290,7 @@ function SaveService.SetBonusExpansions(player, amount)
 end
 
 function SaveService.SetTutorialComplete(player, value)
-	local data = cache[player.UserId]
+	local data = SaveService.Get(player)
 	if not data then
 		return false
 	end
@@ -204,7 +302,7 @@ end
 
 -- Viimane järjest läbitud samm; ainult kasvab (vana sündmus ei vii tagasi)
 function SaveService.SetTutorialStep(player, step)
-	local data = cache[player.UserId]
+	local data = SaveService.Get(player)
 	if not data or type(step) ~= "number" then
 		return false
 	end
@@ -215,7 +313,7 @@ function SaveService.SetTutorialStep(player, step)
 end
 
 function SaveService.AddStat(player, key, amount)
-	local data = cache[player.UserId]
+	local data = SaveService.Get(player)
 	if not data or type(data.stats[key]) ~= "number" then
 		return false
 	end
@@ -226,7 +324,7 @@ function SaveService.AddStat(player, key, amount)
 end
 
 function SaveService.AddSeeds(player, amount)
-	local data = cache[player.UserId]
+	local data = SaveService.Get(player)
 	if not data or type(amount) ~= "number" or amount <= 0 then
 		return false
 	end
@@ -238,7 +336,7 @@ end
 
 -- Tagastab true ainult siis, kui seemneid oli piisavalt JA need kulutati
 function SaveService.SpendSeeds(player, amount)
-	local data = cache[player.UserId]
+	local data = SaveService.Get(player)
 	if not data or type(amount) ~= "number" or amount < 0 or data.hexSeeds < amount then
 		return false
 	end
@@ -250,7 +348,7 @@ end
 
 -- Lisab ostetud kaardi. Tagastab false, kui juba olemas (duplikaate ei teki)
 function SaveService.UnlockCard(player, cardName)
-	local data = cache[player.UserId]
+	local data = SaveService.Get(player)
 	if not data or type(cardName) ~= "string" then
 		return false
 	end
@@ -272,7 +370,7 @@ end
 
 function SaveService.Save(player, force)
 	local userId = player.UserId
-	local data = cache[userId]
+	local data = roots[userId]
 
 	if not data then
 		return false, "no data"
@@ -328,7 +426,8 @@ end
 
 function SaveService.Release(player)
 	SaveService.Save(player, true)
-	cache[player.UserId] = nil
+	roots[player.UserId] = nil
+	activeSlot[player.UserId] = nil
 	dirty[player.UserId] = nil
 end
 
@@ -363,7 +462,8 @@ function SaveService.EraseUserData(userId)
 		return false, "userId peab olema number"
 	end
 
-	cache[userId] = nil
+	roots[userId] = nil
+	activeSlot[userId] = nil
 	dirty[userId] = nil
 
 	-- Command Bar'ist kutsudes pole Init'i tehtud

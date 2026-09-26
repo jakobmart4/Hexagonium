@@ -207,7 +207,7 @@ Constants.Cards = {
 --     Edit-vaade). Varem kasvas algsaar pusivalt - suurem algsaar
 --     hajutas algbaasi ja jattis hooneid Defenderist kaugele.
 --
---   META-TASAND: pusiv, ostetakse Hex Seeds'iga (start screen)
+--   META-TASAND: pusiv, ostetakse Hex Seeds'iga (MENU)
 --     kuni MetaExpansionsMax lisalaienduskohta run'i kohta
 --
 --   RUN-TASAND: ajutine, lahtestub iga run'i alguses
@@ -344,7 +344,7 @@ Constants.Run = {
 -- META-PROGRESSIOON (Hex Seeds)
 --
 -- Run'i tasu muutub SEEMNETEKS, mida mangija kulutab ise run'ide
--- vahel (start screen). Varem andis run'i lopp saare laiendused
+-- vahel (MENU). Varem andis run'i lopp saare laiendused
 -- OTSE ja KORRAGA (floor(tasu / 600)) - uks 60-minutiline run
 -- (~2700 tasu) ammendas kogu 4-sammulise meta-progressiooni.
 -- ============================================================
@@ -368,7 +368,7 @@ Constants.Meta = {
 	IslandUpgradeCostPerStep = 1,
 
 	-- KAARDID: uus mangija alustab nende kaartidega, ulejaanud avatakse
-	-- seemnete eest (start screen). Algkomplekt = madala riskiga kaardid
+	-- seemnete eest (MENU). Algkomplekt = madala riskiga kaardid
 	-- + uks hex-kaart, et hex-sihtimine oleks ilma ostuta opitav.
 	-- Overclock (x2.5) on OSTETAV: algkomplektis oli see 0. minutist
 	-- sees ja tegi majanduse liiga lihtsaks (Play-test B, 16.09.2026).
