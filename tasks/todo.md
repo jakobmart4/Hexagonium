@@ -49,8 +49,8 @@ Plaan ja põhjendused: `tasks/plan.md`. Roadmap: `docs/HEXAGONIUM_Peadokument.tx
 - [x] 8d. `CONSTRAINTS.md` + `scripts/check.sh` (7 automaatreeglit, 4 Studio-kontrolli) (26.09)
       26.09 tehtud: CardSystemTest 9/9, püsivus üle Play-sessioonide, 2 mängijaga Local Server (eraldi slotid/saared, laiendus ja Extract ei lekkinud, lahkumine vabastas sloti + RunEnded Quit, konsool puhas). Jäänud: check.sh + §15 lõpp-läbivaatus.
 - [ ] 8. Avaldamiseelne kontroll: Debug-lipud (testiväärtused ainult `LocalDebug.lua`-s), CardSystemTest, 2 mängijaga kohalik server, §15 (S)
-- [ ] 9. Avaldamine piiratud betana + tagasivõtuplaan (kasutaja)
-- [ ] 10. Avaldamisjärgne kontroll: salvestus live's, Error Report, Analytics ≤24 h (S)
+- [x] 9. Avaldamine piiratud betana (kasutaja, 26.09; server size 6)
+- [ ] 10. Avaldamisjärgne kontroll: salvestus live's ✓ (runid 0 -> 1), lag parandatud ✓ (Recv 58 -> 2,6 KB/s, Data Ping ~500 ms -> ping 171 ms asukohast), Error Report + Analytics ≤24 h — ootel
 
 ## Muu tehtud (väljaspool faase)
 - [x] Studio korrastus: topelt-Lighting parandatud, prügi kustutatud, hexi mallid `assets/HexTemplates.rbxm` (16.09)

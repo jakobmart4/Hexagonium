@@ -645,6 +645,10 @@ ENNE AVALDAMIST
       saab ainult oma seisu, laiendus/Extract ei leki, lahkumine kustutab saare
       ja vabastab sloti (RunEnded Quit), teine mängija jätkab; konsool puhas
   [x] CardSystemTest 9/9 ja salvestuse püsivus üle Play-sessioonide (26.09)
+  [x] LIVE (26.09): salvestus töötab (runid 0 -> 1). Lag: serveri lõputud
+      tween'id (pulseerimine, ründajad) andsid Recv ~58 KB/s ja Data Ping ~500 ms;
+      pärast kliendipoolset animatsiooni (WorldFx) Recv 2,6 KB/s, ping 171 ms
+      (serveri asukoht). Max Players = 6 (Creator Hub).
   [x] Right to Erasure (26.09): Roblox'i kustutusnõude korral Studios
       (API Services sees) Command Bar'ist:
         print(require(game.ServerScriptService.Core.SaveService).EraseUserData(<userId>))

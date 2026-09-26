@@ -25,7 +25,7 @@ vastav fail siin.
 
 | Ala | Seis | Fail |
 |---|---|---|
-| Tee beetani | Kontrollpunkt C → Faas 4 (avaldamiseelne kontroll) | [roadmap.md](roadmap.md) |
+| Tee beetani | **Piiratud beta live (26.09)**; ootel Error Report + Analytics ≤ 24 h | [roadmap.md](roadmap.md) |
 | Play-testid | A, B (+7c), C, 7h tehtud (26.09) | [playtestid.md](playtestid.md) |
 | Juhendi kontrollid | 4 OK, 2 osaliselt, 1 tegemata | [kontrollid.md](kontrollid.md) |
 | Otsused | 10 kirjet | [otsused/](otsused/) |
