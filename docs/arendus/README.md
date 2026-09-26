@@ -25,8 +25,8 @@ vastav fail siin.
 
 | Ala | Seis | Fail |
 |---|---|---|
-| Tee beetani | Play-test C ja Kontrollpunkt C ees | [roadmap.md](roadmap.md) |
-| Play-testid | A, B (+7c) tehtud; 7h (parandusala) ja C tegemata | [playtestid.md](playtestid.md) |
+| Tee beetani | Kontrollpunkt C → Faas 4 (avaldamiseelne kontroll) | [roadmap.md](roadmap.md) |
+| Play-testid | A, B (+7c), C, 7h tehtud (26.09) | [playtestid.md](playtestid.md) |
 | Juhendi kontrollid | 2 OK, 2 osaliselt, 1 blokeeritud, 2 tegemata | [kontrollid.md](kontrollid.md) |
 | Otsused | 10 kirjet | [otsused/](otsused/) |
 
@@ -37,7 +37,7 @@ vastav fail siin.
 
 ## Lahtised otsused
 
-- Seemnete määr: 7c andis ~1 seemne 18 min kohta (600); otsus pärast Play-testi C → [Constants.lua](../../src/shared/Constants.lua)
+- Seemnete püsimine üle Play-sessioonide kontrollimata (`WipeSaveOnJoin` oli testis sees) → [SaveService.lua](../../src/server/Core/SaveService.lua)
 - Pärast kristalli (12/min) ja hindade (+15%) muutust: kas teine tootmisahel ja Defender 40 on õigel ajal jõukohased → [Constants.lua](../../src/shared/Constants.lua)
 
 ## Otsused

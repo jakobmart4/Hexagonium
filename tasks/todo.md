@@ -28,13 +28,14 @@ Plaan ja põhjendused: `tasks/plan.md`. Roadmap: `docs/HEXAGONIUM_Peadokument.tx
 - [x] 7a. Samm 2 viga (Ore-extractor ei saanud Power Core'i) + 9-sammuline tutorial: majandus, Demand, rünnakud, laiendus, Extract, Hex Seeds; tegevus- + infosammud ("Next"); Demand'id ootavad sammu 5; pooleli tutorial jätkub (M) — Play-s kontrollitud 16.09
 
 ## Faas 3 — SAMM 9: Play-test (kasutaja mängib Studios)
-- [ ] 7. Stsenaariumid A (uus mängija), B (pikk kokkuhoidev run), C (meta-tsükkel); tulemused TASAKAALUSTAMINE.md p.3, kangide otsused p.4
+- [x] 7. Stsenaariumid A (uus mängija), B (pikk kokkuhoidev run), C (meta-tsükkel); tulemused TASAKAALUSTAMINE.md p.3, kangide otsused p.4
       A tehtud (16.09, -> 7a + Demand 30 s -> 10 s). B 1 run (8 min, 0 seemet) -> 7b. C tegemata.
 - [x] 7b. Play-test B leiud: Overclock algkomplektist välja (ostetav), paremklõpsu menüüs voog/min + puhvrid + ummiku olek (`788c81e`)
 - [x] 7c. Play-test B kordus ilma Overclockita (24.09): 18,6 min, tasu 633, +1 seeme, laiendused min 10/12
 - [x] 7d. Otsus (24.09): `Meta.MinSeedsPerRun = 1` iga Extract/Timeout run'i eest, määr 600 jääb kuni 7c andmeteni. Oli: seemnete kang — 8-min run annab 0 seemet (558 < `Meta.SeedsPerPayout` 600); valik 400 või min 1 seeme run'i kohta
 - [x] 7g. Kordaja = läbilaskevõime, Resource Bloom +15 % ühtlaselt, Power Core -> Town Hall (Lv2/3, UP + kristall) (24.09) — Play-testis: ahel puhas, Lv3 enne 11. min
-- [ ] 7h. Power Core = tuum + parandusala (Lv1-3: 2/3/4 hexi); hävimine võtab boonuse ja parandamise (24.09) — kontrollida tervenemist rünnaku järel
+- [x] 7h. Power Core = tuum + parandusala (Lv1-3: 2/3/4 hexi); hävimine võtab boonuse ja parandamise (24.09) — kasutaja: korras (26.09)
+- [x] 7i. Play-test C: 3 run'i + Overclocki ost; seemned 600 -> 400, miinimum alles 5 min run'ist (26.09)
 - [x] 7f. Kristall 36 -> 12/min, hoonete hinnad ~15% kallimaks (Extractor 25, Refinery 40, Assembler 55, PowerCore 45, Defender 40) (24.09)
 - [x] 7e. Maak 60 -> 12 ore/min (ahel 1:1:1), Demand 50 -> 10 ore (24.09). Oli: algbaasi maak 5× ülepakkumises
 

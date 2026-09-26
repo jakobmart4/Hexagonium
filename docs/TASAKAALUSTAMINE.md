@@ -38,7 +38,7 @@ vt punkt 3.
 | Lammutuse tagastus | 50% | `DemolishRefund` |
 | Saare laienduse kulu (run) | 40 -> 70 -> 122 -> 214 -> 375 -> 656 UP (x1.75; x2 ja x3 proovitud) | `IslandExpansion.RunExpansionBaseCost` / `CostMultiplier` |
 | Laienduse run'i tasu | ~~40~~ **0** (laiendus ei anna tasu) | `Run.RewardPerExpansion` |
-| Lisalaienduskoht (meta) | saar alustab alati raadiusega 3; N-s ostetud lisakoht = N Hex Seed'i (kuni 4, run'is 2 + ostetud laiendust); 1 seeme / 600 run'i tasu, vähemalt 1 seeme iga Extract/Timeout run'i eest | `IslandExpansion.MetaExpansionsMax` / `Meta.SeedsPerPayout`, `Meta.IslandUpgradeCostPerStep` |
+| Lisalaienduskoht (meta) | saar alustab alati raadiusega 3; N-s ostetud lisakoht = N Hex Seed'i (kuni 4, run'is 2 + ostetud laiendust); 1 seeme / ~~600~~ **400** run'i tasu; vähemalt 1 seeme Extract/Timeout run'i eest, kui run kestis ≥ 5 min | `IslandExpansion.MetaExpansionsMax` / `Meta.SeedsPerPayout`, `Meta.IslandUpgradeCostPerStep` |
 | Run'i Timeout | 3600s (60 min, ülempiir) | `Run.Duration` |
 | RestartDelay | 8s | `Run.RestartDelay` |
 | Ohu kasv | +12%/min, lagi 8.0x (~60. minutil) | `Attack.ScalePerMinute` / `MaxScale` |
@@ -78,8 +78,13 @@ Play-testide põhjal. Vormis: kuupäev, mida testiti, mis leiti.
 | 15.09.2026 | 9. Laienduse kordaja (kokkuhoidev mängija) | Kordajad 1.5-3, mängija ostab 1 Defenderi ja kogub ülejäänu. x3: 60-min run'is 3 laiendust -> kõik 4 ostetud lisakohta kasutamata. x1.75: 5 laiendust, 6. haruldane. Täielik tabel punktis 4. | Kasutaja: 1. laiendus sobiv, järgmised liiga suur kulu. |
 | 16.09.2026 | 10. Play-test B (kokkuhoidev run, uus mängija, bonus 0) | — | Kestus **8 min** (plaan 20-30), lõpp **Extract**, tasu **558** (100%), rünnakuid üle elatud 1. Laiendused minutil **4 ja 5** -> run'i lagi (2) täis juba 5. minutil, edasi polnud saart kuhugi laiendada. Kaardid: Resource Bloom, Overclock. Tutorial Skip sammul 1. **Hex Seeds +0**: 558 < SeedsPerPayout 600 (~70 tasu/min -> 1. seeme alles ~8,6 min). Kasutaja muljed: ootel. |
 | 24.09.2026 | 11. Play-test 7c (B kordus ILMA Overclockita, uus mängija, bonus 0, kiirendus 2-5x) | — | Kestus **18,6 min** mänguaega (1115 s), lõpp **Extract**, tasu **633** (~34 tasu/min; B-s Overclockiga ~70/min), rünnakuid 1. Laiendused minutil **10 ja 12** (B-s 4 ja 5). Kaart: Resource Bloom. Tutorial Skip. **Hex Seeds +1** (633/600 = 1, miinimumreeglit ei läinud vaja). Järeldus: määr 600 = ~1 seeme 18 min kohta; kaardi avamine (2 seemet) = 2 sellist run'i. Kasutaja muljed: ootel. |
+| 26.09.2026 | 12. Play-test C (meta-tsükkel ühe Play jooksul, 3 run'i; Town Hall + parandusala) | — | Run 1: **20,1 min**, Extract, tasu **851**, 4 rünnakut, +1 seeme, Town Hall Lv2, laiendused min 8/11. Run 2: **8,8 min**, tasu 323, 2 rünnakut, **+1 seeme miinimumreeglist**. Ostis **Overclocki (2 seemet)**, run 3 sellega (Quit 8 min). Kasutaja: parandusala ja Town Hall "kõik korras". Leiud: miinimumreegel andis lühikesele run'ile sama palju kui 20-min run'ile (ja Extract 1. minutil andnuks samuti 1) -> ajapiir 5 min; 600 määraga 20-min run = 1 seeme -> 400. DataStore SetAsync HTTP 500 üks kord (Roblox'i ajutine viga; dirty jääb, autosave kordab). |
 
 ## 4. Muudatuste logi
+
+### 26.09.2026 — Seemned: määr 600 -> 400, miinimumseeme alles 5 min run'ist
+
+Play-test C (vt punkt 3, rida 12). Kasutaja valis soovituse: `Meta.SeedsPerPayout` 400 (20-min run 851 tasu = 2 seemet, kaart = 1 pikk run) ja `Meta.MinSeedsRunSeconds = 300` (miinimumseeme ainult, kui run kestis vähemalt 5 mänguminutit). Tutoriali samm 9 ütleb sama.
 
 ### 24.09.2026 (hilisõhtul) — Power Core = baasi tuum ja parandusala (CoC-suund)
 

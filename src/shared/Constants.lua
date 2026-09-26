@@ -345,12 +345,16 @@ Constants.Run = {
 Constants.Meta = {
 	-- Sama maar mis vana Run.RewardPerMetaRadius, et balanss ei
 	-- nihkuks: 1 seeme = endine 1 tasuta laiendus.
-	SeedsPerPayout = 600,
+	-- 600 -> 400 (26.09, Play-test C): 20-min run 4 rünnakuga (tasu 851)
+	-- andis vaid 1 seemne; nüüd 2. Kaart maksab 2 seemet.
+	SeedsPerPayout = 400,
 
 	-- Vähemalt nii palju seemneid iga run'i eest, mis ei lõppenud baasi
-	-- hävinguga (Extract/Timeout). Play-test B: 8-min run andis 0 seemet
-	-- ja uus mängija ei näinud meta-tsüklit üldse (16.09).
+	-- hävinguga (Extract/Timeout) JA kestis vähemalt MinSeedsRunSeconds
+	-- mänguaega. Ilma ajapiirita andis Extract 1. minutil 1 seemne -
+	-- kiired lõpetamised olid kõige tulusamad (26.09).
 	MinSeedsPerRun = 1,
+	MinSeedsRunSeconds = 300,
 
 	-- N-s ostetud lisalaiendus maksab N * see. Tabelit TAHTLIKULT pole:
 	-- ostude arv tuleb ainult IslandExpansion.MetaExpansionsMax'ist,

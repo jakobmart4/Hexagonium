@@ -31,9 +31,13 @@ Täistulemused: [TASAKAALUSTAMINE.md](../TASAKAALUSTAMINE.md) punkt 3.
 - Kood: [PlayerActionHandler.lua](../../src/server/Core/PlayerActionHandler.lua)
   (IslandExpanded minut), [Constants.lua](../../src/shared/Constants.lua)
 
-## C — meta-tsükkel · tegemata
+## C — meta-tsükkel · tehtud ühe Play jooksul (26.09)
 
-- 2–3 run'i: seemned → lisakoht + kaart. Vajab `WipeSaveOnJoin = false`.
-- Sõltub seemnete otsusest ([README](README.md) lahtised otsused).
+- 3 run'i järjest: 20,1 min / 851 tasu / 4 rünnakut / +1 seeme; 8,8 min / 323 /
+  +1 (miinimumreegel); ostis Overclocki (2 seemet) ja kasutas järgmises run'is.
+- Leid: miinimumseeme tegi lühikese run'i sama tulusaks → ajapiir 5 min, määr
+  600 → 400 ([ADR-001](otsused/ADR-001-hex-seeds.md)).
+- Leid: DataStore HTTP 500 üks kord (ajutine; autosave kordab).
+- Kontrollimata: seemnete püsimine üle Play-sessioonide (`WipeSaveOnJoin` oli sees).
 - Kood: [SaveService.lua](../../src/server/Core/SaveService.lua),
   [StartScreen.client.lua](../../src/client/StartScreen.client.lua)
