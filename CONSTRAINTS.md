@@ -35,6 +35,7 @@ Kõik read kontrollib `bash scripts/check.sh` (väljumiskood 0 = OK, ~5 s).
 | Salvestus | seemned/run'id püsivad üle Play-sessioonide | `WipeSaveOnJoin = false`, Play → Stop → Play |
 | Mitu mängijat | 2 mängijat, eraldi saared, konsool puhas | Studio Test → Local Server, 2 mängijat |
 | Konsool | Play-s pole punaseid vigu | Play → konsool |
+| Serveri suurus | Max Players = 6 (= `MapGenerator.MAX_SLOTS`) | Game Settings → Places → Server Size |
 
 ## Mõõdetud, mitte veel jõustatud
 

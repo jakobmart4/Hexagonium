@@ -188,7 +188,11 @@ local function onPlayerJoined(player)
 	})
 
 	if not world then
-		warn("[Hexagonium] " .. player.Name .. " ei saanud saart (server tais?)")
+		-- Serveris on MapGenerator.MAX_SLOTS saart. Kui Game Settings'i
+		-- serveri suurus on suurem, ei jää mängija tühja maailma, vaid
+		-- liitub uuesti (Roblox paneb ta teise serverisse).
+		warn("[Hexagonium] " .. player.Name .. " ei saanud saart (server tais) - kick")
+		player:Kick("This server is full. Please rejoin to get a new server.")
 		return
 	end
 
