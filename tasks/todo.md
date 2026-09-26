@@ -55,8 +55,12 @@ Plaan ja põhjendused: `tasks/plan.md`. Roadmap: `docs/HEXAGONIUM_Peadokument.tx
 ## Faas 5 — Title screen, UI, mudelid, animatsioonid (kasutaja valik 26.09)
 - [x] 5.1–5.2 Title screen + 3 profiili + MENU (Resume / Back to title / seemnepood); run algab profiili valikul. Studio: uus profiil, tagasi title'isse, teine profiil, kustutamine, püsivus üle sessioonide, vana salvestuse migratsioon profiili 1, pood (26.09)
 - [ ] 5.3 UI kattumised: tutoriali paneel vs kaardipakk/ehitusmenüü, ehitusmenüü kärbitud tekst, paremate paneelide suurus
-- [ ] 5.4 Mudelid: Town Hall taseme järgi, Defender tornina, veidi suuremad hooned
-- [ ] 5.5 Animatsioonid kliendis: ehitus, Town Hall'i tase, hävimine
+- [ ] 5.4 Mudelid: Town Hall taseme järgi, Defender tornina, veidi suuremad hooned, ründajad rohelised goblinid (tagasiside)
+- [ ] 5.5 Animatsioonid kliendis: ehitus, Town Hall'i tase, hävimine; Defenderi ja Town Hall'i raadius nähtavaks (tagasiside)
+- [ ] 5.6 Hoone tasemed: Extractor/Refinery/Assembler Lv1–3 nagu Town Hall (tagasiside "merge buildings", kasutaja valik 26.09)
+- [ ] 5.7 Tagasiside MENU-s: hinnang 1–5 analüütikasse + valikuline tekst eraldi DataStore'i (kasutaja valik 26.09)
+
+Mängijate tagasiside 26.09 (`tagasiside.txt`): servast pannimine välja ✓; kõrvaltegevus (run'i lepingud / plinko) -> hiljem, pärast 5. faasi.
 
 ## Muu tehtud (väljaspool faase)
 - [x] Studio korrastus: topelt-Lighting parandatud, prügi kustutatud, hexi mallid `assets/HexTemplates.rbxm` (16.09)

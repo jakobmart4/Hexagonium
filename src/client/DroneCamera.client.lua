@@ -18,9 +18,10 @@ local PITCH_MAX = 89
 local ORBIT_SENSITIVITY = 0.25
 local START_TARGET = Vector3.new(0, 0, 0)
 
--- SERVAST PANNIMINE (RTS-tavaparane).
--- Ainus viis, mis tootab ka ilma keskmise hiirenuputa (sulearvutid).
-local EDGE_PAN_ENABLED = true
+-- SERVAST PANNIMINE (RTS-tavaparane). VÄLJAS 26.09: mängijate tagasiside
+-- ("hiirega pann ekraani ümber ei meeldi") - kaamera liikus iseenesest,
+-- kui kursor läks paneelide juurde. Liikumine: WASD / nooled.
+local EDGE_PAN_ENABLED = false
 local EDGE_MARGIN = 14
 local EDGE_PAN_SPEED = 75
 
