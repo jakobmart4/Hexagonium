@@ -341,20 +341,43 @@ end
 -- naeb: olemasolev bonusExpansions jm ainult CLAMPITAKSE uude vahemikku
 -- (vt fillDefaults), mitte ei lahtestata, kui Constants.lua muutub.
 function SaveService.WipeForTesting(player)
-	local userId = player.UserId
+	local ok, err = SaveService.EraseUserData(player.UserId)
+	if not ok then
+		warn("[SaveService] Testi-kustutus ebaonnestus (" .. player.Name .. "): " .. tostring(err))
+	end
+end
+
+-- ============================================================
+-- RIGHT TO ERASURE (GDPR / Roblox'i kustutusnõue)
+--
+-- Roblox saadab kustutusnõude (Creator Hub teavitus / e-kiri) koos
+-- userId'ga. Arendaja kohustus: kustutada selle mängija salvestus.
+-- Käivitamine Studios (Game Settings -> Security -> API Services sees),
+-- Command Bar'ist:
+--   print(require(game.ServerScriptService.Core.SaveService).EraseUserData(123456))
+-- Tagastab true või false + veateade. Analüütika (AnalyticsService) ei
+-- vaja midagi - Roblox käsitleb selle ise.
+-- ============================================================
+function SaveService.EraseUserData(userId)
+	if type(userId) ~= "number" then
+		return false, "userId peab olema number"
+	end
+
 	cache[userId] = nil
 	dirty[userId] = nil
 
+	-- Command Bar'ist kutsudes pole Init'i tehtud
+	if not store then
+		SaveService.Init()
+	end
 	if not storeAvailable then
-		return
+		return false, "DataStore pole saadaval"
 	end
 
 	local ok, err = pcall(function()
 		store:RemoveAsync("player_" .. userId)
 	end)
-	if not ok then
-		warn("[SaveService] Testi-kustutus ebaonnestus (" .. player.Name .. "): " .. tostring(err))
-	end
+	return ok, ok and "kustutatud: player_" .. userId or tostring(err)
 end
 
 -- ============================================================

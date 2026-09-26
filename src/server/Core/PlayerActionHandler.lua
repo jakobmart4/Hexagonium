@@ -552,10 +552,39 @@ end
 -- UHENDAMINE
 -- ============================================================
 
+-- SAGEDUSEPIIRANG: sama mängija sama päring kuni 1x MIN_INTERVAL jooksul;
+-- kiiremad visatakse vaikselt ära. Kaitseb serverit päringutulva eest
+-- (iga käsitleja teeb tööd ja võib saata Notification'i tagasi).
+-- Päris aeg (os.clock), MITTE GameClock - kiirendus ei tohi piirangut muuta.
+local MIN_INTERVAL = 0.1
+local lastRequest = {} -- [player] = {[eventName] = os.clock()}
+
+game:GetService("Players").PlayerRemoving:Connect(function(player)
+	lastRequest[player] = nil
+end)
+
+local function allowRequest(player, eventName)
+	local now = os.clock()
+	local perPlayer = lastRequest[player]
+	if not perPlayer then
+		perPlayer = {}
+		lastRequest[player] = perPlayer
+	end
+	local last = perPlayer[eventName]
+	if last and now - last < MIN_INTERVAL then
+		return false
+	end
+	perPlayer[eventName] = now
+	return true
+end
+
 function PlayerActionHandler:Connect()
 	local function bind(eventName, handler)
 		local remote = RemoteEvents.Get(eventName)
 		remote.OnServerEvent:Connect(function(player, request)
+			if not allowRequest(player, eventName) then
+				return
+			end
 			local ok, err = pcall(function()
 				handler(self, player, request)
 			end)

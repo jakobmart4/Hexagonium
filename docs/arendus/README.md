@@ -27,13 +27,12 @@ vastav fail siin.
 |---|---|---|
 | Tee beetani | Play-test C ja Kontrollpunkt C ees | [roadmap.md](roadmap.md) |
 | Play-testid | A, B (+7c) tehtud; 7h (parandusala) ja C tegemata | [playtestid.md](playtestid.md) |
-| Juhendi kontrollid | 1 OK, 2 osaliselt, 2 puudujääki, 2 tegemata | [kontrollid.md](kontrollid.md) |
+| Juhendi kontrollid | 2 OK, 2 osaliselt, 1 blokeeritud, 2 tegemata | [kontrollid.md](kontrollid.md) |
 | Otsused | 10 kirjet | [otsused/](otsused/) |
 
 ## Avaldamise blokeerijad
 
-- Right to Erasure protsess puudub → [SaveService.lua](../../src/server/Core/SaveService.lua)
-- RemoteEvent'idel pole sagedusepiirangut → [PlayerActionHandler.lua](../../src/server/Core/PlayerActionHandler.lua)
+
 - CardSystemTest pole pärast viimaseid muudatusi jooksnud → [CardSystemTest.server.lua](../../src/server/CardSystemTest.server.lua)
 
 ## Lahtised otsused

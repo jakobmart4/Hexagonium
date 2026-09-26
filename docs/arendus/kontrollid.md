@@ -19,11 +19,13 @@ leiud parandatud. Ülevaatamata: commit'id `20d94a7..788c81e` —
 [BuildingInfo.lua](../../src/shared/BuildingInfo.lua),
 [StateBroadcaster.lua](../../src/server/Core/StateBroadcaster.lua).
 
-### security-and-hardening · puudujääk
-Server autoriteetne, remote'id valideerivad tüüpe, Debug-lipud ainult
-Studios. Puudu: remote'ide sagedusepiirang
-([PlayerActionHandler.lua](../../src/server/Core/PlayerActionHandler.lua)) ja
-Right to Erasure ([SaveService.lua](../../src/server/Core/SaveService.lua)).
+### security-and-hardening · OK (26.09)
+Server autoriteetne, remote'id valideerivad tüüpe, Debug-lipud ja aja
+kiirendus ainult Studios. Sagedusepiirang kõigile päringutele
+([PlayerActionHandler.lua](../../src/server/Core/PlayerActionHandler.lua)
+`allowRequest`) ja Right to Erasure
+([SaveService.lua](../../src/server/Core/SaveService.lua) `EraseUserData`,
+juhend peadokumendi §15-s). Live'is kontrollimata.
 
 ### code-simplification · tegemata
 Suurimad failid: [MapGenerator.lua](../../src/server/Core/MapGenerator.lua)

@@ -42,8 +42,8 @@ Plaan ja põhjendused: `tasks/plan.md`. Roadmap: `docs/HEXAGONIUM_Peadokument.tx
 - [ ] Tulemused koos üle, tuunimised tehtud
 
 ## Faas 4 — SAMM 10: piiratud beta
-- [ ] 8a. Turvalisus: RemoteEvent'ide sagedusepiirang (`PlayerActionHandler`) (S)
-- [ ] 8b. Turvalisus: Right to Erasure — Robloxi GDPR-soovi korral salvestuse `player_<id>` kustutamine (`SaveService`) (S)
+- [x] 8a. Turvalisus: RemoteEvent'ide sagedusepiirang (`PlayerActionHandler` allowRequest, 0,1 s) (26.09)
+- [x] 8b. Right to Erasure: `SaveService.EraseUserData(userId)` + juhend peadokumendi §15 (26.09)
 - [ ] 8c. Review commit'idele `20d94a7..0666f32` (Lighting, ContextMenu voog, Overclocki lukk, LocalDebug) (S)
 - [ ] 8d. `CONSTRAINTS.md` CLAUDE.md reeglitest (TextSize ≥ 12, inglise tekst, üks allikas, Debug-lipud) (XS)
 - [ ] 8. Avaldamiseelne kontroll: Debug-lipud (testiväärtused ainult `LocalDebug.lua`-s), CardSystemTest, 2 mängijaga kohalik server, §15 (S)

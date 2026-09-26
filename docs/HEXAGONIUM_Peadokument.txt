@@ -638,6 +638,13 @@ ENNE AVALDAMIST
   [x] Run'i taaskäivituse viivitus (8s) playtestitud SAMM 8 juures —
       "tundus piisav tulemuse lugemiseks, mitte liiga pikk
       tegevusetuks jäämiseks", vt TASAKAALUSTAMINE.md punkt 3
+  [x] RemoteEvent'ide sagedusepiirang (26.09): sama mängija sama päring
+      kuni 1x 0,1 s jooksul, kiiremad visatakse ära
+      (PlayerActionHandler allowRequest, päris aeg, mitte GameClock)
+  [x] Right to Erasure (26.09): Roblox'i kustutusnõude korral Studios
+      (API Services sees) Command Bar'ist:
+        print(require(game.ServerScriptService.Core.SaveService).EraseUserData(<userId>))
+      Kustutab DataStore võtme player_<userId>; analüütika käsitleb Roblox.
 
 TEHNILINE
   [ ] HexTemplates sõltub ReplicatedStorage'is olevatest union'itest.
