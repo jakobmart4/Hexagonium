@@ -46,7 +46,7 @@ Plaan ja põhjendused: `tasks/plan.md`. Roadmap: `docs/HEXAGONIUM_Peadokument.tx
 - [x] 8a. Turvalisus: RemoteEvent'ide sagedusepiirang (`PlayerActionHandler` allowRequest, 0,1 s) (26.09)
 - [x] 8b. Right to Erasure: `SaveService.EraseUserData(userId)` + juhend peadokumendi §15 (26.09)
 - [x] 8c. Review `20d94a7^..d7e54a9` (4 mõõdet + vastukontroll): 12 kinnitatud leidu parandatud, CardSystemTest 9/9, püsivus kontrollitud (26.09)
-- [ ] 8d. `CONSTRAINTS.md` CLAUDE.md reeglitest (TextSize ≥ 12, inglise tekst, üks allikas, Debug-lipud) (XS)
+- [x] 8d. `CONSTRAINTS.md` + `scripts/check.sh` (7 automaatreeglit, 4 Studio-kontrolli) (26.09)
 - [ ] 8. Avaldamiseelne kontroll: Debug-lipud (testiväärtused ainult `LocalDebug.lua`-s), CardSystemTest, 2 mängijaga kohalik server, §15 (S)
 - [ ] 9. Avaldamine piiratud betana + tagasivõtuplaan (kasutaja)
 - [ ] 10. Avaldamisjärgne kontroll: salvestus live's, Error Report, Analytics ≤24 h (S)

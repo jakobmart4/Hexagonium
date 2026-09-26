@@ -6,6 +6,8 @@ reeglimuutmise süsteem, run-süsteem meta-progressiooniga.
 Place: `Hexagonium` (placeId 104026897810299)
 
 **Täielik spec, seisund ja roadmap: `docs/HEXAGONIUM_Peadokument.txt`**
+
+**Kvaliteedilävend: `CONSTRAINTS.md`** — loe enne koodi kirjutamist, ära nõrgenda seda muudatuse läbisaamiseks. Kontroll: `bash scripts/check.sh`.
 Loe see enne suuremate muudatuste tegemist. Allikas on alati KOOD;
 dokument selgitab, *miks* kood on selline.
 

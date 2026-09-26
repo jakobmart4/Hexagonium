@@ -27,7 +27,7 @@ vastav fail siin.
 |---|---|---|
 | Tee beetani | Kontrollpunkt C → Faas 4 (avaldamiseelne kontroll) | [roadmap.md](roadmap.md) |
 | Play-testid | A, B (+7c), C, 7h tehtud (26.09) | [playtestid.md](playtestid.md) |
-| Juhendi kontrollid | 3 OK, 2 osaliselt, 1 blokeeritud, 1 tegemata | [kontrollid.md](kontrollid.md) |
+| Juhendi kontrollid | 4 OK, 2 osaliselt, 1 tegemata | [kontrollid.md](kontrollid.md) |
 | Otsused | 10 kirjet | [otsused/](otsused/) |
 
 ## Avaldamise blokeerijad

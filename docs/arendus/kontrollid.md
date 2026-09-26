@@ -39,9 +39,9 @@ Pärast beetat.
 Hex Seeds majandus, run'i lõpp, kaardid, laiendused. Live'is kontrollimata.
 Vt [ADR-005](otsused/ADR-005-telemeetria.md).
 
-### constraint-driven-development · blokeeritud
-`CONSTRAINTS.md` puudub. Reeglid on `CLAUDE.md`-s (TextSize ≥ 12,
-mängijale inglise tekst, üks allikas, Debug-lipud väljas).
+### constraint-driven-development · OK (26.09)
+[CONSTRAINTS.md](../../CONSTRAINTS.md): 7 automaatreeglit (`bash scripts/check.sh`, ~5 s)
+ja 4 Studio-kontrolli enne avaldamist. Negatiivne test: skript tabas lisatud `os.clock()`-i.
 
 ## Arhitektuur ja tehniline võlg
 
