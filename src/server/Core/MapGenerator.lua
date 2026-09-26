@@ -789,18 +789,15 @@ function MapGenerator.PlaceBuilding(buildingType, q, r, config)
 	clone.Name = customName or buildingType
 	clone.Parent = buildings
 
-	-- Energiaosade pulseerimine (PowerCore/Defender) - Tween on seotud
-	-- osa enda eluajaga, Roblox koristab selle automaatselt kui
-	-- hoone havib/lammutatakse, seega eraldi cleanup pole vaja.
+	-- Energiaosade pulseerimine (PowerCore/Defender): server ainult MÄRGIB,
+	-- klient animeerib (WorldFx.client.lua). Serveri lõputu tween
+	-- replikeeris iga kaadri muutuse igale kliendile - ~90% kogu võrgu-
+	-- liiklusest (31 -> 3 KB/s 4 mängijaga) ja live'is Data Ping ~500 ms (26.09).
 	local shape = MapGenerator.BuildingShapes[buildingType]
 	if shape and shape.pulse then
 		local accent = clone:FindFirstChild("Accent")
 		if accent then
-			TweenService:Create(
-				accent,
-				TweenInfo.new(1.4, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true),
-				{Transparency = 0.45}
-			):Play()
+			accent:SetAttribute("Pulse", true)
 		end
 	end
 

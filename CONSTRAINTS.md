@@ -26,6 +26,7 @@ Kõik read kontrollib `bash scripts/check.sh` (väljumiskood 0 = OK, ~5 s).
 | Vaigistused/saladused | põhi | check.sh #5 | iga commit |
 | Serveri autoriteet | iga klient→server RemoteEvent on `PlayerActionHandler`-is seotud (sagedusepiirang + valideerimine) | check.sh #6 | iga commit |
 | Ehitus | `rojo build default.project.json` õnnestub | check.sh #7 | iga commit |
+| Võrk | serveris pole lõputuid tween'e (animatsioon kliendis) | check.sh #8 | iga commit |
 
 ## Studios kontrollitud (käsitsi, enne avaldamist)
 
@@ -35,6 +36,7 @@ Kõik read kontrollib `bash scripts/check.sh` (väljumiskood 0 = OK, ~5 s).
 | Salvestus | seemned/run'id püsivad üle Play-sessioonide | `WipeSaveOnJoin = false`, Play → Stop → Play |
 | Mitu mängijat | 2 mängijat, eraldi saared, konsool puhas | Studio Test → Local Server, 2 mängijat |
 | Konsool | Play-s pole punaseid vigu | Play → konsool |
+| Võrguliiklus | serveri `Stats.DataSendKbps` ≤ ~2 KB/s mängija kohta (26.09: 2 mängijat ~2, rünnakul ≤ 4,3) | Test → Local Server + N mängijat, serveris `Stats.DataSendKbps` |
 | Serveri suurus | Max Players = 6 (= `MapGenerator.MAX_SLOTS`) | Game Settings → Places → Server Size |
 
 ## Mõõdetud, mitte veel jõustatud

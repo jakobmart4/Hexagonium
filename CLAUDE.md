@@ -92,6 +92,12 @@ maailma, mitte uut arhitektuuri.
     Kirjuta failid kohapeal ja kontrolli Studios sünkrooni.
 13. **Testkonto salvestus püsib.** Constants'i muutus ainult clampib
     olemasolevat salvestust — uue mängija vaade: `WipeSaveOnJoin`.
+14. **Serveri tween replikeerub iga kaadri igale kliendile.** Lõputu
+    pulseerimine ja ründajate liikumine serveris olid ~90% võrguliiklusest
+    (live Data Ping ~500 ms). Kosmeetika ja liikumine animeeri kliendis
+    (`WorldFx.client.lua`, server annab ainult atribuudid). Solo-Play
+    replikatsiooni EI näita — mõõda Test → Local Server,
+    `Stats.DataSendKbps` serveris.
 
 ---
 

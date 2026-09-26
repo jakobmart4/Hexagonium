@@ -231,6 +231,10 @@ function AttackManager:_spawnAttacker()
 	local attacker = {
 		id = self.nextAttackerId,
 		model = model,
+		-- Loogiline asukoht serveris. Mudeli Position't server pärast teket
+		-- EI muuda: liikumise animeerib klient (WorldFx.client.lua) atribuudi
+		-- MoveTo järgi. Serveri tween replikeeris iga kaadri kõigile.
+		position = spawnPos,
 		health = CFG.AttackerHealth * (self.threatScale or 1),
 		maxHealth = CFG.AttackerHealth * (self.threatScale or 1),
 		target = best.building,
@@ -268,7 +272,7 @@ function AttackManager:Tick()
 		if a.health <= 0 or not a.model or not a.model.Parent then
 			if a.model then
 				if a.health <= 0 then
-					self:_showBurst(a.model.Position, Theme.UI.error, 4.5)
+					self:_showBurst(a.position, Theme.UI.error, 4.5)
 				end
 				a.model:Destroy()
 			end
@@ -286,7 +290,7 @@ function AttackManager:Tick()
 			end
 			local best, bestDist = nil, math.huge
 			for _, t in ipairs(targets) do
-				local d = (t.position - a.model.Position).Magnitude
+				local d = (t.position - a.position).Magnitude
 				if d < bestDist then
 					best, bestDist = t, d
 				end
@@ -299,18 +303,16 @@ function AttackManager:Tick()
 			continue
 		end
 
-		local toTarget = targetPos - a.model.Position
+		local toTarget = targetPos - a.position
 		local distance = toTarget.Magnitude
 
 		if distance > 4 then
 			-- Liigu sihtmargi poole
 			local step = math.min(CFG.AttackerSpeed * dt, distance - 4)
-			local newPos = a.model.Position + toTarget.Unit * step
-			TweenService:Create(
-				a.model,
-				TweenInfo.new(dt / GameClock.GetSpeed(), Enum.EasingStyle.Linear),
-				{Position = newPos}
-			):Play()
+			a.position = a.position + toTarget.Unit * step
+			-- Üks atribuudiuuendus sekundis; klient animeerib ühe tick'i jooksul
+			a.model:SetAttribute("MoveTime", dt / GameClock.GetSpeed())
+			a.model:SetAttribute("MoveTo", a.position)
 		else
 			-- Kohal - loo hoonet
 			if (now - a.lastHitTime) >= CFG.AttackerHitInterval then
@@ -359,7 +361,7 @@ function AttackManager:_defendersFire()
 				local best, bestDist = nil, math.huge
 				for _, a in ipairs(self.attackers) do
 					if a.health > 0 and a.model and a.model.Parent then
-						local d = (a.model.Position - defenderPos).Magnitude
+						local d = (a.position - defenderPos).Magnitude
 						if d <= rangeStuds and d < bestDist then
 							best, bestDist = a, d
 						end
@@ -370,7 +372,7 @@ function AttackManager:_defendersFire()
 					local damage = b:TryFire()
 					if damage then
 						best.health = best.health - damage
-						self:_showTracer(defenderPos, best.model.Position)
+						self:_showTracer(defenderPos, best.position)
 
 						if best.health <= 0 then
 							self.killed = self.killed + 1
@@ -525,8 +527,8 @@ function AttackManager:GetClientState()
 		if a.model and a.model.Parent then
 			table.insert(positions, {
 				id = a.id,
-				x = a.model.Position.X,
-				z = a.model.Position.Z,
+				x = a.position.X,
+				z = a.position.Z,
 				health = a.health / a.maxHealth,
 				targetQ = a.target and a.target.q or nil,
 				targetR = a.target and a.target.r or nil,

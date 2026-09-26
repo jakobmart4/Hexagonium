@@ -39,6 +39,11 @@ for name in $(sed -n '/local EVENT_NAMES = {/,/}/p' src/shared/RemoteEvents.lua 
 	grep -q "bind(\"$name\"" src/server/Core/PlayerActionHandler.lua || bad "RemoteEvent $name pole PlayerActionHandler'is seotud"
 done
 
+# 8. Serveris pole lõputuid tween'e (replikeeruvad igale kliendile iga kaadri)
+if grep -rnE 'TweenInfo\.new\([^)]*-1' src/server; then
+	bad "lõputu tween serveris - animeeri kliendis (WorldFx.client.lua)"
+fi
+
 # 7. Rojo projekt ehitub
 rojo build default.project.json -o "${TEMP:-/tmp}/hexagonium-check.rbxlx" >/dev/null 2>&1 || bad "rojo build ebaõnnestus"
 
