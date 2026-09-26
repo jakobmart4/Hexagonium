@@ -226,6 +226,31 @@ function Theme.AnimatedPanel(name, size, position, parent)
 	return group
 end
 
+-- Vasaku veeru paneel (kaardipakk, ehitusmenüü): alumine serv nuppude
+-- rea kohal, ülemine mitte kõrgemal kui Island Map'i all (y 248).
+-- Madalal ekraanil lüheneb ja sisu kerib; kõrgel on kuni maxHeight.
+-- (ClampToViewport'i siin EI kasuta - see ei arvesta AnchorPoint'i.)
+function Theme.FitLeftColumn(panel, x, width, maxHeight)
+	panel.AnchorPoint = Vector2.new(0, 1)
+	panel.Position = UDim2.new(0, x, 1, -66)
+	panel.Size = UDim2.new(0, width, 1, -314)
+	local limit = Instance.new("UISizeConstraint")
+	limit.MaxSize = Vector2.new(width, maxHeight)
+	limit.Parent = panel
+end
+
+-- Listi rida kasvab kirjelduse järgi (fikseeritud kõrgus kärpis pikad
+-- kirjeldused / lasi neil järgmise rea peale joosta)
+function Theme.GrowWithText(row, textLabel)
+	row.Size = UDim2.new(row.Size.X.Scale, row.Size.X.Offset, 0, 0)
+	row.AutomaticSize = Enum.AutomaticSize.Y
+	textLabel.Size = UDim2.new(textLabel.Size.X.Scale, textLabel.Size.X.Offset, 0, 0)
+	textLabel.AutomaticSize = Enum.AutomaticSize.Y
+	local pad = Instance.new("UIPadding")
+	pad.PaddingBottom = UDim.new(0, 10)
+	pad.Parent = row
+end
+
 function Theme.ShowPanel(group, duration)
 	group.Visible = true
 	Theme.Tween(group, {GroupTransparency = 0}, duration):Play()

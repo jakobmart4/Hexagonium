@@ -257,6 +257,15 @@ emptyLabel.TextSize = Theme.TextSize.small
 emptyLabel.TextWrapped = true
 emptyLabel.Parent = cardList
 
+-- Paneel on sisu kõrgune (kuni 300, siis kerib) - tühjana oli see
+-- suur tühi kast paremal ülal
+local function fitCardPanel()
+	local height = math.min(300, 44 + cardLayout.AbsoluteContentSize.Y + 8)
+	cardPanel.Size = UDim2.new(0, 210, 0, height)
+end
+cardLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(fitCardPanel)
+fitCardPanel()
+
 -- =========================================================
 -- ANDMETE UUENDAMINE
 -- =========================================================

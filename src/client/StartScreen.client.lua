@@ -159,8 +159,9 @@ local menuView = makeView("MenuView")
 local inGame = false
 local disarmers = {}
 
--- Title/profiilivaates maailma pole: muu UI (HUD, tutorial, ...) näitaks
--- vana run'i seisu -> peidetud. MENU-s jääb nähtavaks.
+-- Ülekatte ajal on muu UI (HUD, tutorial, ...) peidetud: title/profiilivaates
+-- näitaks see vana run'i seisu, MENU-s jooksis MENU tekst paneelide peale.
+-- Saar ise jääb MENU-s läbi tausta nähtavaks.
 local hideOtherUi = true
 local function applyOtherUi(gui)
 	if gui:IsA("ScreenGui") and gui ~= screenGui then
@@ -170,7 +171,7 @@ end
 playerGui.ChildAdded:Connect(applyOtherUi)
 
 local function show(view)
-	hideOtherUi = view == titleView or view == profilesView
+	hideOtherUi = view ~= nil
 	for _, gui in ipairs(playerGui:GetChildren()) do
 		applyOtherUi(gui)
 	end

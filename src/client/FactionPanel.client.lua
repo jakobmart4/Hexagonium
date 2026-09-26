@@ -47,16 +47,17 @@ screenGui.ResetOnSpawn = false
 screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 screenGui.Parent = playerGui
 
--- Paneel: parem serv, saarepaneeli kohal
+-- Paneel: parem serv, saarepaneeli kohal. Alumine serv fikseeritud,
+-- kõrgus sisu järgi (fitPanel) - nõudeta oli all tühi riba.
 local panel = Instance.new("Frame")
 panel.Name = "FactionPanel"
-panel.Size = UDim2.new(0, 248, 0, 148)
-panel.Position = UDim2.new(1, -264, 1, -308)
+panel.AnchorPoint = Vector2.new(0, 1)
+panel.Position = UDim2.new(1, -264, 1, -160)
+panel.Size = UDim2.new(0, 248, 0, 96)
 panel.BackgroundColor3 = Theme.UI.background
 panel.BackgroundTransparency = 0.1
 panel.BorderSizePixel = 0
 panel.Parent = screenGui
-Theme.ClampToViewport(panel)
 Theme.Corner(panel, 8)
 
 local panelStroke = Instance.new("UIStroke")
@@ -159,6 +160,13 @@ end)
 refuseButton.MouseButton1Click:Connect(function()
 	decisionRemote:FireServer({accept = false})
 end)
+
+local function fitPanel()
+	local height = acceptButton.Visible and 148 or demandLabel.Visible and 112 or 96
+	panel.Size = UDim2.new(0, 248, 0, height)
+end
+acceptButton:GetPropertyChangedSignal("Visible"):Connect(fitPanel)
+demandLabel:GetPropertyChangedSignal("Visible"):Connect(fitPanel)
 
 -- =========================================================
 -- RUNNAKU HOIATUS (ekraani keskel, ainult Attack olekus)

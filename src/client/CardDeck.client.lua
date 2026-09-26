@@ -84,13 +84,8 @@ corner(toggleButton, 8)
 
 -- ---------- Kaardipaneel ----------
 -- AnimatedPanel (CanvasGroup): sujuv fade sisse/valja, vt Theme.ShowPanel/HidePanel
-local panel = Theme.AnimatedPanel(
-	"DeckPanel",
-	UDim2.new(0, 330, 0, 470),
-	UDim2.new(0, 16, 1, -536),
-	screenGui
-)
-Theme.ClampToViewport(panel)
+local panel = Theme.AnimatedPanel("DeckPanel", UDim2.new(), UDim2.new(), screenGui)
+Theme.FitLeftColumn(panel, 16, 330, 470)
 
 local function setPanelOpen(open)
 	if open then
@@ -387,6 +382,7 @@ local function makeCardButton(cardName, order)
 	descLabel.Font = FONT
 	descLabel.TextSize = Theme.TextSize.small
 	descLabel.Parent = button
+	Theme.GrowWithText(button, descLabel)
 
 	local statusLabel = Instance.new("TextLabel")
 	statusLabel.Name = "Status"

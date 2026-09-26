@@ -88,13 +88,35 @@ screenGui.Parent = playerGui
 -- Vasak veerg, Island Map'i (Minimap.client.lua, 16,16 - 206x224) alla:
 -- see on ainus koht, mida HUD/RunPanel/CardPanel/FactionPanel ei kata
 -- kunagi. Korgem kui varem, sest tekstid on pikemad ja all on Next-nupp.
+local PANEL_X = 16
+local ASIDE_X = 488 -- ehitusmenüü (156 + 320) paremal
 local panel = Theme.AnimatedPanel(
 	"TutorialPanel",
 	UDim2.new(0, 370, 0, 170),
-	UDim2.new(0, 16, 0, 248),
+	UDim2.new(0, PANEL_X, 0, 248),
 	screenGui
 )
-Theme.ClampToViewport(panel)
+
+-- Kaardipakk ja ehitusmenüü avanevad samasse veergu (Theme.FitLeftColumn):
+-- nende ajaks nihkub tutorial kõrvale, et samm jääks loetavaks
+local sidePanels = {}
+local function updateAside()
+	local open = false
+	for _, p in ipairs(sidePanels) do
+		open = open or p.Visible
+	end
+	Theme.Tween(panel, {Position = UDim2.new(0, open and ASIDE_X or PANEL_X, 0, 248)}):Play()
+end
+for guiName, panelName in pairs({HexagoniumBuildMenu = "BuildPanel", HexagoniumCardDeck = "DeckPanel"}) do
+	task.spawn(function()
+		local gui = playerGui:WaitForChild(guiName, 30)
+		local side = gui and gui:WaitForChild(panelName, 30)
+		if side then
+			table.insert(sidePanels, side)
+			side:GetPropertyChangedSignal("Visible"):Connect(updateAside)
+		end
+	end)
+end
 
 local title = Theme.Title("STEP 1 / 9", panel)
 

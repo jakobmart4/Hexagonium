@@ -63,14 +63,9 @@ toggleButton.AutoButtonColor = false
 toggleButton.Parent = screenGui
 corner(toggleButton, 8)
 
--- Menuupaneel
-local panel = Theme.AnimatedPanel(
-	"BuildPanel",
-	UDim2.new(0, 320, 0, 480),
-	UDim2.new(0, 156, 1, -546),
-	screenGui
-)
-Theme.ClampToViewport(panel)
+-- Menuupaneel (suurus/asukoht: Theme.FitLeftColumn)
+local panel = Theme.AnimatedPanel("BuildPanel", UDim2.new(), UDim2.new(), screenGui)
+Theme.FitLeftColumn(panel, 156, 320, 480)
 
 local function setPanelOpen(open)
 	if open then
@@ -376,6 +371,7 @@ local function makeBuildingButton(buildingType, order)
 	descLabel.Font = FONT
 	descLabel.TextSize = Theme.TextSize.small
 	descLabel.Parent = button
+	Theme.GrowWithText(button, descLabel)
 
 	local costLabel = Instance.new("TextLabel")
 	costLabel.Name = "Cost"
