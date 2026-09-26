@@ -268,6 +268,12 @@ Constants.IslandExpansion.MaxRadius = Constants.IslandExpansion.StartRadius
 -- Arvutus: Assembler toodab 1 punkti / 5 sek = 12 punkti/min.
 -- Algkapital 150 lubab avada tootmisahela, edasi tuleb teenida.
 -- ============================================================
+-- Mitu tükki tohib korraga olla (hävinud ei loe). Power Core = Town Hall,
+-- baasi tuum - ainult üks (26.09); hävinuna saab uue ehitada (tase 1).
+Constants.BuildLimits = {
+	PowerCore = 1,
+}
+
 -- 24.09 (Play-test 7c kordus, kasutaja): kõik ~15% kallimaks. Uus ahel
 -- Extractor+Refinery+Assembler = 120 UP, tasub end ära ~10 min (12 UP/min).
 Constants.BuildCosts = {

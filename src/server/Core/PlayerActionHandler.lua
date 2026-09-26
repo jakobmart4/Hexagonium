@@ -143,6 +143,20 @@ function PlayerActionHandler:HandleBuildBuilding(player, request)
 		return
 	end
 
+	local limit = Constants.BuildLimits[buildingType]
+	if limit then
+		local count = 0
+		for _, b in pairs(world.buildings) do
+			if b.buildingType == buildingType and not b.isDestroyed then
+				count += 1
+			end
+		end
+		if count >= limit then
+			self:Notify(player, string.format("You can only have %d %s.", limit, buildingType == "PowerCore" and "Power Core (Town Hall)" or buildingType), "warning")
+			return
+		end
+	end
+
 	local cost = Constants.BuildCosts[buildingType] or 0
 	local bank = world.pointBank
 

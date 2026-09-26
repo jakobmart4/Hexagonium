@@ -173,6 +173,7 @@ highlight.Parent = screenGui
 local occupiedHexes = {}   -- ["q,r"] = true, uuendatakse serverist
 local availablePoints = 0  -- PointBank saldo, serverist
 local costLabels = {}      -- [buildingType] = TextLabel
+local builtCounts = {}     -- [buildingType] = elusate arv (BuildLimits jaoks)
 
 -- Saare viide: saared elavad Workspace.Islands.<nimi> all
 local islandFolderName = nil
@@ -223,6 +224,11 @@ local function canBuildHere(hexPart, buildingType)
 	local q, r = hexPart:GetAttribute("Q"), hexPart:GetAttribute("R")
 	if occupiedHexes[q .. "," .. r] then
 		return false, "Hex already occupied"
+	end
+
+	local limit = Constants.BuildLimits[buildingType]
+	if limit and (builtCounts[buildingType] or 0) >= limit then
+		return false, string.format("Only %d allowed", limit)
 	end
 
 	local info = BuildingInfo.Get(buildingType)
@@ -474,12 +480,15 @@ if stateRemote then
 
 		if payload.buildings then
 			local newOccupied = {}
+			local counts = {}
 			for _, b in ipairs(payload.buildings) do
 				if b.q and b.r then
 					newOccupied[b.q .. "," .. b.r] = true
 				end
+				counts[b.buildingType] = (counts[b.buildingType] or 0) + 1
 			end
 			occupiedHexes = newOccupied
+			builtCounts = counts
 		end
 
 		if payload.islandFolder then
@@ -491,9 +500,17 @@ if stateRemote then
 			availablePoints = payload.resources.UpgradePoints or 0
 			for buildingType, label in pairs(costLabels) do
 				local cost = Constants.BuildCosts[buildingType] or 0
-				label.TextColor3 = (cost <= availablePoints)
-					and Theme.Resources.UpgradePoints
-					or Theme.UI.error
+				local limit = Constants.BuildLimits[buildingType]
+				if limit and (builtCounts[buildingType] or 0) >= limit then
+					-- Ehituspiirang täis (nt Town Hall on juba olemas)
+					label.Text = "BUILT"
+					label.TextColor3 = Theme.UI.textDim
+				else
+					label.Text = Theme.Points(cost)
+					label.TextColor3 = (cost <= availablePoints)
+						and Theme.Resources.UpgradePoints
+						or Theme.UI.error
+				end
 			end
 		end
 	end)
