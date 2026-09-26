@@ -641,6 +641,10 @@ ENNE AVALDAMIST
   [x] RemoteEvent'ide sagedusepiirang (26.09): sama mängija sama päring
       kuni 1x 0,1 s jooksul, kiiremad visatakse ära
       (PlayerActionHandler allowRequest, päris aeg, mitte GameClock)
+  [x] 2 mängijaga Local Server (26.09): eraldi slotid ja saared, iga klient
+      saab ainult oma seisu, laiendus/Extract ei leki, lahkumine kustutab saare
+      ja vabastab sloti (RunEnded Quit), teine mängija jätkab; konsool puhas
+  [x] CardSystemTest 9/9 ja salvestuse püsivus üle Play-sessioonide (26.09)
   [x] Right to Erasure (26.09): Roblox'i kustutusnõude korral Studios
       (API Services sees) Command Bar'ist:
         print(require(game.ServerScriptService.Core.SaveService).EraseUserData(<userId>))

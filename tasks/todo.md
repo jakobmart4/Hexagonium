@@ -47,6 +47,7 @@ Plaan ja põhjendused: `tasks/plan.md`. Roadmap: `docs/HEXAGONIUM_Peadokument.tx
 - [x] 8b. Right to Erasure: `SaveService.EraseUserData(userId)` + juhend peadokumendi §15 (26.09)
 - [x] 8c. Review `20d94a7^..d7e54a9` (4 mõõdet + vastukontroll): 12 kinnitatud leidu parandatud, CardSystemTest 9/9, püsivus kontrollitud (26.09)
 - [x] 8d. `CONSTRAINTS.md` + `scripts/check.sh` (7 automaatreeglit, 4 Studio-kontrolli) (26.09)
+      26.09 tehtud: CardSystemTest 9/9, püsivus üle Play-sessioonide, 2 mängijaga Local Server (eraldi slotid/saared, laiendus ja Extract ei lekkinud, lahkumine vabastas sloti + RunEnded Quit, konsool puhas). Jäänud: check.sh + §15 lõpp-läbivaatus.
 - [ ] 8. Avaldamiseelne kontroll: Debug-lipud (testiväärtused ainult `LocalDebug.lua`-s), CardSystemTest, 2 mängijaga kohalik server, §15 (S)
 - [ ] 9. Avaldamine piiratud betana + tagasivõtuplaan (kasutaja)
 - [ ] 10. Avaldamisjärgne kontroll: salvestus live's, Error Report, Analytics ≤24 h (S)
